@@ -19,11 +19,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --only main
 
 COPY src/ /opt/app/
-# COPY entrypoint.sh /opt/app/
+
 RUN chmod +x /opt/app/entrypoint.sh
 
 CMD ["/opt/app/entrypoint.sh"]
-# # COPY /src .
-# COPY src/ /opt/app/
-
-# CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]

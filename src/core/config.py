@@ -25,11 +25,9 @@ class Server(BaseModel):
 
 class Postgres(BaseSettings):
     host: str = 'postgres'
-    # host: str = 'localhost'
     port: int = 5432
     user: str = 'postgres'
     password: str = 'postgres'
-    # db_name: str = 'postgres'
     db_name: str = 'pg_db'
 
     @property
