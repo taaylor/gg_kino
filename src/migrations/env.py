@@ -22,7 +22,9 @@ from core.config import Postgres
 config = context.config
 
 # sqlalchemy.url = driver://user:pass@localhost/dbname
-config.set_main_option("sqlalchemy.url", f"{Postgres().DATABASE_URL}?async_fallback=True")
+# config.set_main_option("sqlalchemy.url", f"{Postgres().DATABASE_URL}?async_fallback=True")
+sync_url = Postgres().DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+config.set_main_option("sqlalchemy.url", sync_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

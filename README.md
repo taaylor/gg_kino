@@ -1,43 +1,18 @@
 # yandex_kinoservice
 Киносервис
-
-После создания виртуального окружения и установки всех зависимостей в него - создайте БД postgres локально с такими данными:
+В корневой директории проекта:
 ```
-host: str  =  'localhost'
-
-port: int  =  5432
-
-user: str  =  'postgres'
-
-password: str  =  'postgres'
-
-db_name: str  =  'postgres'
+docker compose up --build -d
+docker compose exec postgres psql -U postgres -d pg_db
+\dt
 ```
-Откройте директорию `src/example_application/models.py`
-Добавьте туда новую модель:
-
-    class  MyModel(Base):
-    
-	    __tablename__  =  "my_model"
-    
-      
-    
-	    id: Mapped[int] =  mapped_column(primary_key=True)
-    
-	    some_column: Mapped[str]
-    
-      
-      
-    
-	    def  __str__(self):
-    
-		    return  f"example {self.id}"
-
-Перейдите в директорию src
-
-    cd src
-Выполните команды:
-#аналог python manage.py makemigrations:
-`alembic revision --autogenerate -m "создать MyModel в DB"`
-#аналог python manage.py migrate
-`alembic upgrade head`
+Вывод должен быть:
+```
+              List of relations
+ Schema |      Name       | Type  |  Owner   
+--------+-----------------+-------+----------
+ public | alembic_version | table | postgres
+ public | example         | table | postgres
+ public | example_2       | table | postgres
+(3 rows)
+```

@@ -18,7 +18,12 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --only main
 
-COPY /src .
-RUN alembic revision --autogenerate -m "Миграция из Docker" && alembic upgrade head
+COPY src/ /opt/app/
+# COPY entrypoint.sh /opt/app/
+RUN chmod +x /opt/app/entrypoint.sh
 
-CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]
+CMD ["/opt/app/entrypoint.sh"]
+# # COPY /src .
+# COPY src/ /opt/app/
+
+# CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]

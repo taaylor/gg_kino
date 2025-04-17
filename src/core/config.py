@@ -24,12 +24,13 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 class Postgres(BaseSettings):
-    host: str = 'localhost'
+    host: str = 'postgres'
+    # host: str = 'localhost'
     port: int = 5432
     user: str = 'postgres'
     password: str = 'postgres'
-    db_name: str = 'postgres'
-    # db_name: str = 'pg_db'
+    # db_name: str = 'postgres'
+    db_name: str = 'pg_db'
 
     @property
     def DATABASE_URL(self):
