@@ -35,13 +35,6 @@ class Postgres(BaseSettings):
     def DATABASE_URL(self):
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_name}"
 
-class Elastic(BaseModel):
-    host: str = "localhost"
-    port: int = 9200
-
-    def get_es_host(self) -> str:
-        return f"http://{self.host}:{self.port}"
-
 
 class Redis(BaseModel):
     host: str = "localhost"
@@ -59,7 +52,6 @@ class AppConfig(BaseSettings):
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
 
     db: Postgres = Postgres()
-    elastic: Elastic = Elastic()
     redis: Redis = Redis()
     server: Server = Server()
 
