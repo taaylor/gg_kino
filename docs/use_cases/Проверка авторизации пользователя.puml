@@ -1,0 +1,42 @@
+@startuml S1. Проверка авторизации пользователя
+title S1. Проверка авторизации пользователя
+
+!pragma teoz true
+autonumber
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 200
+
+actor "User" as U
+participant "user-application" as UA
+' participant "auth-service" as AS
+participant "async-api" as AP
+database "revoked-sessions-cache" as CRS
+
+note over U
+    * Предусловия:
+    ** Пользователь авторизован
+    ** Пользователь находится на одной из страниц приложения в авторизованной зоне
+
+    * Триггер:
+    ** Приложение пользователя запрашивает данные на BackEnd
+end note
+
+U->>UA++: Взаимодействует с пользовательским приложением
+UA->AP++: Выполняет запрос для получения данных
+AP->>AP++--: * Распаковывает  access token. \n* Проверяет expires date. \n* Получает uuid сессии пользователя.
+alt #LightYellow Токен истёк expires date < now
+    AP-->>UA: Возвращает ошибку \n **Unauthorized status: 401**
+    UA-->>U: Сбрасывает токены пользвоателя. Отображает экран авторизации.
+else Токен валидный expires date > now
+    AP->>CRS: Проверяет сессию пользователя по списку отозванных сессий.
+    alt #Moccasin Сессия пользователя найдена в списке отозванных
+        AP-->>UA: Возвращает ошибку \n **Unauthorized status: 401**
+        UA-->>U: Сбрасывает токены пользвоателя. Отображает экран авторизации.
+    else Сессии пользователя нет в списке отозванных
+        AP->>AP++--: Выполняет бизнес логику для ответа на запрос.
+        AP-->>UA--: Возвращает контент \n **OK status: 200**
+        UA-->>U--: Отображает запрошенную информацию пользователю
+    end
+end
+
+@enduml
