@@ -10,11 +10,7 @@ from alembic import context
 #! возможно можно убрать
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
-# from src.database import Base
-# from src.example_application.models import Example
-# from src.core.config import Postgres
 from database import Base
-from example_application.models import Example
 from core.config import Postgres
 
 # this is the Alembic Config object, which provides
@@ -22,7 +18,6 @@ from core.config import Postgres
 config = context.config
 
 # sqlalchemy.url = driver://user:pass@localhost/dbname
-# config.set_main_option("sqlalchemy.url", f"{Postgres().DATABASE_URL}?async_fallback=True")
 sync_url = Postgres().DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 config.set_main_option("sqlalchemy.url", sync_url)
 
