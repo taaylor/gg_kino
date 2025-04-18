@@ -1,0 +1,65 @@
+[project]
+name = "venv"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "gunicorn ==23.0.0",
+    "fastapi[all] ==0.115.12",
+    "sqlalchemy ==2.0.40",
+    "alembic ==1.15.2",
+    "uvicorn ==0.34.1",
+    "asyncpg ==0.30.0",
+    "python-dotenv ==1.1.0",
+    "pydantic-settings ==2.8.1",
+    "ipython ==9.1.0",
+    "greenlet ==3.2.0",
+    "psycopg2 ==2.9.10",
+    "psycopg2-binary ==2.9.10"
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.1.0"
+isort = "^6.0.0"
+black = "^25.1.0"
+pytest = "^8.3.4"
+flake8 = "^7.1.2"
+debugpy = "^1.8.13"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.venv
+    | build
+    | dist
+    | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.flake8]
+max-line-length = 100
+exclude = [".git", "__pycache__", "venv", ".venv"]
+
+[tool.pytest.ini_options]
+#устраняет предупреждение и предотвращает проблемы с будущими версиями pytest-asyncio
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
