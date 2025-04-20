@@ -1547,6 +1547,22 @@ files = [
 ]
 
 [[package]]
+name = "redis"
+version = "5.0.4"
+description = "Python client for Redis database and key-value store"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "redis-5.0.4-py3-none-any.whl", hash = "sha256:7adc2835c7a9b5033b7ad8f8918d09b7344188228809c98df07af226d39dec91"},
+    {file = "redis-5.0.4.tar.gz", hash = "sha256:ec31f2ed9675cc54c21ba854cfe0462e6faf1d83c8ce5944709db8a4700b9c61"},
+]
+
+[package.extras]
+hiredis = ["hiredis (>=1.0.0)"]
+ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==20.0.1)", "requests (>=2.26.0)"]
+
+[[package]]
 name = "rich"
 version = "14.0.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
@@ -2167,4 +2183,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "29dc2bd87a7619a7e8a57368ea75f2a1dd0605350f1557190eb34e8777f9b571"
+content-hash = "e98141a51cac9beaf2823a73f9da2c4b200fc81b6d13803be48127c5cbbd67be"

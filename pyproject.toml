@@ -16,7 +16,8 @@ dependencies = [
     "pydantic-settings ==2.8.1",
     "ipython ==9.1.0",
     "greenlet ==3.2.0",
-    "passlib ==1.7.4"
+    "passlib ==1.7.4",
+    "redis (==5.0.4)"
 ]
 
 [tool.poetry]
