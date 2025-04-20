@@ -65,7 +65,7 @@ def _get_config() -> AppConfig:
     log.apply()
 
     app_config = AppConfig()
-    # logger.info(f"app_config.initialized: {app_config.model_dump_json()}")
+    logger.info(f"app_config.initialized: {app_config.model_dump_json()}")
     return app_config
 
 

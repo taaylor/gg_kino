@@ -20,7 +20,6 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade():
     op.execute("CREATE SCHEMA IF NOT EXISTS profile")
     op.execute("CREATE SCHEMA IF NOT EXISTS session")
-    op.execute("SET search_path TO profile,session,public;")
 
 
 def downgrade():
