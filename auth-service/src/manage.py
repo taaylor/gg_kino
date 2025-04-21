@@ -1,10 +1,10 @@
 import typer
-from commands.createsuperuser import createsuperuser
-
+from commands import createsuperuser
 
 app = typer.Typer()
 
-app.command()(createsuperuser)
+app.add_typer(createsuperuser.app)
+app.command()(createsuperuser.createsuperuser)
 
 if __name__ == "__main__":
     app()

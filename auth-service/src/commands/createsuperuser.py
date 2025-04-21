@@ -8,11 +8,18 @@ from models.models import User, UserCred
 
 MAX_ATTEMPTS = 3
 
+app = typer.Typer()
+
 
 def check_common_passwords(password):
     with open('commands/common-passwords.txt', "r", encoding="utf-8") as f:
         common_passwords_ls = list(filter(bool, f.read().split('\n')))
-        return password in common_passwords_ls
+        validate_password = (
+            password.isalpha()
+            or password.isdigit()
+            or len(password) < 8
+        )
+        return (password in common_passwords_ls) or validate_password
 
 
 def prompt_passwords_with_confirmation() -> str:
@@ -47,11 +54,9 @@ def createsuperuser():
                 first_name=first_name
             )
             session.add(user)
-            await session.commit()
-            await session.refresh(user)
 
             user_cred = UserCred(
-                user_id=user.id,
+                user=user,
                 # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
                 # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
                 password=argon2.hash(password)
