@@ -29,8 +29,12 @@ class Postgres(BaseSettings):
     db: str = "pg_db"
 
     @property
-    def DATABASE_URL(self):
+    def ASYNC_DATABASE_URL(self):
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+
+    @property
+    def SYNC_DATABASE_URL(self):
+        return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
 
 
 class Redis(BaseModel):
