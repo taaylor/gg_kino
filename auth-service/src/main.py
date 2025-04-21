@@ -1,3 +1,4 @@
+from api.v1 import example_root
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -15,3 +16,5 @@ app = FastAPI(
 
 # Подключение обработчиков
 setup_exception_handlers(app)
+
+app.include_router(example_root.router, prefix="/api/v1/example-root", tags=["example"])

@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 async def lifespan(app: FastAPI):
 
     engine = create_async_engine(app_config.postgres.DATABASE_URL, echo=True, future=True)
-    postgres.sessionmaker = sessionmaker(
+    postgres.async_session_maker = sessionmaker(
         bind=engine,
         class_=AsyncSession,
         expire_on_commit=False,
