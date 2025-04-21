@@ -18,7 +18,8 @@ dependencies = [
     "greenlet ==3.2.0",
     "passlib ==1.7.4",
     "typer ==0.15.2",
-    "argon2-cffi (>=23.1.0,<24.0.0)"
+    "argon2-cffi (>=23.1.0,<24.0.0)",
+    "redis ==5.0.4",
 ]
 
 [tool.poetry]

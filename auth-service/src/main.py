@@ -1,7 +1,9 @@
+from api.v1 import example_root
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from api.v1 import example_root
+from utils.connectors import lifespan
+from utils.exceptions_handlers import setup_exception_handlers
 
 app = FastAPI(
     title="Auth API для онлайн-кинотеатра",
@@ -9,5 +11,10 @@ app = FastAPI(
     docs_url=app_config.docs_url,
     openapi_url=app_config.openapi_url,
     default_response_class=ORJSONResponse,
+    lifespan=lifespan,
 )
+
+# Подключение обработчиков
+setup_exception_handlers(app)
+
 app.include_router(example_root.router, prefix="/api/v1/example-root", tags=["example"])

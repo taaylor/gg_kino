@@ -29,4 +29,3 @@ bash scripts/create_superuser.sh
 или
 ```
 docker compose exec auth-api python manage.py createsuperuser
-```
