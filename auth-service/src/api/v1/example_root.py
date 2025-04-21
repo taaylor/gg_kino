@@ -18,4 +18,5 @@ async def example_root(session=Depends(get_session)):
     )
     session.add(user_cred)
     await session.commit()
+
     return {"message": "example root"}
