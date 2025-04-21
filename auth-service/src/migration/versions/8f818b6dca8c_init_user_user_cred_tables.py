@@ -25,7 +25,7 @@ def upgrade() -> None:
         "user",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("username", sa.String(length=50), nullable=False),
-        sa.Column("first_name", sa.String(length=50), nullable=False),
+        sa.Column("first_name", sa.String(length=50), nullable=True),
         sa.Column("last_name", sa.String(length=50), nullable=True),
         sa.Column("gender", sa.String(length=50), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -37,7 +37,7 @@ def upgrade() -> None:
     op.create_table(
         "user_cred",
         sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("email", sa.String(length=255), nullable=True),
+        sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("password", sa.String(length=255), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),

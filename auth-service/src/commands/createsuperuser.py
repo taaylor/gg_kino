@@ -1,5 +1,3 @@
-import asyncio
-
 import typer
 from db.postgres import async_session_maker
 from models.models import User, UserCred
@@ -41,20 +39,21 @@ def createsuperuser():
         if confirmation.lower() != "y":
             raise typer.Exit(code=1)
 
-    async def create():
-        async with async_session_maker() as session:
-            user = User(username=username, first_name=first_name)
-            session.add(user)
+    create(username, first_name, password)
 
-            user_cred = UserCred(
-                user=user,
-                # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
-                # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
-                password=argon2.hash(password),
-            )
-            session.add(user_cred)
-            await session.commit()
 
-            typer.echo(f"Суперпользователь создан: {username}")
+def create(username: str, first_name: str, password: str):
+    with async_session_maker() as session:
+        user = User(username=username, first_name=first_name)
+        session.add(user)
 
-    asyncio.run(create())
+        user_cred = UserCred(
+            user=user,
+            # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
+            # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
+            password=argon2.hash(password),
+        )
+        session.add(user_cred)
+        session.commit()
+
+        typer.echo(f"Суперпользователь создан: {username}")

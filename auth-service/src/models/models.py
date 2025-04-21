@@ -12,7 +12,7 @@ class User(Base):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    first_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     gender: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
@@ -35,7 +35,7 @@ class UserCred(Base):
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("profile.user.id"), primary_key=True
     )
-    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="user_cred", uselist=False)
