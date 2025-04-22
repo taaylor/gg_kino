@@ -19,7 +19,8 @@ dependencies = [
     "passlib ==1.7.4",
     "typer ==0.15.2",
     "argon2-cffi (>=23.1.0,<24.0.0)",
-    "redis ==5.0.4",
+    "redis (>=5.2.1,<6.0.0)",
+    "psycopg2 (>=2.9.10,<3.0.0)",
 ]
 
 [tool.poetry]
