@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import AsyncGenerator
 
-from sqlalchemy import func
+from core.config import app_config
+from sqlalchemy import create_engine, func
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -28,6 +29,14 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 async_session_maker: sessionmaker | None = None
+
+
+sync_engine = create_engine(app_config.postgres.SYNC_DATABASE_URL)
+sync_session_maker = sessionmaker(
+    bind=sync_engine,
+    autoflush=False,
+    autocommit=False,
+)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
