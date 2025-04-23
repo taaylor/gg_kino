@@ -91,7 +91,7 @@ class RolesPermissions(Base):
     descriptions: Mapped[str | None] = mapped_column(String(500))
 
     # обратная связь с role
-    role: Mapped["DictRoles"] = relationship("DictRoles", back_populates="permission")
+    role: Mapped["DictRoles"] = relationship("DictRoles", back_populates="permissions")
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(permission={self.permission})>"
