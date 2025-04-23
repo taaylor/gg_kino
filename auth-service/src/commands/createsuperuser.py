@@ -1,5 +1,5 @@
 import typer
-from db.postgres import async_session_maker
+from db.postgres import sync_session_maker
 from models.models import User, UserCred
 from passlib.hash import argon2
 
@@ -30,7 +30,7 @@ def prompt_passwords_with_confirmation() -> str:
 
 def createsuperuser():
     username = typer.prompt("username")
-    first_name = typer.prompt("имя")
+    email = typer.prompt("email")
     password = prompt_passwords_with_confirmation()
     if check_common_passwords(password):
         confirmation = typer.prompt(
@@ -39,16 +39,17 @@ def createsuperuser():
         if confirmation.lower() != "y":
             raise typer.Exit(code=1)
 
-    create(username, first_name, password)
+    create(username, email, password)
 
 
-def create(username: str, first_name: str, password: str):
-    with async_session_maker() as session:
-        user = User(username=username, first_name=first_name)
+def create(username: str, email: str, password: str):
+    with sync_session_maker() as session:
+        user = User(username=username)
         session.add(user)
 
         user_cred = UserCred(
             user=user,
+            email=email,
             # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
             # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
             password=argon2.hash(password),

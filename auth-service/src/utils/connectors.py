@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    engine = create_async_engine(app_config.postgres.DATABASE_URL, echo=True, future=True)
+    engine = create_async_engine(app_config.postgres.ASYNC_DATABASE_URL, echo=True, future=True)
     postgres.async_session_maker = sessionmaker(
         bind=engine,
         class_=AsyncSession,

@@ -1,0 +1,69 @@
+```
+@startuml Проверка авторизации пользователя
+title Проверка авторизации пользователя
+
+!pragma teoz true
+autonumber
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 200
+
+actor "User" as U
+participant "user-application" as UA
+participant "auth-service" as AS
+participant "async-api" as AP
+database "revoked-sessions-cache" as CRS
+
+note over U
+    * Предусловия:
+    ** Пользователь авторизован
+    ** Пользователь находится на одной из страниц приложения в авторизованной зоне
+
+    * Триггер:
+    ** Приложение пользователя запрашивает данные на BackEnd
+end note
+
+U->>UA++: Взаимодействует с пользовательским приложением
+UA->AP++: Выполняет запрос для получения данных
+AP->>AP++--: * Распаковывает access token. \n* Проверяет expires date. \n* Получает uuid сессии пользователя. \n* Получает права пользователя.
+alt #LightYellow Токен истёк (expires date < now)
+    AP-->>UA: Возвращает ошибку \n **Unauthorized status: 401**
+    UA->AS++: Производит попытку обновления сессии с помощью метода refresh и refresh токена.
+    alt #Moccasin Refresh токен валидный и сессия есть в БД
+        AS-->>UA: Возвращает новую пару access+refresh
+        UA->AP: Повторяет пользовательский запрос
+        note over AP,UA #LightGreen
+        Повтор сценария с шага 2
+        end note
+    else Refresh токен невалидный или сессии нет в БД
+        AS-->>UA--: Возвращает ошибку \n **Unauthorized status: 401**
+        UA-->>U: Сбрасывает токены пользователя. Отображает экран авторизации.
+    end
+else Токен валидный (expires date > now)
+    AP->>CRS: Проверяет сессию пользователя по списку отозванных сессий.
+    alt #Lavender Сессия пользователя найдена в списке отозванных
+        AP-->>UA: Возвращает ошибку \n **Unauthorized status: 401**
+        UA-->>AS: Производит попытку обновления сессии с помощью метода refresh и refresh токена.
+        alt #Moccasin Refresh токен валидный и сессия есть в БД
+            AS-->>UA: Возвращает новую пару access+refresh
+            UA->AP: Повторяет пользовательский запрос
+            note over AP,UA #LightGreen
+            Повтор сценария с шага 2
+            end note
+        else Refresh токен невалидный или сессии нет в БД
+            AS-->>UA--: Возвращает ошибку \n **Unauthorized status: 401**
+            UA-->>U: Сбрасывает токены пользователя. Отображает экран авторизации.
+        end
+    else Сессии пользователя нет в списке отозванных
+        AP->>AP++--: Проверяет достаточность прав пользователя для выполнения запрошенного действия
+        alt #Moccasin Прав достаточно
+            AP->>AP++--: Выполняет бизнес-логику для ответа на запрос.
+            AP-->>UA: Возвращает контент \n **OK status: 200**
+            UA-->>U: Отображает запрошенную информацию пользователю
+        else Прав недостаточно
+            AP-->>UA--: Возвращает ошибку \n **Forbidden status: 403**
+            UA-->>U--: Уведомляет пользователя о недостаточности прав для выполнения действия
+        end
+    end
+end
+@enduml
+```
