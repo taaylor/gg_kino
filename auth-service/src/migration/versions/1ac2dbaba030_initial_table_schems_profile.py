@@ -1,8 +1,8 @@
 """initial_table_schems_profile
 
-Revision ID: 93989780328e
+Revision ID: 1ac2dbaba030
 Revises: bf0ce157b753
-Create Date: 2025-04-22 16:59:16.318626
+Create Date: 2025-04-23 09:23:59.387162
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "93989780328e"
+revision: str = "1ac2dbaba030"
 down_revision: Union[str, None] = "bf0ce157b753"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table(
         "dict_roles",
         sa.Column("role", sa.String(length=50), nullable=False),
-        sa.Column("descriptions", sa.String(), nullable=True),
+        sa.Column("descriptions", sa.String(length=500), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("role"),
@@ -34,27 +34,24 @@ def upgrade() -> None:
         "roles_permissions",
         sa.Column("role_code", sa.String(length=50), nullable=False),
         sa.Column("permission", sa.String(length=50), nullable=False),
-        sa.Column("descriptions", sa.String(), nullable=True),
+        sa.Column("descriptions", sa.String(length=500), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
             ["role_code"],
             ["profile.dict_roles.role"],
         ),
-        sa.PrimaryKeyConstraint("role_code"),
-        sa.UniqueConstraint("role_code", "permission", name="role_permission_idx"),
+        sa.PrimaryKeyConstraint("role_code", "permission", name="role_permission_pk"),
         schema="profile",
     )
     op.create_table(
         "user",
-        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("username", sa.String(length=50), nullable=False),
         sa.Column("first_name", sa.String(length=50), nullable=True),
         sa.Column("last_name", sa.String(length=50), nullable=True),
         sa.Column(
-            "gender",
-            sa.Enum("MALE", "FEMALE", name="genderenum", create_type=False),
-            nullable=False,
+            "gender", sa.Enum("MALE", "FEMALE", name="genderenum", create_type=False), nullable=True
         ),
         sa.Column("role_code", sa.String(length=50), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -69,7 +66,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "user_cred",
-        sa.Column("user_id", sa.UUID(), nullable=False),
+        sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("password", sa.String(length=255), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
