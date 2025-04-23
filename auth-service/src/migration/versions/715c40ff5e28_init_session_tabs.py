@@ -1,7 +1,7 @@
 """init session tabs
 
 Revision ID: 715c40ff5e28
-Revises: 8f818b6dca8c
+Revises: 1ac2dbaba030
 Create Date: 2025-04-22 23:16:03.996359
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "715c40ff5e28"
-down_revision: Union[str, None] = "8f818b6dca8c"
+down_revision: Union[str, None] = "1ac2dbaba030"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

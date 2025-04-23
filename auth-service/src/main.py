@@ -1,4 +1,5 @@
 from api.v1 import example_root
+from api.v1.auth import auth_api
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -18,3 +19,4 @@ app = FastAPI(
 setup_exception_handlers(app)
 
 app.include_router(example_root.router, prefix="/api/v1/example-root", tags=["example"])
+app.include_router(auth_api.router, tags=["auth"])
