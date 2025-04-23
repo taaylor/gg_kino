@@ -1,4 +1,4 @@
-from api.v1 import example_root
+from api.v1.update_user_data.routers import router
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -17,4 +17,4 @@ app = FastAPI(
 # Подключение обработчиков
 setup_exception_handlers(app)
 
-app.include_router(example_root.router, prefix="/api/v1/example-root", tags=["example"])
+app.include_router(router, prefix="/api/v1/update", tags=["update"])
