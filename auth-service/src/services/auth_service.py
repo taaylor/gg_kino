@@ -1,8 +1,9 @@
+import datetime
 import logging
 import uuid
 from functools import lru_cache
 
-from api.v1.auth.schemas import RegisterRequest
+from api.v1.auth.schemas import RegisterRequest, RegisterResponse, Session
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends
@@ -10,9 +11,13 @@ from models.models import (  # DictRoles,; RolesPermissions,; UserSession,; User
     User,
     UserCred,
 )
+from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
+
+pwd_context = CryptContext(schemes=["argon2"])
 
 
 class RegisterService:
@@ -30,19 +35,32 @@ class RegisterService:
                 role_code="UNSUB_USER",
             )
 
-            user_cred = UserCred(
-                user_id=user.id, email=user_data.email, password=user_data.password
-            )
+            hashed_password = pwd_context.hash(user_data.password)
+
+            user_cred = UserCred(user_id=user.id, email=user_data.email, password=hashed_password)
 
             self.repository.add(user)
             self.repository.add(user_cred)
             await self.repository.commit()
-
             logger.info(f"Создан пользователь: {user.id=}, {user.username=}")
 
-        except Exception:
+            return RegisterResponse(
+                user_id=user.id,
+                username=user.username,
+                email=user_cred.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                gender=user.gender,
+                session=Session(
+                    access_token="access_token",
+                    refresh_token="refresh_token",
+                    expires_at=datetime.datetime.now(datetime.timezone.utc),
+                ),
+            )
+
+        except IntegrityError as e:
             await self.repository.rollback()
-            logger.error(f"Ошибка создания пользователя: {user.id=}, {user.username=}")
+            logger.error(f"Нарушение консистентности данных: {e}")
 
 
 class LoginService:
@@ -59,6 +77,7 @@ class RefreshService:
     pass
 
 
+@lru_cache
 def get_register_service(repository: AsyncSession = Depends(get_session)) -> RegisterService:
     return RegisterService(repository=repository)
 

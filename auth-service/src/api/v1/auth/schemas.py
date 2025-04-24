@@ -34,7 +34,7 @@ class RegisterRequest(UserFields):
     password: str = Field(...)
 
 
-class RegisterResponce(UserFields):
+class RegisterResponse(UserFields):
     user_id: UUID = Field(...)
     session: Session = Field(...)
 
@@ -44,7 +44,7 @@ class LoginRequest(BaseModel):
     password: str = Field(...)
 
 
-class LoginResponce(Session):
+class LoginResponse(Session):
     access_token: str = Field(...)
     refresh_token: str = Field(...)
     expires_at: datetime = Field(...)
@@ -54,7 +54,7 @@ class RefreshRequest(RefreshTokenField):
     refresh_token: str = Field(...)
 
 
-class RefreshResponce(Session):
+class RefreshResponse(Session):
     access_token: str = Field(...)
     refresh_token: str = Field(...)
     expires_at: datetime = Field(...)

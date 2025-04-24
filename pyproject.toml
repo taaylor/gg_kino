@@ -49,6 +49,7 @@ exclude = '''
     | build
     | dist
     | migrations
+    | migration
 )/
 '''
 
