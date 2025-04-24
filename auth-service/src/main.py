@@ -17,4 +17,4 @@ app = FastAPI(
 # Подключение обработчиков
 setup_exception_handlers(app)
 
-app.include_router(router, prefix="/api/v1/update", tags=["update"])
+app.include_router(router, prefix="/api/v1/users", tags=["users"])

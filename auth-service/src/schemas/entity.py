@@ -11,3 +11,4 @@ class ChangeUsernameRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     id: UUID
     password: str
+    repeat_password: str
