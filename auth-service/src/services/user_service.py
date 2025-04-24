@@ -1,4 +1,4 @@
-from models.models import User, UserCred
+from models.models import DictRoles, User, UserCred
 from passlib.hash import argon2
 from services.base_service import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,3 +44,21 @@ class UserCredService(BaseService):
         user_cred.password = argon2.hash(new_password)
         await session.commit()
         return user_cred
+
+
+class RoleService(BaseService):
+    model = DictRoles
+
+    @classmethod
+    async def set_role(cls, session: AsyncSession, user: User, new_role: str) -> User:
+        """
+        Устанавливает новую роль для пользователя и сохраняет изменения в базе данных.
+
+        Аргументы должны передаваться позиционно:
+        - session: Асинхронная сессия SQLAlchemy.
+        - user: Объект пользователя, чью роль нужно изменить.
+        - new_role: Новая роль пользователя.
+        """
+        user.role_code = new_role
+        await session.commit()
+        return user

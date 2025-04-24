@@ -1,8 +1,12 @@
+from typing import Annotated
+from uuid import UUID
+
 from db.postgres import get_session
-from fastapi import APIRouter, Depends, HTTPException, status
-from models.models import User, UserCred
+from fastapi import APIRouter, Depends, HTTPException, Path, status
+from models.models import DictRoles, User, UserCred
+from models.models_types import RoleEnum
 from schemas.entity import ChangePasswordRequest, ChangeUsernameRequest
-from services.user_service import UserCredService, UserService
+from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
@@ -45,3 +49,41 @@ async def change_password(
         )
     user_cred = await UserCredService.set_password(session, user_cred, new_password)
     return {"success": "Your password changed."}
+
+
+@router.put("/{user_id}/role")
+async def assign_role(
+    user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
+    role: RoleEnum,
+    session: AsyncSession = Depends(get_session),
+):
+    new_role = role.value
+    user = await UserService.find_one_or_none(session, User.id == user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="user not found",
+        )
+    role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"role {new_role} not found",
+        )
+    await RoleService.set_role(session, user, new_role)
+    return {"success": f"User {user.username} get role {new_role}."}
+
+
+@router.delete("/{user_id}/role")
+async def revoke_role(
+    user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
+    session: AsyncSession = Depends(get_session),
+):
+    user = await UserService.find_one_or_none(session, User.id == user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="user not found",
+        )
+    await RoleService.set_role(session, user, RoleEnum.ANONYMOUS.value)
+    return {"success": f"User role was revoked, and set to {RoleEnum.ANONYMOUS.value}."}
