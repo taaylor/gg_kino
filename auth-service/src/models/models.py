@@ -43,7 +43,9 @@ class UserCred(Base):
     __tablename__ = "user_cred"
     __table_args__ = {"schema": "profile"}
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profile.user.id"), primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profile.user.id", ondelete="CASCADE"), primary_key=True
+    )
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str] = mapped_column(String(255))
 
@@ -69,7 +71,10 @@ class DictRoles(Base):
 
     # обратная связь с permission (one-to-many)
     permissions: Mapped[list["RolesPermissions"]] = relationship(
-        "RolesPermissions", back_populates="role", lazy="joined"
+        "RolesPermissions",
+        back_populates="role",
+        cascade="all, delete-orphan",
+        passive_deletes=True,  # БД сама удаляет связанные данные
     )
 
     def __repr__(self):
@@ -86,12 +91,14 @@ class RolesPermissions(Base):
         {"schema": "profile"},
     )
 
-    role_code: Mapped[str] = mapped_column(ForeignKey("profile.dict_roles.role"))
+    role_code: Mapped[str] = mapped_column(
+        ForeignKey("profile.dict_roles.role", ondelete="CASCADE")
+    )
     permission: Mapped[str] = mapped_column(String(50))
     descriptions: Mapped[str | None] = mapped_column(String(500))
 
     # обратная связь с role
-    role: Mapped["DictRoles"] = relationship("DictRoles", back_populates="permission")
+    role: Mapped["DictRoles"] = relationship("DictRoles", back_populates="permissions")
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(permission={self.permission})>"

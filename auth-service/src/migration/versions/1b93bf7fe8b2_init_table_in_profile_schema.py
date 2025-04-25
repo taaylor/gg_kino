@@ -1,8 +1,8 @@
-"""initial_table_schems_profile
+"""init table in profile schema
 
-Revision ID: 1ac2dbaba030
+Revision ID: 1b93bf7fe8b2
 Revises: bf0ce157b753
-Create Date: 2025-04-23 09:23:59.387162
+Create Date: 2025-04-25 11:25:55.840268
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "1ac2dbaba030"
+revision: str = "1b93bf7fe8b2"
 down_revision: Union[str, None] = "bf0ce157b753"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,10 +37,7 @@ def upgrade() -> None:
         sa.Column("descriptions", sa.String(length=500), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["role_code"],
-            ["profile.dict_roles.role"],
-        ),
+        sa.ForeignKeyConstraint(["role_code"], ["profile.dict_roles.role"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("role_code", "permission", name="role_permission_pk"),
         schema="profile",
     )
@@ -71,10 +68,7 @@ def upgrade() -> None:
         sa.Column("password", sa.String(length=255), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["user_id"],
-            ["profile.user.id"],
-        ),
+        sa.ForeignKeyConstraint(["user_id"], ["profile.user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("user_id"),
         sa.UniqueConstraint("email"),
         schema="profile",

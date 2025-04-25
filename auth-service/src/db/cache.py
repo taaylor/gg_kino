@@ -36,6 +36,7 @@ class RedisCache(Cache):
     @redis_handler_exeptions
     async def set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в redis"""
+        await self.redis.delete(key)  # инвалидация кеша
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
 
