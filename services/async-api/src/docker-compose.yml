@@ -11,7 +11,7 @@ services:
       - "xpack.security.enabled=false"
     command: bin/elasticsearch
     expose:
-      - ${ES_PORT}
+      - ${ELASTIC_PORT}
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
@@ -23,7 +23,7 @@ services:
     image: kibana:8.16.5
     container_name: kibana-container
     environment:
-      - ELASTICSEARCH_HOSTS="http://${ES_HOST}:${ES_PORT}"
+      - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
       - ELASTICSEARCH_SECURITY_ENABLED=false
     depends_on:
       elasticsearch:
@@ -41,8 +41,8 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      - ES_HOST=${ES_HOST}
-      - ES_PORT=${ES_PORT}
+      - ES_HOST=${ELASTIC_HOST}
+      - ES_PORT=${ELASTIC_PORT}
     restart: "no"
 
   redis:
@@ -92,8 +92,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - ./.env
     restart: always
 
   nginx:

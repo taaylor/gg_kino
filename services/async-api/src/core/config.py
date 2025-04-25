@@ -43,7 +43,7 @@ class AppConfig(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/api/openapi"
     openapi_url: str = "/api/openapi.json"
-    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
+    cache_expire_in_seconds: int = 300
 
     elastic: Elastic = Elastic()
     redis: Redis = Redis()
@@ -51,9 +51,8 @@ class AppConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
-        env_prefix="api_",
         case_sensitive=False,
-        env_nested_delimiter="__",
+        env_nested_delimiter="_",
         extra="ignore",
     )
 

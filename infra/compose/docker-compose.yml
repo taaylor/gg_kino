@@ -1,0 +1,21 @@
+
+services:
+  elasticsearch:
+    image: elasticsearch:8.16.5
+    container_name: elasticsearch-container
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+    command: bin/elasticsearch
+    ports:
+      - ${ES_PORT}:${ES_PORT}
+    expose:
+      - ${ES_PORT}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
