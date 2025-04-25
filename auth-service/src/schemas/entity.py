@@ -12,3 +12,7 @@ class ChangePasswordRequest(BaseModel):
     id: UUID
     password: str
     repeat_password: str
+
+
+class AssignRoleRequest(BaseModel):
+    role: str

@@ -6,13 +6,6 @@ class GenderEnum(str, Enum):
     FEMALE = "женщина"
 
 
-class RoleEnum(str, Enum):
-    ADMIN = "ADMIN"
-    SUB_USER = "SUB_USER"
-    UNSUB_USER = "UNSUB_USER"
-    ANONYMOUS = "ANONYMOUS"
-
-
 class PermissionEnum(str, Enum):
     CRUD_ROLE = "CRUD_ROLE"
     ASSIGN_ROLE = "ASSIGN_ROLE"

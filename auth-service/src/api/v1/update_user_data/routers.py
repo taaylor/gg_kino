@@ -4,26 +4,37 @@ from uuid import UUID
 from db.postgres import get_session
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from models.models import DictRoles, User, UserCred
-from models.models_types import RoleEnum
-from schemas.entity import ChangePasswordRequest, ChangeUsernameRequest
+from schemas.entity import AssignRoleRequest, ChangePasswordRequest, ChangeUsernameRequest
 from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-@router.put("/change-username")
+@router.put(
+    "/change-username",
+    description="Меняет имя у пользователя",
+    # summary="Фильмы с участием персоны",
+    # response_description="Список кинопроизведений: UUID, название и рейтинг",
+)
 async def change_username(
     request_body: ChangeUsernameRequest,
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Меняет имя пользователя."""
-    user = await UserService.get_object_or_404(session, User.id == request_body.id)
+    user = await UserService.find_one_or_none(session, User.id == request_body.id)
+    if not user:
+        return None
     user = await UserService.set_username(session, user, request_body.username)
     return {"success": f"Your new username: '{user.username}'."}
 
 
-@router.put("/change-password")
+@router.put(
+    "/change-password",
+    description="Меняет пароль пользователя",
+    # summary="Фильмы с участием персоны",
+    # response_description="Список кинопроизведений: UUID, название и рейтинг",
+)
 async def change_password(
     request_body: ChangePasswordRequest,
     session: AsyncSession = Depends(get_session),
@@ -35,31 +46,49 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Passwords do not match",
         )
-    user_cred = await UserCredService.get_object_or_404(
-        session, UserCred.user_id == request_body.id
-    )
+    user_cred = await UserCredService.find_one_or_none(session, UserCred.user_id == request_body.id)
+    if not user_cred:
+        return None
     user_cred = await UserCredService.set_password(session, user_cred, new_password)
     return {"success": "Your password changed."}
 
 
-@router.put("/{user_id}/role")
+@router.put(
+    "/{user_id}/role",
+    description="Задаёт роль пользователю",
+    # summary="Фильмы с участием персоны",
+    # response_description="Список кинопроизведений: UUID, название и рейтинг",
+)
 async def assign_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
-    role: RoleEnum,
+    request_body: AssignRoleRequest,
     session: AsyncSession = Depends(get_session),
 ):
-    new_role = role.value
-    user = await UserService.get_object_or_404(session, User.id == user_id)
-    role = await RoleService.get_object_or_404(session, DictRoles.role == new_role)
+    new_role = request_body.role
+    user = await UserService.find_one_or_none(session, User.id == user_id)
+    # можно было бы `if not user or not role:`
+    # но сделал так чтобы предотвратить лишний запрос в БД если user не найден
+    if not user:
+        return None
+    role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
+    if not role:
+        return None
     await RoleService.set_role(session, user, new_role)
     return {"success": f"User {user.username} get role {new_role}."}
 
 
-@router.delete("/{user_id}/role")
+@router.delete(
+    "/{user_id}/role",
+    description="Удаляет роль у пользователя и ставит ANONYMOUS",
+    # summary="Фильмы с участием персоны",
+    # response_description="Список кинопроизведений: UUID, название и рейтинг",
+)
 async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
     session: AsyncSession = Depends(get_session),
 ):
-    user = await UserService.get_object_or_404(session, User.id == user_id)
-    await RoleService.set_role(session, user, RoleEnum.ANONYMOUS.value)
-    return {"success": f"User role was revoked, and set to {RoleEnum.ANONYMOUS.value}."}
+    user = await UserService.find_one_or_none(session, User.id == user_id)
+    if not user:
+        return None
+    await RoleService.set_role(session, user, "ANONYMOUS")
+    return {"success": f"User role was revoked, and set to {'ANONYMOUS'}."}

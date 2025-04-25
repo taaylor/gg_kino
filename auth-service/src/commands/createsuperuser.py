@@ -1,7 +1,7 @@
 import typer
 from db.postgres import sync_session_maker
 from models.models import DictRoles, RolesPermissions, User, UserCred
-from models.models_types import PermissionEnum, RoleEnum
+from models.models_types import PermissionEnum
 from passlib.hash import argon2
 
 MAX_ATTEMPTS = 3
@@ -45,19 +45,19 @@ def createsuperuser():
 
 def create(username: str, email: str, password: str):
     with sync_session_maker() as session:
-        role = session.get(DictRoles, RoleEnum.ADMIN.value)
+        role = session.get(DictRoles, "ADMIN")
         if not role:
             role = DictRoles(
-                role=RoleEnum.ADMIN.value,
+                role="ADMIN",
                 descriptions="CRUD над контентом.",
             )
             session.add(role)
             # ! -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             # ! временный код для создания всех ролей
             role_description_ls = (
-                (RoleEnum.SUB_USER.value, "Пользователь с подпиской"),
-                (RoleEnum.UNSUB_USER.value, "Пользователь без подписки"),
-                (RoleEnum.ANONYMOUS.value, "Аноним"),
+                ("SUB_USER", "Пользователь с подпиской"),
+                ("UNSUB_USER", "Пользователь без подписки"),
+                ("ANONYMOUS", "Аноним"),
             )
             bulk_data_roles = [
                 DictRoles(
