@@ -50,12 +50,7 @@ async def assign_role(
 ):
     new_role = role.value
     user = await UserService.get_object_or_404(session, User.id == user_id)
-    role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
-    if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"role {new_role} not found",
-        )
+    role = await RoleService.get_object_or_404(session, DictRoles.role == new_role)
     await RoleService.set_role(session, user, new_role)
     return {"success": f"User {user.username} get role {new_role}."}
 
