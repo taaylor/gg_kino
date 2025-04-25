@@ -1,6 +1,6 @@
 import typer
 from db.postgres import sync_session_maker
-from models.models import User, UserCred
+from models.models import DictRoles, RolesPermissions, User, UserCred
 from passlib.hash import argon2
 
 MAX_ATTEMPTS = 3
@@ -44,7 +44,30 @@ def createsuperuser():
 
 def create(username: str, email: str, password: str):
     with sync_session_maker() as session:
-        user = User(username=username)
+        role = session.get(DictRoles, "superuser")
+        if not role:
+            role = DictRoles(role="superuser", descriptions="CRUD над контентом.")
+            session.add(role)
+            action_description_ls = (
+                ("create", "Возможность создавать"),
+                ("read", "Возможность читать"),
+                ("update", "Возможность обновлять"),
+                ("delete", "Возможность удалять"),
+            )
+            bulk_data = [
+                RolesPermissions(
+                    permission=action,
+                    descriptions=desc,
+                    role=role,
+                )
+                for action, desc in action_description_ls
+            ]
+            session.add_all(bulk_data)
+
+        user = User(
+            username=username,
+            role=role,
+        )
         session.add(user)
 
         user_cred = UserCred(
