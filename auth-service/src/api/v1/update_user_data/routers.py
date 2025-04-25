@@ -18,12 +18,7 @@ async def change_username(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Меняет имя пользователя."""
-    user = await UserService.find_one_or_none(session, User.id == request_body.id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+    user = await UserService.get_object_or_404(session, User.id == request_body.id)
     user = await UserService.set_username(session, user, request_body.username)
     return {"success": f"Your new username: '{user.username}'."}
 
@@ -40,13 +35,9 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Passwords do not match",
         )
-    user_cred = await UserCredService.find_one_or_none(session, UserCred.user_id == request_body.id)
-
-    if not user_cred:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+    user_cred = await UserCredService.get_object_or_404(
+        session, UserCred.user_id == request_body.id
+    )
     user_cred = await UserCredService.set_password(session, user_cred, new_password)
     return {"success": "Your password changed."}
 
@@ -58,12 +49,7 @@ async def assign_role(
     session: AsyncSession = Depends(get_session),
 ):
     new_role = role.value
-    user = await UserService.find_one_or_none(session, User.id == user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+    user = await UserService.get_object_or_404(session, User.id == user_id)
     role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
     if not role:
         raise HTTPException(
@@ -79,11 +65,6 @@ async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
     session: AsyncSession = Depends(get_session),
 ):
-    user = await UserService.find_one_or_none(session, User.id == user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+    user = await UserService.get_object_or_404(session, User.id == user_id)
     await RoleService.set_role(session, user, RoleEnum.ANONYMOUS.value)
     return {"success": f"User role was revoked, and set to {RoleEnum.ANONYMOUS.value}."}
