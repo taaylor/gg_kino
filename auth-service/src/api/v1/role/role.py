@@ -3,6 +3,7 @@ from typing import Annotated
 
 from api.v1.role.schemas import BodyRoleDetail, Role, RoleDetail
 from fastapi import APIRouter, Body, Depends, Path
+from fastapi.responses import JSONResponse
 from services.role import RoleService, get_role_service
 
 router = APIRouter()
@@ -15,7 +16,9 @@ async def get_roles(service: Annotated[RoleService, Depends(get_role_service)]) 
 
 
 @router.get(
-    path="/{role_code}", response_model=RoleDetail | None, description="Детальная информация о роли"
+    path="/{role_code}",
+    response_model=RoleDetail | None,
+    description="Детальная информация роли сервиса",
 )
 async def get_role(
     service: Annotated[RoleService, Depends(get_role_service)],
@@ -26,7 +29,10 @@ async def get_role(
 
 
 @router.post(
-    path="/", response_model=RoleDetail, status_code=HTTPStatus.CREATED, description="Создание роли"
+    path="/",
+    response_model=RoleDetail,
+    status_code=HTTPStatus.CREATED,
+    description="Добавление новой роли в сервис",
 )
 async def create_role(
     service: Annotated[RoleService, Depends(get_role_service)],
@@ -37,7 +43,7 @@ async def create_role(
     return role
 
 
-@router.put(path="/{role_code}", description="Обновление роли", response_model=RoleDetail)
+@router.put(path="/{role_code}", description="Обновление роли сервиса", response_model=RoleDetail)
 async def update_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     request_body: Annotated[BodyRoleDetail, Body(description="Тело запроса")],
@@ -47,3 +53,17 @@ async def update_role(
     role = await service.update_role(pk=role_code, request_body=request_body)
 
     return role
+
+
+@router.delete(
+    path="/{role_code}",
+    description="Удаление роли в сервисе",
+)
+async def destroy_role(
+    service: Annotated[RoleService, Depends(get_role_service)],
+    role_code: Annotated[str, Path(description="Идентификатор роли")],
+) -> JSONResponse:
+    await service.destroy_role(pk=role_code)
+    return JSONResponse(
+        status_code=HTTPStatus.OK, content={"message": f"роль успешно удалена {role_code=}"}
+    )

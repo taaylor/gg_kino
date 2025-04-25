@@ -9,6 +9,7 @@ from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException
 from models.models import DictRoles, RolesPermissions
+from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -140,7 +141,7 @@ class RoleService:
             role = await self._get_model_role_by_pk(pk=pk)
             if role is None:
                 raise HTTPException(
-                    status_code=HTTPStatus.BAD_REQUEST, request_body={"message": "объект не найден"}
+                    status_code=HTTPStatus.BAD_REQUEST, detail={"message": "объект не найден"}
                 )
             role.descriptions = request_body.descriptions
 
@@ -165,12 +166,22 @@ class RoleService:
         )
 
         key_cache = CACHE_KEY_ROLE + pk
-
         await self.cache.background_set(
             key=key_cache, value=role.model_dump_json(), expire=app_config.cache_expire_in_seconds
         )
 
         return role
+
+    async def destroy_role(self, pk: str) -> None:
+        """Удаляет роль по pk"""
+        async with self.session_db.begin():
+            stmt = delete(DictRoles).where(DictRoles.role == pk)
+            await self.session_db.execute(stmt)
+            logger.info(f"Роль {pk} удалена")
+
+        await self.cache.background_destroy(key=CACHE_KEY_ROLE + pk)
+        await self.cache.background_destroy(key=CACHE_KEY_ROLES)
+        return
 
 
 @lru_cache()
