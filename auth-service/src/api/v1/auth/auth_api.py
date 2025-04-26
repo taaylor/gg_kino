@@ -9,7 +9,12 @@ from api.v1.auth.schemas import (
     RegisterResponse,
 )
 from fastapi import APIRouter, Body, Depends, Header
-from services.auth_service import RegisterService, get_register_service
+from services.auth_service import (
+    LoginService,
+    RegisterService,
+    get_login_service,
+    get_register_service,
+)
 
 router = APIRouter(prefix="/auth/v1")
 
@@ -24,8 +29,12 @@ async def register(
 
 
 @router.post(path="/login", response_model=LoginResponse)
-async def login(request_body: Annotated[LoginRequest, Body()]) -> LoginResponse:
-    pass
+async def login(
+    request_body: Annotated[LoginRequest, Body()],
+    login_service: Annotated[LoginService, Depends(get_login_service)],
+    user_agent: Annotated[str | None, Header()] = None,
+) -> LoginResponse:
+    return await login_service.login_user(request_body, user_agent)
 
 
 @router.post(path="/refresh", response_model=RefreshResponse)

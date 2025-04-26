@@ -1,72 +1,28 @@
-import datetime
 import logging
 import uuid
 from functools import lru_cache
 
-from api.v1.auth.schemas import RegisterRequest, RegisterResponse, Session
+from api.v1.auth.schemas import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse
 from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import SessionUserDataData
-from models.models import User, UserCred, UserSession, UserSessionsHist
+from models.models import User, UserCred
 from passlib.context import CryptContext
 from services.auth_repository import AuthReository, get_auth_repository
+from services.base_service import BaseAuthService
+from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
-from utils.key_manager import JWTProcessor, get_key_manager
 
 logger = logging.getLogger(__name__)
 
-pwd_context = CryptContext(schemes=["argon2"])
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 DEFAULT_ROLE = app_config.default_role
 
 
-class SessionMaker:
-    def __init__(self, key_manager: JWTProcessor):
-        self.key_manager = key_manager
-
-    async def create_session(self, user_data: SessionUserDataData) -> Session:
-        user_data.session_id = uuid.uuid4()
-
-        access_token, refresh_token = await self._create_tokens(user_data=user_data)
-
-        user_session = UserSession(
-            session_id=user_data.session_id,
-            user_id=user_data.user_id,
-            user_agent=user_data.user_agent,
-            refresh_token=refresh_token,
-            expires_at=datetime.datetime.now()
-            + datetime.timedelta(seconds=app_config.jwt.refresh_token_lifetime_sec),
-        )
-
-        user_session_hist = UserSessionsHist(
-            session_id=user_session.session_id,
-            user_id=user_session.user_id,
-            user_agent=user_session.user_agent,
-            expires_at=user_session.expires_at,
-        )
-
-        user_tokens = Session(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_at=user_session.expires_at,
-        )
-
-        return user_tokens, user_session, user_session_hist
-
-    async def _create_tokens(self, user_data: SessionUserDataData):
-        access_token, refresh_token = await self.key_manager.create_tokens(user_data=user_data)
-        return access_token, refresh_token
-
-
-class RegisterService:
-    def __init__(
-        self, repository: AuthReository, session: AsyncSession, session_maker: SessionMaker
-    ):
-        self.repository = repository
-        self.session = session
-        self.session_maker = session_maker
+class RegisterService(BaseAuthService):
 
     async def create_user(self, user_data: RegisterRequest, user_agent: str) -> RegisterResponse:
         logger.debug(
@@ -134,7 +90,9 @@ class RegisterService:
         )
 
         logger.info(f"Создан пользователь: {user.id=}, {user.username=}")
-
+        logger.info(
+            f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}"
+        )
         return RegisterResponse(
             user_id=user.id,
             username=user.username,
@@ -146,34 +104,89 @@ class RegisterService:
         )
 
 
-class LoginService:
-    def __init__(self, repository: AsyncSession):
-        self.repository = repository
+class LoginService(BaseAuthService):
 
-    pass
+    async def login_user(self, user_data: LoginRequest, user_agent: str) -> LoginResponse:
+        logger.info(f"Запрошена аутентификация для пользователя с email: {user_data.email}")
+
+        # Находим пользователя в БД
+        user_cred = await self.repository.fetch_usercred_by_email(
+            session=self.session, email=user_data.email
+        )
+
+        if not user_cred:
+            logger.info(f"В БД не найден пользователь с email: {user_data.email}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неверный пароль или пользователь с email: {user_data.email} не существует",
+            )
+
+        if not pwd_context.verify(user_data.password, user_cred.password):
+            logger.warning(f"При попытке авторизации {user_data.email} был введён неверный пароль")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Неверный пароль или пользователь с email: {user_data.email} не существует",
+            )
+
+        user = await self.repository.fetch_user_by_email(
+            session=self.session, email=user_data.email
+        )
+        user_permissions = await self.repository.fetch_permissions_for_role(
+            session=self.session, role_code=user.role_code
+        )
+
+        session_user_data = SessionUserDataData(
+            user_id=user.id,
+            username=user.username,
+            user_agent=user_agent,
+            role_code=user.role_code,
+            permissions=user_permissions,
+        )
+
+        # Создание экземпляра сессии и токенов
+        user_tokens, user_session, user_session_hist = await self.session_maker.create_session(
+            user_data=session_user_data
+        )
+
+        await self.repository.create_session_in_repository(
+            session=self.session, user_session=user_session, user_session_hist=user_session_hist
+        )
+
+        logger.info(
+            f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}"
+        )
+
+        return LoginResponse(
+            access_token=user_tokens.access_token,
+            refresh_token=user_tokens.access_token,
+            expires_at=user_session.expires_at,
+        )
 
 
-class RefreshService:
-    def __init__(self, repository: AsyncSession):
-        self.repository = repository
-
+class RefreshService(BaseAuthService):
     pass
 
 
 @lru_cache
 def get_register_service(
     session: AsyncSession = Depends(get_session),
-    key_manager: JWTProcessor = Depends(get_key_manager),
     repository: AuthReository = Depends(get_auth_repository),
+    session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> RegisterService:
     repository = repository
-    session_maker = SessionMaker(key_manager=key_manager)
+    session_maker = session_maker
     return RegisterService(repository=repository, session=session, session_maker=session_maker)
 
 
 @lru_cache
-def get_login_service(repository: AsyncSession = Depends(get_session)) -> RegisterService:
-    pass
+def get_login_service(
+    session: AsyncSession = Depends(get_session),
+    repository: AuthReository = Depends(get_auth_repository),
+    session_maker: SessionMaker = Depends(get_auth_session_maker),
+) -> LoginService:
+    repository = repository
+    session_maker = session_maker
+    return LoginService(repository=repository, session=session, session_maker=session_maker)
 
 
 @lru_cache

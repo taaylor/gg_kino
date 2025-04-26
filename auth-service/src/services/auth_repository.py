@@ -22,10 +22,16 @@ class AuthReository:
         return result.scalar_one_or_none()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_permissions_for_role(
-        self, session: AsyncSession, role_code: str
-    ) -> list[RolesPermissions]:
-        stmt = select(RolesPermissions).join(DictRoles).where(DictRoles.role == role_code)
+    async def fetch_usercred_by_email(self, session: AsyncSession, email: str) -> UserCred | None:
+        stmt = select(UserCred).where(UserCred.email == email)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @sqlalchemy_handler_exeptions
+    async def fetch_permissions_for_role(self, session: AsyncSession, role_code: str) -> list[str]:
+        stmt = (
+            select(RolesPermissions.permission).join(DictRoles).where(DictRoles.role == role_code)
+        )
         result = await session.execute(stmt)
         return result.scalars().all()
 
@@ -39,6 +45,15 @@ class AuthReository:
         user_session_hist: UserSessionsHist,
     ):
         session.add_all([user, user_cred, user_session, user_session_hist])
+
+    @sqlalchemy_handler_exeptions
+    async def create_session_in_repository(
+        self,
+        session: AsyncSession,
+        user_session: UserSession,
+        user_session_hist: UserSessionsHist,
+    ):
+        session.add_all([user_session, user_session_hist])
 
 
 def get_auth_repository():
