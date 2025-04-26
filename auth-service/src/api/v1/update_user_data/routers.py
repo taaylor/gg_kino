@@ -8,12 +8,12 @@ from schemas.entity import (
     AssignRoleRequest,
     ChangePasswordRequest,
     ChangeUsernameRequest,
-    UserCredResponse,
     UserResponse,
     UserRoleResponse,
 )
 from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
@@ -29,7 +29,9 @@ async def change_username(
     session: AsyncSession = Depends(get_session),
 ) -> UserResponse | None:
     """Меняет имя пользователя."""
-    user = await UserService.find_one_or_none(session, User.id == request_body.id)
+    user = await UserService.find_one_or_none(
+        session, User.id == request_body.id, options=[joinedload(User.user_cred)]
+    )
     if not user:
         return None
     user = await UserService.set_username(session, user, request_body.username)
@@ -46,7 +48,7 @@ async def change_username(
 async def change_password(
     request_body: ChangePasswordRequest,
     session: AsyncSession = Depends(get_session),
-) -> UserCredResponse | None:
+) -> UserResponse | None:
     """Меняет пароль пользователя."""
     new_password, repeated_password = request_body.password, request_body.repeat_password
     if new_password != repeated_password:
@@ -54,7 +56,9 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Passwords do not match",
         )
-    user_cred = await UserCredService.find_one_or_none(session, UserCred.user_id == request_body.id)
+    user_cred = await UserCredService.find_one_or_none(
+        session, UserCred.user_id == request_body.id, options=[joinedload(UserCred.user)]
+    )
     if not user_cred:
         return None
     user_cred = await UserCredService.set_password(session, user_cred, new_password)
@@ -97,7 +101,9 @@ async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
     session: AsyncSession = Depends(get_session),
 ) -> UserRoleResponse | None:
-    user = await UserService.find_one_or_none(session, User.id == user_id)
+    user = await UserService.find_one_or_none(
+        session, User.id == user_id, options=[joinedload(User.user_cred)]
+    )
     if not user:
         return None
     await RoleService.set_role(session, user, "ANONYMOUS")

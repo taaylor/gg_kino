@@ -1,6 +1,6 @@
 from models.models import DictRoles, User, UserCred
 from passlib.hash import argon2
-from schemas.entity import UserCredResponse, UserResponse, UserRoleResponse
+from schemas.entity import UserResponse, UserRoleResponse
 from services.base_service import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,6 +34,7 @@ class UserService(BaseService):
             first_name=user.first_name,
             last_name=user.last_name,
             gender=user.gender,
+            email=user.user_cred.email,
         )
 
 
@@ -58,7 +59,14 @@ class UserCredService(BaseService):
 
     @classmethod
     def to_response_body(cls, user_cred: UserCred) -> None:
-        return UserCredResponse(user_id=user_cred.id, email=user_cred.email)
+        return UserResponse(
+            user_id=user_cred.user_id,
+            username=user_cred.user.username,
+            first_name=user_cred.user.first_name,
+            last_name=user_cred.user.last_name,
+            gender=user_cred.user.gender,
+            email=user_cred.email,
+        )
 
 
 class RoleService(BaseService):
@@ -86,5 +94,6 @@ class RoleService(BaseService):
             first_name=user.first_name,
             last_name=user.last_name,
             gender=user.gender,
+            email=user.user_cred.email,
             role=new_role,
         )

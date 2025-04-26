@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     first_name: str | None = Field(None, min_length=4, max_length=30)
     last_name: str | None = Field(None, min_length=4, max_length=30)
     gender: GenderEnum | None = Field(None)
+    email: str = Field(...)
 
 
 class UserCredResponse(BaseModel):
