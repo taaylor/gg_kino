@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +12,12 @@ class BaseService:
     model = None
 
     @classmethod
-    async def find_one_or_none(cls, session: AsyncSession, *where_args):
+    async def find_one_or_none(
+        cls,
+        session: AsyncSession,
+        *where_args,
+        options: Sequence = (),
+    ):
         """
         Выполняет SELECT с условием и возвращает одну запись или None.
 
@@ -23,5 +30,7 @@ class BaseService:
             )
         """
         query = select(cls.model).where(*where_args)
+        if options:
+            query = query.options(*options)
         exequted_query = await session.execute(query)
         return exequted_query.scalar_one_or_none()

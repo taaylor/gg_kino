@@ -1,34 +1,54 @@
+from typing import Annotated
+from uuid import UUID
+
 from db.postgres import get_session
-from fastapi import APIRouter, Depends, HTTPException, status
-from models.models import User, UserCred
-from schemas.entity import ChangePasswordRequest, ChangeUsernameRequest
-from services.user_service import UserCredService, UserService
+from fastapi import APIRouter, Depends, HTTPException, Path, status
+from models.models import DictRoles, User, UserCred
+from schemas.entity import (
+    AssignRoleRequest,
+    ChangePasswordRequest,
+    ChangeUsernameRequest,
+    UserResponse,
+    UserRoleResponse,
+)
+from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
 
-@router.put("/change-username")
+@router.post(
+    "/change-username",
+    description="Меняет имя у пользователя",
+    summary="Изменение имени пользователя (RPC-стиль)",
+    response_description="Успешное изменение имени пользователя",
+)
 async def change_username(
     request_body: ChangeUsernameRequest,
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> UserResponse | None:
     """Меняет имя пользователя."""
-    user = await UserService.find_one_or_none(session, User.id == request_body.id)
+    user = await UserService.find_one_or_none(
+        session, User.id == request_body.id, options=[joinedload(User.user_cred)]
+    )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+        return None
     user = await UserService.set_username(session, user, request_body.username)
-    return {"success": f"Your new username: '{user.username}'."}
+    response = UserService.to_response_body(user)
+    return response
 
 
-@router.put("/change-password")
+@router.post(
+    "/change-password",
+    description="Меняет пароль пользователя",
+    summary="Изменение пароля пользователя (RPC-стиль)",
+    response_description="Успешное изменение пароля пользователя",
+)
 async def change_password(
     request_body: ChangePasswordRequest,
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> UserResponse | None:
     """Меняет пароль пользователя."""
     new_password, repeated_password = request_body.password, request_body.repeat_password
     if new_password != repeated_password:
@@ -36,12 +56,56 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Passwords do not match",
         )
-    user_cred = await UserCredService.find_one_or_none(session, UserCred.user_id == request_body.id)
-
+    user_cred = await UserCredService.find_one_or_none(
+        session, UserCred.user_id == request_body.id, options=[joinedload(UserCred.user)]
+    )
     if not user_cred:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="user not found",
-        )
+        return None
     user_cred = await UserCredService.set_password(session, user_cred, new_password)
-    return {"success": "Your password changed."}
+    response = UserCredService.to_response_body(user_cred)
+    return response
+
+
+@router.post(
+    "/{user_id}/role",
+    description="Задаёт роль пользователю",
+    summary="Назначение роли пользователю (REST-стиль)",
+    response_description="Роль успешно назначена пользователю",
+)
+async def assign_role(
+    user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
+    request_body: AssignRoleRequest,
+    session: AsyncSession = Depends(get_session),
+) -> UserRoleResponse | None:
+    new_role = request_body.role
+    user = await UserService.find_one_or_none(session, User.id == user_id)
+    # можно было бы `if not user or not role:`
+    # но сделал так чтобы предотвратить лишний запрос в БД если user не найден
+    if not user:
+        return None
+    role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
+    if not role:
+        return None
+    await RoleService.set_role(session, user, new_role)
+    response = RoleService.to_response_body(user, new_role)
+    return response
+
+
+@router.delete(
+    "/{user_id}/role",
+    description="Удаляет роль у пользователя и ставит ANONYMOUS",
+    summary="Удаление роли пользователя (REST-стиль)",
+    response_description="Роль пользователя успешно удалена и установлена как ANONYMOUS",
+)
+async def revoke_role(
+    user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
+    session: AsyncSession = Depends(get_session),
+) -> UserRoleResponse | None:
+    user = await UserService.find_one_or_none(
+        session, User.id == user_id, options=[joinedload(User.user_cred)]
+    )
+    if not user:
+        return None
+    await RoleService.set_role(session, user, "ANONYMOUS")
+    response = RoleService.to_response_body(user, "ANONYMOUS")
+    return response

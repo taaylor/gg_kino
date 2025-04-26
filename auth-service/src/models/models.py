@@ -69,7 +69,7 @@ class DictRoles(Base):
 
     # обратная связь с permission (one-to-many)
     permissions: Mapped[list["RolesPermissions"]] = relationship(
-        "RolesPermissions", back_populates="role", lazy="joined"
+        "RolesPermissions", back_populates="role"
     )
 
     def __repr__(self):
