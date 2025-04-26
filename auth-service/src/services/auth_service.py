@@ -4,73 +4,40 @@ import uuid
 from functools import lru_cache
 
 from api.v1.auth.schemas import RegisterRequest, RegisterResponse, Session
+from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import SessionUserDataData
-from models.models import DictRoles, RolesPermissions, User, UserCred, UserSession, UserSessionsHist
+from models.models import User, UserCred, UserSession, UserSessionsHist
 from passlib.context import CryptContext
-from sqlalchemy import select
+from services.auth_repository import AuthReository, get_auth_repository
 from sqlalchemy.ext.asyncio import AsyncSession
-from utils.decorators import sqlalchemy_handler_exeptions
-
-# from async_fastapi_jwt_auth import AuthJWT
-
+from utils.key_manager import JWTProcessor, get_key_manager
 
 logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["argon2"])
 
-DEFAULT_ROLE = "UNSUB_USER"
-REFRESH_TOKEN_LIFETIME_SEC = 1200
-ACCESS_TOKEN_LIFETIME_SEC = 300
-
-
-class AuthReository:
-    @sqlalchemy_handler_exeptions
-    async def fetch_user_by_name(self, session: AsyncSession, username: str) -> User | None:
-        stmt = select(User).where(User.username == username)
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    @sqlalchemy_handler_exeptions
-    async def fetch_user_by_email(self, session: AsyncSession, email: str) -> User | None:
-        stmt = select(User).join(UserCred).where(UserCred.email == email)
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    @sqlalchemy_handler_exeptions
-    async def fetch_permissions_for_role(
-        self, session: AsyncSession, role_code: str
-    ) -> list[RolesPermissions]:
-        stmt = select(RolesPermissions).join(DictRoles).where(DictRoles.role == role_code)
-        result = await session.execute(stmt)
-        return result.scalars().all()
-
-    @sqlalchemy_handler_exeptions
-    async def create_user_in_repository(
-        self,
-        session: AsyncSession,
-        user: User,
-        user_cred: UserCred,
-        user_session: UserSession,
-        user_session_hist: UserSessionsHist,
-    ):
-        session.add_all([user, user_cred, user_session, user_session_hist])
+DEFAULT_ROLE = app_config.default_role
 
 
 class SessionMaker:
-    async def create_session(self, user_data: SessionUserDataData) -> Session:
+    def __init__(self, key_manager: JWTProcessor):
+        self.key_manager = key_manager
 
-        access_token, refresh_token = await self._create_toekens()
+    async def create_session(self, user_data: SessionUserDataData) -> Session:
+        user_data.session_id = uuid.uuid4()
+
+        access_token, refresh_token = await self._create_tokens(user_data=user_data)
 
         user_session = UserSession(
-            session_id=uuid.uuid4(),
+            session_id=user_data.session_id,
             user_id=user_data.user_id,
             user_agent=user_data.user_agent,
             refresh_token=refresh_token,
             expires_at=datetime.datetime.now()
-            + datetime.timedelta(seconds=REFRESH_TOKEN_LIFETIME_SEC),
+            + datetime.timedelta(seconds=app_config.jwt.refresh_token_lifetime_sec),
         )
 
         user_session_hist = UserSessionsHist(
@@ -88,11 +55,8 @@ class SessionMaker:
 
         return user_tokens, user_session, user_session_hist
 
-    async def _create_toekens(self):
-        # TODO Добавить создание токенов
-        access_token = "access_token"
-        refresh_token = "refresh_token"
-
+    async def _create_tokens(self, user_data: SessionUserDataData):
+        access_token, refresh_token = await self.key_manager.create_tokens(user_data=user_data)
         return access_token, refresh_token
 
 
@@ -105,7 +69,9 @@ class RegisterService:
         self.session_maker = session_maker
 
     async def create_user(self, user_data: RegisterRequest, user_agent: str) -> RegisterResponse:
-
+        logger.debug(
+            f"Обработка запроса на создание пользователя {user_data.username=}, {user_agent=}"
+        )
         # Проверка уникальности username
         if await self.repository.fetch_user_by_name(
             session=self.session, username=user_data.username
@@ -147,6 +113,7 @@ class RegisterService:
 
         session_user_data = SessionUserDataData(
             user_id=user.id,
+            username=user.username,
             user_agent=user_agent,
             role_code=user.role_code,
             permissions=user_permissions,
@@ -195,10 +162,12 @@ class RefreshService:
 
 @lru_cache
 def get_register_service(
-    cache: Cache = Depends(get_cache), session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    key_manager: JWTProcessor = Depends(get_key_manager),
+    repository: AuthReository = Depends(get_auth_repository),
 ) -> RegisterService:
-    repository = AuthReository()
-    session_maker = SessionMaker()
+    repository = repository
+    session_maker = SessionMaker(key_manager=key_manager)
     return RegisterService(repository=repository, session=session, session_maker=session_maker)
 
 

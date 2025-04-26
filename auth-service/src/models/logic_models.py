@@ -1,10 +1,12 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SessionUserDataData(BaseModel):
     user_id: UUID
+    session_id: UUID | None = Field(None)
+    username: str
     user_agent: str | None
     role_code: str
-    permissions: list[str] | None
+    permissions: list[str]
