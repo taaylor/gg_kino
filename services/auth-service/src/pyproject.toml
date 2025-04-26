@@ -1,11 +1,14 @@
-[tool.poetry]
+[project]
 name = "auth-service"
 version = "0.1.0"
 description = "Authentication microservice"
-packages = [{include = "auth_service"}]
+requires-python = ">=3.12,<4.0"
+
+[tool.poetry]
+package-mode = false
+
 
 [tool.poetry.dependencies]
-python = "^3.12"
 fastapi = {extras = ["all"], version = "^0.115.12"}
 sqlalchemy = "^2.0.40"
 alembic = "^1.15.2"
@@ -20,6 +23,7 @@ argon2-cffi = "^23.1.0"
 redis = "^5.2.1"
 psycopg2 = "^2.9.10"
 async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
+gunicorn = "^23.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

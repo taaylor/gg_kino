@@ -96,5 +96,3 @@ venv/
 **/*.pyd
 **/.pytest_cache
 **/.mypy_cache
-**/poetry.lock
-**/pyproject.toml

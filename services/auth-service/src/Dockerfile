@@ -13,12 +13,14 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY pyproject.toml poetry.lock .env ./
+COPY .env .
+COPY ./services/auth-service/src/pyproject.toml .
+COPY ./services/auth-service/src/poetry.lock .
 
 RUN poetry install --only main
 
-COPY auth-service/src/ ./.
+COPY services/auth-service/src/ .
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x ./scripts/entrypoint.sh
 
-CMD ["./entrypoint.sh"]
+CMD ["./scripts/entrypoint.sh"]

@@ -42,7 +42,7 @@ services:
   auth-api:
     build:
       context: .
-      dockerfile: ./auth-service/src/Dockerfile
+      dockerfile: ./services/auth-service/src/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -50,8 +50,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    env_file:
-      - ./.env
     restart: always
 
   postgres:

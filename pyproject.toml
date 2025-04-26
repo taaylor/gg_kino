@@ -1,19 +1,18 @@
-[tool.poetry]
+[project]
 name = "monorepo-tools"
 version = "0.1.0"
 description = "Common development tools"
+requires-python = ">=3.12,<4.0"
 
-[tool.poetry.dependencies]
-python = "^3.12"
+[tool.poetry]
+package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.1.0"
 isort = "^6.0.0"
 black = "^25.1.0"
-pytest = "^8.3.4"
 flake8 = "^7.1.2"
 debugpy = "^1.8.13"
-mypy = "^1.10.0"
 ipython = "^9.1.0"
 
 [build-system]
@@ -41,7 +40,3 @@ line_length = 100
 [tool.flake8]
 max-line-length = 100
 exclude = [".git", "__pycache__", "venv", ".venv"]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-addopts = "--asyncio-mode=auto -W ignore::DeprecationWarning"
