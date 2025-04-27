@@ -1,7 +1,12 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from api.v1.role.schemas import BodyRoleDetail, Role, RoleDetail
+from api.v1.role.schemas import (
+    RequestRoleDetail,
+    RequestRoleDetailUpdate,
+    ResponseRole,
+    ResponseRoleDetail,
+)
 from fastapi import APIRouter, Body, Depends, Path
 from fastapi.responses import JSONResponse
 from services.role import RoleService, get_role_service
@@ -9,61 +14,82 @@ from services.role import RoleService, get_role_service
 router = APIRouter()
 
 
-@router.get(path="/", response_model=list[Role], description="Список ролей сервиса")
-async def get_roles(service: Annotated[RoleService, Depends(get_role_service)]) -> list[Role]:
+@router.get(
+    path="/",
+    response_model=list[ResponseRole],
+    summary="Список всех ролей",
+    description="Получение списка всех пользовательских ролей киносервиса",
+    response_description="Успешное получение списка ролей в формате массива объектов",
+)
+async def get_roles(
+    service: Annotated[RoleService, Depends(get_role_service)]
+) -> list[ResponseRole]:
     roles = await service.get_roles()
     return roles
 
 
 @router.get(
     path="/{role_code}",
-    response_model=RoleDetail | None,
-    description="Детальная информация роли сервиса",
+    response_model=ResponseRoleDetail | None,
+    summary="Детали роли",
+    description="Получение детальной информации о конкретной роли киносервиса",
+    response_description="Объект с полными данными роли или null если роль не найдена",
 )
 async def get_role(
     service: Annotated[RoleService, Depends(get_role_service)],
-    role_code: Annotated[str, Path(description="Идентификатор роли")],
-) -> RoleDetail | None:
+    role_code: Annotated[str, Path(description="Уникальный идентификатор роли (код)")],
+) -> ResponseRoleDetail | None:
     role = await service.get_role(pk=role_code)
     return role
 
 
 @router.post(
     path="/",
-    response_model=RoleDetail,
+    response_model=ResponseRoleDetail,
     status_code=HTTPStatus.CREATED,
-    description="Добавление новой роли в сервис",
+    summary="Создать роль",
+    description="Создание новой роли в системе киносервиса",
+    response_description="Объект созданной роли с полными данными и присвоенным идентификатором",
 )
 async def create_role(
     service: Annotated[RoleService, Depends(get_role_service)],
-    request_body: Annotated[RoleDetail, Body(description="Тело запроса")],
-) -> RoleDetail | dict[str, str]:
-
+    request_body: Annotated[
+        RequestRoleDetail, Body(description="Данные для создания роли в формате JSON")
+    ],
+) -> ResponseRoleDetail | dict[str, str]:
     role = await service.create_role(request_body=request_body)
     return role
 
 
-@router.put(path="/{role_code}", description="Обновление роли сервиса", response_model=RoleDetail)
+@router.put(
+    path="/{role_code}",
+    summary="Обновить роль",
+    description="Обновление данных существующей роли киносервиса",
+    response_model=ResponseRoleDetail,
+    response_description="Объект с обновленными данными роли",
+)
 async def update_role(
     service: Annotated[RoleService, Depends(get_role_service)],
-    request_body: Annotated[BodyRoleDetail, Body(description="Тело запроса")],
-    role_code: Annotated[str, Path(description="Идентификатор роли")],
-) -> RoleDetail:
-
+    request_body: Annotated[
+        RequestRoleDetailUpdate, Body(description="Обновленные данные роли в формате JSON")
+    ],
+    role_code: Annotated[str, Path(description="Уникальный идентификатор обновляемой роли")],
+) -> ResponseRoleDetail:
     role = await service.update_role(pk=role_code, request_body=request_body)
-
     return role
 
 
 @router.delete(
     path="/{role_code}",
-    description="Удаление роли в сервисе",
+    summary="Удалить роль",
+    description="Удаление роли из системы киносервиса",
+    response_description="Статус операции удаления с сообщением о результате",
 )
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],
-    role_code: Annotated[str, Path(description="Идентификатор роли")],
+    role_code: Annotated[str, Path(description="Уникальный идентификатор удаляемой роли")],
 ) -> JSONResponse:
     await service.destroy_role(pk=role_code)
     return JSONResponse(
-        status_code=HTTPStatus.OK, content={"message": f"роль успешно удалена {role_code=}"}
+        status_code=HTTPStatus.OK, content={"message": f"Роль успешно удалена {role_code=}"}
     )
