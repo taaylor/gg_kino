@@ -16,11 +16,19 @@ class Cache(ABC):
         pass
 
     @abstractmethod
+    async def destroy(self, key: str) -> None:
+        pass
+
+    @abstractmethod
     async def set(self, key: str, value: str, expire: int | None):
         pass
 
     @abstractmethod
     async def background_set(self, key: str, value: str, expire: int | None):
+        pass
+
+    @abstractmethod
+    async def background_destroy(self, key: str) -> None:
         pass
 
 
@@ -34,8 +42,14 @@ class RedisCache(Cache):
         return await self.redis.get(key)
 
     @redis_handler_exeptions
+    async def destroy(self, key: str) -> None:
+        await self.redis.delete(key)
+        logger.info(f"[RedisCache] Объект удален по ключу '{key}'")
+
+    @redis_handler_exeptions
     async def set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в redis"""
+        await self.destroy(key)  # инвалидация кеша
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
 
@@ -43,6 +57,10 @@ class RedisCache(Cache):
         """Сохраняет кеш в фоновом процессе"""
         asyncio.create_task(self.set(key=key, value=value, expire=expire))
         logger.debug(f"Объект будет сохранен в кеш по {key=}")
+
+    async def background_destroy(self, key: str) -> None:
+        asyncio.create_task(self.destroy(key=key))
+        logger.debug(f"Объект будет удален в кеше по {key=}")
 
 
 async def get_cache() -> Cache:

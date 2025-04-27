@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GenderEnum(str, Enum):
+class GenderEnum(StrEnum):
     MALE = "мужчина"
     FEMALE = "женщина"
 
 
-class PermissionEnum(str, Enum):
+class PermissionEnum(StrEnum):
     CRUD_ROLE = "CRUD_ROLE"
     ASSIGN_ROLE = "ASSIGN_ROLE"
     FREE_FILMS = "FREE_FILMS"
