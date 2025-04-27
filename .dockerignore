@@ -86,3 +86,14 @@ venv/
 
 # VS Code
 .vscode/
+
+**/Dockerfile
+**/docker-compose*
+**/.venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.mypy_cache
+**/Dockerfile*

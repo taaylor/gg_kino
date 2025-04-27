@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "auth_utils"
+version = "0.1.0"
+description = "Common utilities"
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"

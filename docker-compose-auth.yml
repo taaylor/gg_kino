@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: redis-debug
+    container_name: redis-container
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USER=${REDIS_USER}
@@ -11,6 +11,8 @@ services:
       - REDIS_DB=${REDIS_DB}
     volumes:
       - redis_data:/data
+    ports:
+      - "6379:6379"
     deploy:
       resources:
         limits:
@@ -37,17 +39,28 @@ services:
       retries: 5
     restart: always
 
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/src/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
 
   postgres:
     image: postgres:17-alpine
-    container_name: postgres-debug
+    container_name: postgres-container
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
-      - ./auth-service/src/dumps:/dumps
     ports:
       - "5432:5432"
     healthcheck:
@@ -55,23 +68,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
-
-  auth-api:
-    build:
-      context: .
-      dockerfile: ./auth-service/src/Dockerfile.debug
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    env_file:
-      - ./.env
-    ports:
-      - "8000:8000"
-      - "5678:5678"
-    command: ./entrypoint_debug.sh
     restart: always
 
   # nginx:
