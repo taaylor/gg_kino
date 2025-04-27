@@ -104,12 +104,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
-    # healthcheck:
-    #   test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';' | grep -q 4"]
-    #   # test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1 FROM profile.dict_roles LIMIT 1'"]
-    #   interval: 20s  # Даёт больше времени между проверками
-    #   timeout: 10s
-    #   retries: 10
 
   async-api:
     build:
