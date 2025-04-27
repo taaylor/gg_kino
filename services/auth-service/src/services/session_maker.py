@@ -5,7 +5,7 @@ import uuid
 from api.v1.auth.schemas import Session
 from core.config import app_config
 from fastapi import Depends
-from models.logic_models import SessionUserDataData
+from models.logic_models import SessionUserData
 from models.models import UserSession, UserSessionsHist
 from utils.key_manager import JWTProcessor, get_key_manager
 
@@ -17,7 +17,7 @@ class SessionMaker:
         self.key_manager = key_manager
 
     async def create_session(
-        self, user_data: SessionUserDataData
+        self, user_data: SessionUserData
     ) -> tuple[Session, UserSession, UserSessionsHist]:
         user_data.session_id = uuid.uuid4()
 
@@ -47,7 +47,9 @@ class SessionMaker:
 
         return user_tokens, user_session, user_session_hist
 
-    async def update_session(self, user_data: SessionUserDataData) -> tuple[Session, UserSession]:
+    async def update_session(
+        self, user_data: SessionUserData
+    ) -> tuple[Session, UserSession]:
         access_token, refresh_token = await self._create_tokens(user_data=user_data)
 
         user_session = UserSession(
@@ -67,8 +69,10 @@ class SessionMaker:
 
         return user_tokens, user_session
 
-    async def _create_tokens(self, user_data: SessionUserDataData):
-        access_token, refresh_token = await self.key_manager.create_tokens(user_data=user_data)
+    async def _create_tokens(self, user_data: SessionUserData):
+        access_token, refresh_token = await self.key_manager.create_tokens(
+            user_data=user_data
+        )
         return access_token, refresh_token
 
 

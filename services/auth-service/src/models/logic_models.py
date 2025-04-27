@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class SessionUserDataData(BaseModel):
+class SessionUserData(BaseModel):
     user_id: UUID
     session_id: UUID | None = Field(None)
     username: str
