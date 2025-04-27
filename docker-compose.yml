@@ -1,4 +1,48 @@
 services:
+  elasticsearch:
+    image: elasticsearch:8.16.5
+    container_name: elasticsearch-container
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+    command: bin/elasticsearch
+    expose:
+      - ${ES_PORT}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: kibana:8.16.5
+    container_name: kibana-container
+    environment:
+      - ELASTICSEARCH_HOSTS="http://${ES_HOST}:${ES_PORT}"
+      - ELASTICSEARCH_SECURITY_ENABLED=false
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "${KIBANA_PORT}:${KIBANA_PORT}"
+    restart: always
+
+  es-init:
+    container_name: es-init-container
+    build:
+      context: .
+      dockerfile: elastic_dump/elastic_dump/dump_loader/Dockerfile
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ES_HOST=${ES_HOST}
+      - ES_PORT=${ES_PORT}
+    restart: "no"
+
   redis:
     image: redis:7-alpine
     container_name: redis-container
@@ -52,6 +96,20 @@ services:
         condition: service_healthy
     restart: always
 
+  # theatre-api:
+  async-api:
+    build:
+      context: .
+      dockerfile: ./services/async-api/src/Dockerfile
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    restart: always
+
   postgres:
     image: postgres:17-alpine
     container_name: postgres-container
@@ -70,18 +128,20 @@ services:
       retries: 5
     restart: always
 
-  # nginx:
-  #   image: nginx:1.27-alpine
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./nginx/configs/site.conf:/etc/nginx/conf.d:ro
-  #   depends_on:
-  #     - theatre-api
-  #     - auth-api
-  #   ports:
-  #     - "${NGINX_PORT}:${NGINX_PORT}"
-  #   restart: always
+  gateway:
+    build: ./infra/
+    env_file: .env
+    # volumes:
+    #   - .infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    #   - .infra/nginx/configs/site.conf:/etc/nginx/conf.d:ro
+    depends_on:
+      - async-api
+      - auth-api
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    restart: always
 
 volumes:
   redis_data:
   pg_data_volume:
+  elasticsearch_data:
