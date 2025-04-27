@@ -3,6 +3,8 @@
 # COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # FROM nginx:latest
+# ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+# ./nginx/configs/site.conf:/etc/nginx/conf.d:ro
 FROM nginx:1.27-alpine
-./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-./nginx/configs/site.conf:/etc/nginx/conf.d:ro
+# COPY nginx/nginx.conf /etc/nginx/nginx.conf
+# COPY nginx/configs/site.conf /etc/nginx/conf.d/site.conf

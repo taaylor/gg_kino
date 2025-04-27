@@ -34,7 +34,7 @@ services:
     container_name: es-init-container
     build:
       context: .
-      dockerfile: elastic_dump/elastic_dump/dump_loader/Dockerfile
+      dockerfile: backup/elastic_dump/dump_loader/Dockerfile
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -95,8 +95,22 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';\" | xargs -I {} test {} -ge 4"
+      ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';' | grep -q 4"]
+    #   # test: ["CMD-SHELL", "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1 FROM profile.dict_roles LIMIT 1'"]
+    #   interval: 20s  # Даёт больше времени между проверками
+    #   timeout: 10s
+    #   retries: 10
 
-  # theatre-api:
   async-api:
     build:
       context: .
@@ -119,6 +133,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
+      - ./backup/postgres_dump-auth/dumps:/dumps
     ports:
       - "5432:5432"
     healthcheck:
@@ -128,12 +143,28 @@ services:
       retries: 5
     restart: always
 
-  gateway:
-    build: ./infra/
+  pg-import:
+    build:
+      context: .
+      dockerfile: ./backup/postgres_dump-auth/Dockerfile
+    environment:
+      - PG_HOST=${POSTGRES_HOST}
+      - PG_PORT=${POSTGRES_PORT}
+      - PG_USER=${POSTGRES_USER}
+      - PG_DB=${POSTGRES_DB}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:latest
     env_file: .env
-    # volumes:
-    #   - .infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    #   - .infra/nginx/configs/site.conf:/etc/nginx/conf.d:ro
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
     depends_on:
       - async-api
       - auth-api
