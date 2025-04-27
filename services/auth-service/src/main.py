@@ -18,5 +18,5 @@ app = FastAPI(
 # Подключение обработчиков
 setup_exception_handlers(app)
 
-app.include_router(role.router, prefix="/api/v1/role", tags=["role"])
+app.include_router(role.router, prefix="/api/v1/roles", tags=["roles"])
 app.include_router(router, prefix="/api/v1/users", tags=["users"])
