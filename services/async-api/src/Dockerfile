@@ -13,12 +13,10 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY pyproject.toml poetry.lock .env ./
+COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --only main
 
-COPY auth-service/src/ ./.
+COPY /src .
 
-RUN chmod +x entrypoint.sh
-
-CMD ["./entrypoint.sh"]
+CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]
