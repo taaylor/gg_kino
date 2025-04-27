@@ -1,7 +1,14 @@
+import logging
+
 from async_fastapi_jwt_auth import AuthJWT
+from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from core.config import app_config
 from models.logic_models import SessionUserDataData
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
+
+auth_dep = AuthJWTBearer()
 
 
 def load_jwt_settings():
@@ -32,12 +39,18 @@ class JWTProcessor:
 
     async def create_tokens(self, user_data: SessionUserDataData):
         access_token = await self.authorize.create_access_token(
-            subject=str(user_data.user_id), user_claims=user_data.model_dump(mode="json")
+            subject=str(user_data.session_id), user_claims=user_data.model_dump(mode="json")
         )
         refresh_token = await self.authorize.create_refresh_token(
-            subject=str(user_data.user_id), user_claims=user_data.model_dump(mode="json")
+            subject=str(user_data.session_id), user_claims=user_data.model_dump(mode="json")
         )
         return access_token, refresh_token
+
+    async def create_access_token(self, user_data: SessionUserDataData):
+        access_token = await self.authorize.create_access_token(
+            subject=str(user_data.session_id), user_claims=user_data.model_dump(mode="json")
+        )
+        return access_token
 
 
 @AuthJWT.load_config

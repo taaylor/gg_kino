@@ -2,9 +2,14 @@ import logging
 import uuid
 from functools import lru_cache
 
-from api.v1.auth.schemas import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse
+from api.v1.auth.schemas import (
+    LoginRequest,
+    LoginResponse,
+    RefreshResponse,
+    RegisterRequest,
+    RegisterResponse,
+)
 from core.config import app_config
-from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import SessionUserDataData
@@ -158,13 +163,63 @@ class LoginService(BaseAuthService):
 
         return LoginResponse(
             access_token=user_tokens.access_token,
-            refresh_token=user_tokens.access_token,
+            refresh_token=user_tokens.refresh_token,
             expires_at=user_session.expires_at,
         )
 
 
 class RefreshService(BaseAuthService):
-    pass
+    async def refresh_session(self, session_id: uuid.UUID, user_agent: str) -> RefreshResponse:
+        logger.info(f"Запрошен рефреш сессии для {session_id=}")
+
+        current_session = await self.repository.fetch_session_by_id(
+            session=self.session, session_id=session_id
+        )
+
+        if not current_session:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Невозможно обновить токены, сессия не найдена",
+            )
+
+        user = await self.repository.fetch_user_by_id(
+            session=self.session, user_id=current_session.user_id
+        )
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не найден пользователь для полученной сессии",
+            )
+
+        user_permissions = await self.repository.fetch_permissions_for_role(
+            session=self.session, role_code=user.role_code
+        )
+        session_user_data = SessionUserDataData(
+            user_id=user.id,
+            session_id=current_session.session_id,
+            username=user.username,
+            user_agent=user_agent,
+            role_code=user.role_code,
+            permissions=user_permissions,
+        )
+        user_tokens, updated_session = await self.session_maker.update_session(
+            user_data=session_user_data
+        )
+
+        await self.repository.update_session_in_repository(
+            session=self.session, user_session=updated_session
+        )
+
+        logger.info(
+            f"Обновлена сессия: {session_user_data.session_id=} для пользователя: {session_user_data.user_id}"  # noqa: E501
+        )
+
+        return RefreshResponse(
+            access_token=user_tokens.access_token,
+            refresh_token=user_tokens.refresh_token,
+            expires_at=user_tokens.expires_at,
+        )
 
 
 @lru_cache
@@ -191,6 +246,10 @@ def get_login_service(
 
 @lru_cache
 def get_refresh_service(
-    cache: Cache = Depends(get_cache), session: AsyncSession = Depends(get_session)
-) -> RegisterService:
-    pass
+    session: AsyncSession = Depends(get_session),
+    repository: AuthReository = Depends(get_auth_repository),
+    session_maker: SessionMaker = Depends(get_auth_session_maker),
+) -> RefreshService:
+    repository = repository
+    session_maker = session_maker
+    return RefreshService(repository=repository, session=session, session_maker=session_maker)

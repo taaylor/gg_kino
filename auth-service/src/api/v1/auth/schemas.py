@@ -11,50 +11,55 @@ class Gender(StrEnum):
 
 
 class AccessTokenField(BaseModel):
-    access_token: str = Field(...)
+    access_token: str = Field(
+        ..., min_length=10, max_length=5000, description="Токен доступа для авторизации"
+    )
 
 
 class RefreshTokenField(BaseModel):
-    refresh_token: str = Field(...)
+    refresh_token: str = Field(
+        ..., min_length=10, max_length=5000, description="Токен для обновления сессии"
+    )
 
 
 class Session(RefreshTokenField, AccessTokenField):
-    expires_at: datetime = Field(...)
+    expires_at: datetime = Field(..., description="Дата и время истечения токена")
 
 
 class UserFields(BaseModel):
-    username: str = Field(..., min_length=4, max_length=30)
-    email: str = Field(...)
-    first_name: str | None = Field(None, min_length=4, max_length=30)
-    last_name: str | None = Field(None, min_length=4, max_length=30)
-    gender: Gender = Field(...)
+    username: str = Field(..., min_length=4, max_length=30, description="Юзернейм пользователя")
+    email: str = Field(
+        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+    )
+    first_name: str | None = Field(
+        None, min_length=4, max_length=30, description="Имя пользователя (опционально)"
+    )
+    last_name: str | None = Field(
+        None, min_length=4, max_length=30, description="Фамилия пользователя (опционально)"
+    )
+    gender: Gender = Field(..., description="Пол пользователя")
 
 
 class RegisterRequest(UserFields):
-    password: str = Field(...)
+    password: str = Field(..., min_length=8, max_length=128, description="Пароль для регистрации")
 
 
 class RegisterResponse(UserFields):
-    user_id: UUID = Field(...)
-    session: Session = Field(...)
+    user_id: UUID = Field(..., description="Уникальный идентификатор пользователя")
+    session: Session = Field(..., description="Сессия пользователя")
 
 
 class LoginRequest(BaseModel):
-    email: str = Field(...)
-    password: str = Field(...)
+    email: str = Field(
+        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+    )
+    password: str = Field(..., min_length=8, max_length=128, description="Пароль пользователя")
 
 
 class LoginResponse(Session):
-    access_token: str = Field(...)
-    refresh_token: str = Field(...)
-    expires_at: datetime = Field(...)
+    access_token: str = Field(..., description="Токен доступа для авторизации")
+    refresh_token: str = Field(..., description="Токен для обновления сессии")
+    expires_at: datetime = Field(..., description="Дата и время истечения токена")
 
 
-class RefreshRequest(RefreshTokenField):
-    refresh_token: str = Field(...)
-
-
-class RefreshResponse(Session):
-    access_token: str = Field(...)
-    refresh_token: str = Field(...)
-    expires_at: datetime = Field(...)
+class RefreshResponse(Session): ...  # noqa: E701
