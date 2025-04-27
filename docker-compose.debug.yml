@@ -47,6 +47,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
+      - ./auth-service/src/dumps:/dumps
     ports:
       - "5432:5432"
     healthcheck:

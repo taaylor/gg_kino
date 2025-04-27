@@ -5,10 +5,10 @@ from http import HTTPStatus
 
 from api.v1.role.schemas import (
     Permission,
-    RequestRoleDetail,
-    RequestRoleDetailUpdate,
-    ResponseRole,
-    ResponseRoleDetail,
+    RoleDetailRequest,
+    RoleDetailResponse,
+    RoleDetailUpdateRequest,
+    RoleResponse,
 )
 from core.config import app_config
 from db.cache import Cache, get_cache
@@ -44,7 +44,7 @@ class RoleService:
 
         return role
 
-    async def get_roles(self) -> list[ResponseRole]:
+    async def get_roles(self) -> list[RoleResponse]:
         """Возвращает список всех ролей с базовой информацией"""
 
         role_cache = await self.cache.get(CACHE_KEY_ROLES)
@@ -52,7 +52,7 @@ class RoleService:
         if role_cache:
             logger.debug(f"Список ролей получен из кеша: {role_cache}")
 
-            return [ResponseRole.model_validate(r) for r in json.loads(role_cache)]
+            return [RoleResponse.model_validate(r) for r in json.loads(role_cache)]
 
         stmt = select(DictRoles.role, DictRoles.descriptions).order_by(DictRoles.role)
         result = await self.session_db.execute(stmt)
@@ -61,7 +61,7 @@ class RoleService:
         if not roles:
             return []
 
-        role_list = [ResponseRole(role=r.role, descriptions=r.descriptions) for r in roles]
+        role_list = [RoleResponse(role=r.role, descriptions=r.descriptions) for r in roles]
 
         json_role = json.dumps([r.model_dump(mode="json") for r in role_list])
         await self.cache.background_set(
@@ -70,21 +70,21 @@ class RoleService:
 
         return role_list
 
-    async def get_role(self, pk: str) -> ResponseRoleDetail | None:
+    async def get_role(self, pk: str) -> RoleDetailResponse | None:
         """Возвращает детальную информацию о роли с разрешениями"""
 
         cache_key = CACHE_KEY_ROLE + pk
         role_cache = await self.cache.get(cache_key)
         if role_cache:
             logger.debug(f"Список ролей получен из кеша: {role_cache}")
-            return ResponseRoleDetail.model_validate_json(role_cache)
+            return RoleDetailResponse.model_validate_json(role_cache)
 
         role_model = await self._get_model_role(pk=pk)
 
         if not role_model:
             return None
 
-        role = ResponseRoleDetail(
+        role = RoleDetailResponse(
             role=role_model.role,
             descriptions=role_model.descriptions,
             permissions=[
@@ -98,7 +98,7 @@ class RoleService:
         )
         return role
 
-    async def create_role(self, request_body: RequestRoleDetail) -> ResponseRoleDetail:
+    async def create_role(self, request_body: RoleDetailRequest) -> RoleDetailResponse:
         """Возвращает созданную роль в системе"""
         try:
             async with self.session_db.begin():
@@ -125,7 +125,7 @@ class RoleService:
                 status_code=HTTPStatus.BAD_REQUEST, detail="Объект уже существует"
             ) from e
 
-        role = ResponseRoleDetail(
+        role = RoleDetailResponse(
             role=role.role,
             descriptions=role.descriptions,
             permissions=[
@@ -142,8 +142,8 @@ class RoleService:
         return role
 
     async def update_role(
-        self, pk: str, request_body: RequestRoleDetailUpdate
-    ) -> ResponseRoleDetail:
+        self, pk: str, request_body: RoleDetailUpdateRequest
+    ) -> RoleDetailResponse:
         """Обновляет роль, возвращает обновленный объект роли"""
         async with self.session_db.begin():
             role = await self._get_model_role(pk=pk)
@@ -164,7 +164,7 @@ class RoleService:
             self.session_db.add(role)
             await self.session_db.commit()
 
-        role = ResponseRoleDetail(
+        role = RoleDetailResponse(
             role=role.role,
             descriptions=role.descriptions,
             permissions=[

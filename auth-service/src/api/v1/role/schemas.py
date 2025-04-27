@@ -1,11 +1,11 @@
-from models.models_types import PermissonEnum
+from models.models_types import PermissionEnum
 from pydantic import BaseModel, Field
 
 
 class Permission(BaseModel):
     """Модель представления права доступа в системе"""
 
-    permission: PermissonEnum = Field(
+    permission: PermissionEnum = Field(
         ..., description="Тип права доступа из предопределенного перечня", example="FREE_FILMS"
     )
     descriptions: str | None = Field(
@@ -14,7 +14,7 @@ class Permission(BaseModel):
     )
 
 
-class RequestRoleDetail(BaseModel):
+class RoleDetailRequest(BaseModel):
     """Базовая модель запроса для создания роли через API"""
 
     role: str = Field(..., description="Уникальное название роли", example="UNSUB_USER")
@@ -30,13 +30,13 @@ class RequestRoleDetail(BaseModel):
     )
 
 
-class ResponseRoleDetail(RequestRoleDetail):
+class RoleDetailResponse(RoleDetailRequest):
     """Базовая модель ответа для создания роли через API"""
 
     pass
 
 
-class ResponseRole(BaseModel):
+class RoleResponse(BaseModel):
     """Упрощенное представление роли (для списков и краткой информации)"""
 
     role: str = Field(..., description="Системное название роли", example="content_moderator")
@@ -45,7 +45,7 @@ class ResponseRole(BaseModel):
     )
 
 
-class RequestRoleDetailUpdate(BaseModel):
+class RoleDetailUpdateRequest(BaseModel):
     descriptions: str | None = Field(
         description="Подробное описание назначения и привилегий роли",
         example="Роль для модерации пользовательского контента",
