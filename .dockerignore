@@ -96,3 +96,4 @@ venv/
 **/*.pyd
 **/.pytest_cache
 **/.mypy_cache
+**/Dockerfile*
