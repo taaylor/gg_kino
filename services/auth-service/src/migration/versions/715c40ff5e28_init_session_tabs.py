@@ -1,7 +1,7 @@
 """init session tabs
 
 Revision ID: 715c40ff5e28
-Revises: 1ac2dbaba030
+Revises: 1b93bf7fe8b2
 Create Date: 2025-04-22 23:16:03.996359
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "715c40ff5e28"
-down_revision: Union[str, None] = "1ac2dbaba030"
+down_revision: Union[str, None] = "1b93bf7fe8b2"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,10 +24,16 @@ def upgrade() -> None:
     op.create_table(
         "user_sessions",
         sa.Column(
-            "session_id", sa.UUID(), nullable=False, comment="Уникальный идентификатор сессии"
+            "session_id",
+            sa.UUID(),
+            nullable=False,
+            comment="Уникальный идентификатор сессии",
         ),
         sa.Column(
-            "user_id", sa.UUID(), nullable=False, comment="Уникальный идентификатор пользователя"
+            "user_id",
+            sa.UUID(),
+            nullable=False,
+            comment="Уникальный идентификатор пользователя",
         ),
         sa.Column(
             "user_agent",
@@ -41,19 +47,31 @@ def upgrade() -> None:
             nullable=False,
             comment="Рефреш токен пользовательской сессии (JWT)",
         ),
-        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"
+        ),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+        ),
         sa.PrimaryKeyConstraint("session_id"),
         schema="session",
     )
     op.create_table(
         "user_sessions_hist",
         sa.Column(
-            "session_id", sa.UUID(), nullable=False, comment="Уникальный идентификатор сессии"
+            "session_id",
+            sa.UUID(),
+            nullable=False,
+            comment="Уникальный идентификатор сессии",
         ),
         sa.Column(
-            "user_id", sa.UUID(), nullable=False, comment="Уникальный идентификатор пользователя"
+            "user_id",
+            sa.UUID(),
+            nullable=False,
+            comment="Уникальный идентификатор пользователя",
         ),
         sa.Column(
             "user_agent",
@@ -61,9 +79,15 @@ def upgrade() -> None:
             nullable=True,
             comment="Клиентское устройство пользователя",
         ),
-        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"
+        ),
+        sa.Column(
+            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+        ),
         sa.PrimaryKeyConstraint("session_id"),
         schema="session",
     )
