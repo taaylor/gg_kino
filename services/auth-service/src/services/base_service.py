@@ -1,5 +1,7 @@
 from typing import Sequence
 
+from services.auth_repository import AuthReository
+from services.session_maker import SessionMaker
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,3 +36,12 @@ class BaseService:
             query = query.options(*options)
         exequted_query = await session.execute(query)
         return exequted_query.scalar_one_or_none()
+
+
+class BaseAuthService:
+    def __init__(
+        self, repository: AuthReository, session: AsyncSession, session_maker: SessionMaker
+    ):
+        self.repository = repository
+        self.session = session
+        self.session_maker = session_maker
