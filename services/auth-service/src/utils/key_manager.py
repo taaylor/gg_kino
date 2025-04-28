@@ -1,11 +1,8 @@
 import logging
-from http import HTTPStatus
 
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
-from async_fastapi_jwt_auth.exceptions import AccessTokenRequired, AuthJWTException
 from core.config import app_config
-from fastapi import HTTPException
 from models.logic_models import SessionUserData
 from pydantic import BaseModel
 
@@ -16,7 +13,9 @@ auth_dep = AuthJWTBearer()
 
 def load_jwt_settings():
     try:
-        with open(app_config.jwt.private_key_path, encoding="utf-8") as private_key_file:
+        with open(
+            app_config.jwt.private_key_path, encoding="utf-8"
+        ) as private_key_file:
             private_key = private_key_file.read()
         with open(app_config.jwt.public_key_path, encoding="utf-8") as public_key_file:
             public_key = public_key_file.read()
@@ -50,18 +49,6 @@ class JWTProcessor:
             user_claims=user_data.model_dump(mode="json"),
         )
         return access_token, refresh_token
-
-    async def validate_access_token(self, authorize: AuthJWT):
-        try:
-            authorize.jwt_required()
-        except AccessTokenRequired as error:
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN, detail="Access токен не передан"
-            ) from error
-        except AuthJWTException as error:
-            raise HTTPException(
-                status_code=HTTPStatus.UNAUTHORIZED, detail="Access токен невалиден"
-            ) from error
 
 
 @AuthJWT.load_config

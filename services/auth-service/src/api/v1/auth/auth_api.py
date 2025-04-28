@@ -8,6 +8,7 @@ from api.v1.auth.schemas import (
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
+    SessionsHistory,
 )
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Body, Depends, Request
@@ -17,12 +18,14 @@ from services.auth_service import (
     LogoutService,
     RefreshService,
     RegisterService,
+    SessionService,
     get_login_service,
     get_logout_service,
     get_refresh_service,
     get_register_service,
+    get_session_service,
 )
-from utils.key_manager import JWTProcessor, auth_dep, get_key_manager
+from utils.key_manager import auth_dep
 
 logger = logging.getLogger(__name__)
 
@@ -85,9 +88,8 @@ async def refresh(
 async def logout(
     authorize: Annotated[AuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
-    key_manager: Annotated[JWTProcessor, Depends(get_key_manager)],
 ) -> JSONResponse:
-    await key_manager.validate_access_token(authorize)
+    await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
     await logout_service.logout_session(access_data)
     content = {"message": "Вы успешно вышли из аккаунта!"}
@@ -96,16 +98,30 @@ async def logout(
 
 @router.post(
     path="/logoutall",
-    summary="Выйти из всех аккаунтов",
+    summary="Выйти из всех аккаунтов, кроме текущего",
     description="Закрывает все активные сессии пользователя, кроме текущей",
 )
 async def logoutall(
     authorize: Annotated[AuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
-    key_manager: Annotated[JWTProcessor, Depends(get_key_manager)],
 ) -> JSONResponse:
-    await key_manager.validate_access_token(authorize)
+    await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
     await logout_service.logout_sessions(access_data)
     content = {"message": "Вы успешно вышли из всех аккаунтов!"}
     return JSONResponse(status_code=HTTPStatus.OK, content=content)
+
+
+@router.get(
+    path="/entry-history",
+    summary="Последние действия в аккаунте",
+    description="Отдает информацию о последних действиях в аккаунте пользователя",
+)
+async def entry_history(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    sessions_service: Annotated[SessionService, Depends(get_session_service)],
+) -> SessionsHistory:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    history = await sessions_service.get_history_session(access_data)
+    return history
