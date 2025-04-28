@@ -12,9 +12,9 @@ from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound, 
 logger = logging.getLogger(__name__)
 
 
-def redis_handler_exeptions[
-    **P, R
-](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R | None]]:
+def redis_handler_exeptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
         try:
             return await func(*args, **kwargs)
@@ -37,9 +37,9 @@ def backoff(
     max_attempts: int = 5,
 ):
 
-    def func_wrapper[
-        **P, R
-    ](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R]]:
+    def func_wrapper[**P, R](
+        func: Callable[P, Coroutine[Any, Any, R]],
+    ) -> Callable[P, Coroutine[Any, Any, R]]:
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
             time = start_sleep_time
@@ -72,9 +72,9 @@ def backoff(
     return func_wrapper
 
 
-def sqlalchemy_handler_exeptions[
-    **P, R
-](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R | None]]:
+def sqlalchemy_handler_exeptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         session = kwargs.get("session")
