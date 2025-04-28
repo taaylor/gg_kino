@@ -20,6 +20,6 @@ app = FastAPI(
 setup_exception_handlers(app)
 
 SERVICE_PATH = "/auth/api/v1/"
-app.include_router(role.router, prefix=f"{SERVICE_PATH}roles", tags=["roles"])
-app.include_router(routers.router, prefix=f"{SERVICE_PATH}users", tags=["users"])
-app.include_router(auth_api.router, prefix="/auth/v1", tags=["auth"])
+app.include_router(role.router, prefix=f"{SERVICE_PATH}roles", tags=["Роли"])
+app.include_router(routers.router, prefix=f"{SERVICE_PATH}users", tags=["Пользователи"])
+app.include_router(auth_api.router, prefix=f"{SERVICE_PATH}sessions", tags=["Сессии"])
