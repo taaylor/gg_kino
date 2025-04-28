@@ -11,56 +11,42 @@ from utils.decorators import sqlalchemy_handler_exeptions
 logger = logging.getLogger(__name__)
 
 
-class AuthReository:
+class AuthRepository:
 
     @sqlalchemy_handler_exeptions
-    async def fetch_user_by_id(
-        self, session: AsyncSession, user_id: str
-    ) -> User | None:
+    async def fetch_user_by_id(self, session: AsyncSession, user_id: str) -> User | None:
         stmt = select(User).where(User.id == user_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_user_by_name(
-        self, session: AsyncSession, username: str
-    ) -> User | None:
+    async def fetch_user_by_name(self, session: AsyncSession, username: str) -> User | None:
         stmt = select(User).where(User.username == username)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_user_by_email(
-        self, session: AsyncSession, email: str
-    ) -> User | None:
+    async def fetch_user_by_email(self, session: AsyncSession, email: str) -> User | None:
         stmt = select(User).join(UserCred).where(UserCred.email == email)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_usercred_by_email(
-        self, session: AsyncSession, email: str
-    ) -> UserCred | None:
+    async def fetch_usercred_by_email(self, session: AsyncSession, email: str) -> UserCred | None:
         stmt = select(UserCred).where(UserCred.email == email)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_permissions_for_role(
-        self, session: AsyncSession, role_code: str
-    ) -> list[str]:
+    async def fetch_permissions_for_role(self, session: AsyncSession, role_code: str) -> list[str]:
         stmt = (
-            select(RolesPermissions.permission)
-            .join(DictRoles)
-            .where(DictRoles.role == role_code)
+            select(RolesPermissions.permission).join(DictRoles).where(DictRoles.role == role_code)
         )
         result = await session.execute(stmt)
         return result.scalars().all()
 
     @sqlalchemy_handler_exeptions
-    async def fetch_session_by_id(
-        self, session: AsyncSession, session_id: UUID
-    ) -> UserSession:
+    async def fetch_session_by_id(self, session: AsyncSession, session_id: UUID) -> UserSession:
         stmt = select(UserSession).where(UserSession.session_id == session_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
@@ -86,14 +72,10 @@ class AuthReository:
         session.add_all([user_session, user_session_hist])
 
     @sqlalchemy_handler_exeptions
-    async def update_session_in_repository(
-        self, session: AsyncSession, user_session: UserSession
-    ):
+    async def update_session_in_repository(self, session: AsyncSession, user_session: UserSession):
         stmt = (
             select(UserSession, UserSessionsHist)
-            .join(
-                UserSessionsHist, UserSession.session_id == UserSessionsHist.session_id
-            )
+            .join(UserSessionsHist, UserSession.session_id == UserSessionsHist.session_id)
             .where(UserSession.session_id == user_session.session_id)
         )
         result = await session.execute(stmt)
@@ -133,9 +115,7 @@ class AuthReository:
         return delete_sessions
 
     @sqlalchemy_handler_exeptions
-    async def fetch_history_sessions(
-        self, session: AsyncSession, user_id: UUID
-    ) -> list[tuple]:
+    async def fetch_history_sessions(self, session: AsyncSession, user_id: UUID) -> list[tuple]:
         stmt = (
             select(
                 UserSessionsHist.user_agent,
@@ -155,4 +135,4 @@ class AuthReository:
 
 @lru_cache()
 def get_auth_repository():
-    return AuthReository()
+    return AuthRepository()

@@ -41,8 +41,8 @@ class Redis(BaseModel):
 class AppConfig(BaseSettings):
     project_name: str = "movies"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_url: str = "/api/openapi"
-    openapi_url: str = "/api/openapi.json"
+    docs_url: str = "/async/openapi"
+    openapi_url: str = "/async/openapi.json"
     cache_expire_in_seconds: int = 300
 
     elastic: Elastic = Elastic()

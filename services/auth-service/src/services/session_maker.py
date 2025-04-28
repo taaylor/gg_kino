@@ -73,5 +73,4 @@ class SessionMaker:
 
 
 def get_auth_session_maker(key_manager: JWTProcessor = (Depends(get_key_manager))):
-    key_manager = key_manager
     return SessionMaker(key_manager=key_manager)

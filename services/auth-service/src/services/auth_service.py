@@ -19,7 +19,7 @@ from fastapi import Depends, HTTPException, status
 from models.logic_models import SessionUserData
 from models.models import User, UserCred
 from passlib.context import CryptContext
-from services.auth_repository import AuthReository, get_auth_repository
+from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,9 +33,7 @@ DEFAULT_ROLE = app_config.default_role
 
 class RegisterService(BaseAuthService):
 
-    async def create_user(
-        self, user_data: RegisterRequest, user_agent: str
-    ) -> RegisterResponse:
+    async def create_user(self, user_data: RegisterRequest, user_agent: str) -> RegisterResponse:
         logger.debug(
             f"Обработка запроса на создание пользователя {user_data.username=}, {user_agent=}"
         )
@@ -47,14 +45,10 @@ class RegisterService(BaseAuthService):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Полльзователь с таким именем уже существует",
             )
-        logger.info(
-            f"Пользователь предоставил имя, которого ещё нет в БД {user_data.username}"
-        )
+        logger.info(f"Пользователь предоставил имя, которого ещё нет в БД {user_data.username}")
 
         # Проверка уникальности email
-        if await self.repository.fetch_user_by_email(
-            session=self.session, email=user_data.email
-        ):
+        if await self.repository.fetch_user_by_email(session=self.session, email=user_data.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Полльзователь с таким адресом почты уже существует",
@@ -74,9 +68,7 @@ class RegisterService(BaseAuthService):
         )
 
         hashed_password = pwd_context.hash(user_data.password)
-        user_cred = UserCred(
-            user_id=user.id, email=user_data.email, password=hashed_password
-        )
+        user_cred = UserCred(user_id=user.id, email=user_data.email, password=hashed_password)
         user_permissions = await self.repository.fetch_permissions_for_role(
             session=self.session, role_code=user.role_code
         )
@@ -93,8 +85,8 @@ class RegisterService(BaseAuthService):
         )
 
         # Создание экземпляра сессии и токенов
-        user_tokens, user_session, user_session_hist = (
-            await self.session_maker.create_session(user_data=session_user_data)
+        user_tokens, user_session, user_session_hist = await self.session_maker.create_session(
+            user_data=session_user_data
         )
 
         # Запись всех данных для нового пользователя в БД
@@ -123,12 +115,8 @@ class RegisterService(BaseAuthService):
 
 class LoginService(BaseAuthService):
 
-    async def login_user(
-        self, user_data: LoginRequest, user_agent: str
-    ) -> LoginResponse:
-        logger.info(
-            f"Запрошена аутентификация для пользователя с email: {user_data.email}"
-        )
+    async def login_user(self, user_data: LoginRequest, user_agent: str) -> LoginResponse:
+        logger.info(f"Запрошена аутентификация для пользователя с email: {user_data.email}")
 
         # Находим пользователя в БД
         user_cred = await self.repository.fetch_usercred_by_email(
@@ -143,9 +131,7 @@ class LoginService(BaseAuthService):
             )
 
         if not pwd_context.verify(user_data.password, user_cred.password):
-            logger.warning(
-                f"При попытке авторизации {user_data.email} был введён неверный пароль"
-            )
+            logger.warning(f"При попытке авторизации {user_data.email} был введён неверный пароль")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Неверный пароль или пользователь с email: {user_data.email} не существует",
@@ -167,8 +153,8 @@ class LoginService(BaseAuthService):
         )
 
         # Создание экземпляра сессии и токенов
-        user_tokens, user_session, user_session_hist = (
-            await self.session_maker.create_session(user_data=session_user_data)
+        user_tokens, user_session, user_session_hist = await self.session_maker.create_session(
+            user_data=session_user_data
         )
 
         await self.repository.create_session_in_repository(
@@ -189,9 +175,7 @@ class LoginService(BaseAuthService):
 
 
 class RefreshService(BaseAuthService):
-    async def refresh_session(
-        self, session_id: uuid.UUID, user_agent: str
-    ) -> RefreshResponse:
+    async def refresh_session(self, session_id: uuid.UUID, user_agent: str) -> RefreshResponse:
         logger.info(f"Запрошен рефреш сессии для {session_id=}")
 
         current_session = await self.repository.fetch_session_by_id(
@@ -247,7 +231,7 @@ class RefreshService(BaseAuthService):
 class LogoutService:
     CACHE_KEY_DROP_SESSION = "session:drop:{user_id}:{session_id}"
 
-    def __init__(self, repository: AuthReository, session: AsyncSession, cache: Cache):
+    def __init__(self, repository: AuthRepository, session: AsyncSession, cache: Cache):
         self.repository = repository
         self.session = session
         self.cache = cache
@@ -268,9 +252,7 @@ class LogoutService:
                 detail="Текущая сессия не найдена",
             )
 
-        await self.repository.drop_session_by_id(
-            session=self.session, session_id=session_id
-        )
+        await self.repository.drop_session_by_id(session=self.session, session_id=session_id)
 
         logger.info(
             "Пользователь {username} вышел из сессии {session_id}".format(
@@ -278,9 +260,7 @@ class LogoutService:
             )
         )
 
-        cache_key = self.CACHE_KEY_DROP_SESSION.format(
-            user_id=user_id, session_id=session_id
-        )
+        cache_key = self.CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=session_id)
         await self.cache.background_set(
             key=cache_key,
             value=str(session_id),
@@ -308,9 +288,7 @@ class LogoutService:
         )
 
         for del_session in result:
-            cache_key = self.CACHE_KEY_DROP_SESSION.format(
-                user_id=user_id, session_id=del_session
-            )
+            cache_key = self.CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=del_session)
             await self.cache.background_set(
                 key=cache_key,
                 value=str(del_session),
@@ -325,7 +303,7 @@ class LogoutService:
 
 class SessionService(BaseAuthService):
 
-    def __init__(self, repository: AuthReository, session: AsyncSession):
+    def __init__(self, repository: AuthRepository, session: AsyncSession):
         self.repository = repository
         self.session = session
 
@@ -344,9 +322,7 @@ class SessionService(BaseAuthService):
                 detail="Текущая сессия не актуальная",
             )
 
-        result = await self.repository.fetch_history_sessions(
-            session=self.session, user_id=user_id
-        )
+        result = await self.repository.fetch_history_sessions(session=self.session, user_id=user_id)
 
         history = []
         current_session_data = None
@@ -355,9 +331,7 @@ class SessionService(BaseAuthService):
             if item.session_id == current_session.session_id:
                 current_session_data = item
             else:
-                history.append(
-                    EntryPoint(user_agent=item.user_agent, created_at=item.created_at)
-                )
+                history.append(EntryPoint(user_agent=item.user_agent, created_at=item.created_at))
 
         return SessionsHistory(
             actual_user_agent=current_session_data.user_agent,
@@ -369,46 +343,36 @@ class SessionService(BaseAuthService):
 @lru_cache
 def get_register_service(
     session: AsyncSession = Depends(get_session),
-    repository: AuthReository = Depends(get_auth_repository),
+    repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> RegisterService:
-    repository = repository
-    session_maker = session_maker
-    return RegisterService(
-        repository=repository, session=session, session_maker=session_maker
-    )
+    return RegisterService(repository=repository, session=session, session_maker=session_maker)
 
 
 @lru_cache
 def get_login_service(
     session: AsyncSession = Depends(get_session),
-    repository: AuthReository = Depends(get_auth_repository),
+    repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> LoginService:
-    repository = repository
-    session_maker = session_maker
-    return LoginService(
-        repository=repository, session=session, session_maker=session_maker
-    )
+    return LoginService(repository=repository, session=session, session_maker=session_maker)
 
 
 @lru_cache
 def get_refresh_service(
     session: AsyncSession = Depends(get_session),
-    repository: AuthReository = Depends(get_auth_repository),
+    repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> RefreshService:
     repository = repository
     session_maker = session_maker
-    return RefreshService(
-        repository=repository, session=session, session_maker=session_maker
-    )
+    return RefreshService(repository=repository, session=session, session_maker=session_maker)
 
 
 @lru_cache
 def get_logout_service(
     session: AsyncSession = Depends(get_session),
-    repository: AuthReository = Depends(get_auth_repository),
+    repository: AuthRepository = Depends(get_auth_repository),
     cache: Cache = Depends(get_cache),
 ) -> LogoutService:
     return LogoutService(repository=repository, session=session, cache=cache)
@@ -417,6 +381,6 @@ def get_logout_service(
 @lru_cache
 def get_session_service(
     session: AsyncSession = Depends(get_session),
-    repository: AuthReository = Depends(get_auth_repository),
+    repository: AuthRepository = Depends(get_auth_repository),
 ) -> SessionService:
     return SessionService(session=session, repository=repository)
