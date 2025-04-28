@@ -3,8 +3,6 @@ FROM node:14
 WORKDIR /app
 
 RUN npm install elasticdump -g
-# COPY elastic_dump/dump .
-# COPY elastic_dump/dump_loader/import.sh .
 
 # Копируем содержимое папки backup/elastic_dump/dump/
 COPY backup/elastic_dump/dump/ .

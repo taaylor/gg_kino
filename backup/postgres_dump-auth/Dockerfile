@@ -6,9 +6,6 @@ RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/ap
 WORKDIR /app
 
 # Копирование файлов для импорта
-# COPY ./postgres_dump-auth/roles.csv /app/roles.csv
-# COPY ./postgres_dump-auth/permissions.csv /app/permissions.csv
-# COPY ./postgres_dump-auth/import.sh /app/import.sh
 COPY backup/postgres_dump-auth/roles.csv /app/roles.csv
 COPY backup/postgres_dump-auth/permissions.csv /app/permissions.csv
 COPY backup/postgres_dump-auth/import.sh /app/import.sh
