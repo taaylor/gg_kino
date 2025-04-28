@@ -50,13 +50,6 @@ class JWTProcessor:
         )
         return access_token, refresh_token
 
-    async def create_access_token(self, user_data: SessionUserData):
-        access_token = await self.authorize.create_access_token(
-            subject=str(user_data.session_id),
-            user_claims=user_data.model_dump(mode="json"),
-        )
-        return access_token
-
 
 @AuthJWT.load_config
 def get_config():
