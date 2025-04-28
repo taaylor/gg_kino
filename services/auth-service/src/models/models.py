@@ -1,8 +1,9 @@
 import uuid
+from datetime import datetime
 
 from db.postgres import Base
 from models.models_types import GenderEnum
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, String
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -28,7 +29,6 @@ class User(Base):
         "UserCred",
         back_populates="user",
         uselist=False,
-        lazy="joined",
         cascade="all, delete-orphan",
     )
 
@@ -105,3 +105,42 @@ class RolesPermissions(Base):
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(permission={self.permission})"
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    __table_args__ = {"schema": "session"}
+
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, default=uuid.uuid4, comment="Уникальный идентификатор сессии"
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        nullable=False, comment="Уникальный идентификатор пользователя"
+    )
+    user_agent: Mapped[str | None] = mapped_column(
+        String(255), comment="Клиентское устройство пользователя"
+    )
+    refresh_token: Mapped[str] = mapped_column(
+        String, nullable=False, comment="Рефреш токен пользовательской сессии (JWT)"
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, comment="Дата истечения сессии"
+    )
+
+
+class UserSessionsHist(Base):
+    __tablename__ = "user_sessions_hist"
+    __table_args__ = {"schema": "session"}
+
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, comment="Уникальный идентификатор сессии"
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        nullable=False, comment="Уникальный идентификатор пользователя"
+    )
+    user_agent: Mapped[str | None] = mapped_column(
+        String(255), comment="Клиентское устройство пользователя"
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, comment="Дата истечения сессии"
+    )

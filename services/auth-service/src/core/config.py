@@ -45,16 +45,30 @@ class Redis(BaseModel):
     db: int = 0
 
 
+class JWTSettings(BaseModel):
+    private_key_path: str = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "keys/private.pem"
+    )
+    public_key_path: str = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "keys/public.pem"
+    )
+    algorithm: str = "RS256"
+    access_token_lifetime_sec: int = 300  # 5 минут
+    refresh_token_lifetime_sec: int = 1200  # 20 минут
+
+
 class AppConfig(BaseSettings):
     project_name: str = "auth"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/api/openapi"
     openapi_url: str = "/auth/api/openapi.json"
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
+    default_role: str = "UNSUB_USER"
 
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
     server: Server = Server()
+    jwt: JWTSettings = JWTSettings()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
