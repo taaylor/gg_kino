@@ -13,10 +13,10 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY pyproject.toml poetry.lock ./
+COPY services/async-api/src/pyproject.toml services/async-api/src/poetry.lock ./
 
-RUN poetry install --only main
+RUN poetry install --without test && which gunicorn
 
-COPY /src .
+COPY services/async-api/src/ .
 
 CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]
