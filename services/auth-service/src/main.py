@@ -1,5 +1,6 @@
+from api.v1.auth import auth_api
 from api.v1.role import role
-from api.v1.update_user_data.routers import router
+from api.v1.update_user_data import routers
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -19,4 +20,5 @@ app = FastAPI(
 setup_exception_handlers(app)
 
 app.include_router(role.router, prefix="/api/v1/roles", tags=["roles"])
-app.include_router(router, prefix="/api/v1/users", tags=["users"])
+app.include_router(routers.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(auth_api.router, prefix="/auth/v1", tags=["auth"])
