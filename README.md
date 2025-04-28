@@ -1,4 +1,5 @@
-# yandex_kinoservice
+# KINOSERVICE
+## Запуск проекта
 Киносервис
 В корневой директории проекта:
 ```
@@ -29,3 +30,18 @@ bash scripts/create_superuser.sh
 или
 ```
 docker compose exec auth-api python manage.py createsuperuser
+```
+
+## Сервисы проекта
+### Auth Service
+Сервис управления пользователями и пользовательскими сессиями
+
+[Описание API](http://localhost/auth/openapi)
+### Async Service
+Сервис для получения контента кинотеатра
+
+[Описание API](http://localhost/async/openapi)
+
+### Архитектурный ландшафт
+![Архитектурный ландшафт](docs/c4.drawio.png)
+![Основной сценарий проверки авторизации](docs/use_cases/Проверка%20авторизации%20пользователя.svg)

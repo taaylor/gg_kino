@@ -22,7 +22,7 @@ router = APIRouter()
     response_description="Успешное получение списка ролей в формате массива объектов",
 )
 async def get_roles(
-    service: Annotated[RoleService, Depends(get_role_service)]
+    service: Annotated[RoleService, Depends(get_role_service)],
 ) -> list[RoleResponse]:
     roles = await service.get_roles()
     return roles

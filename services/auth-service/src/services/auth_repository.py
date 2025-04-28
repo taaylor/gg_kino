@@ -10,7 +10,7 @@ from utils.decorators import sqlalchemy_handler_exeptions
 logger = logging.getLogger(__name__)
 
 
-class AuthReository:
+class AuthRepository:
 
     @sqlalchemy_handler_exeptions
     async def fetch_user_by_id(self, session: AsyncSession, user_id: str) -> User | None:
@@ -83,7 +83,8 @@ class AuthReository:
         # Проверяем, что обе сущности найдены. Если хотя бы одна отсутствует, выбрасываем ошибку.
         if not (upd_user_session and upd_user_session_hist):
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Сессия не найдена"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Сессия не найдена",
             )
 
         upd_user_session.user_agent = user_session.user_agent
@@ -95,4 +96,4 @@ class AuthReository:
 
 
 def get_auth_repository():
-    return AuthReository()
+    return AuthRepository()

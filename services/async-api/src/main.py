@@ -26,6 +26,7 @@ app = FastAPI(
 exceptions_handlers.setup_exception_handlers(app)
 
 # Секция подключения роутеров к серверу
-app.include_router(filmwork.router, prefix="/api/v1/films", tags=["Фильмы"])
-app.include_router(persons.router, prefix="/api/v1/persons", tags=["Персоны"])
-app.include_router(genres.router, prefix="/api/v1/genres", tags=["Жанры"])
+SERVICE_PATH = "/async/api/v1/"
+app.include_router(filmwork.router, prefix=f"{SERVICE_PATH}films", tags=["Фильмы"])
+app.include_router(persons.router, prefix=f"{SERVICE_PATH}persons", tags=["Персоны"])
+app.include_router(genres.router, prefix=f"{SERVICE_PATH}genres", tags=["Жанры"])
