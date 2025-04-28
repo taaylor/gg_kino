@@ -39,8 +39,8 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      - ES_HOST=${ELASTIC_HOST}
-      - ES_PORT=${ELASTIC_PORT}
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_PORT=${ELASTIC_PORT}
     restart: "no"
 
   redis:
