@@ -65,7 +65,7 @@ def backoff(
 ):
     def func_wrapper[
         **P, R
-    ](func: Callable[P, Coroutine[Any, Any, R]]) -> Callable[P, Coroutine[Any, Any, R]]:
+    ](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R]]:
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
             time = start_sleep_time

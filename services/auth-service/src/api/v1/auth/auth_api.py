@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from typing import Annotated
 
 from api.v1.auth.schemas import (
@@ -10,15 +11,18 @@ from api.v1.auth.schemas import (
 )
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Body, Depends, Request
+from fastapi.responses import JSONResponse
 from services.auth_service import (
     LoginService,
+    LogoutService,
     RefreshService,
     RegisterService,
     get_login_service,
+    get_logout_service,
     get_refresh_service,
     get_register_service,
 )
-from utils.key_manager import auth_dep
+from utils.key_manager import JWTProcessor, auth_dep, get_key_manager
 
 logger = logging.getLogger(__name__)
 
@@ -71,3 +75,37 @@ async def refresh(
     user_agent = request.headers.get("user-agent")
     logger.info(f"Из рефреш токена получена: {session_id=}")
     return await refresh_service.refresh_session(session_id, user_agent)
+
+
+@router.post(
+    path="/logout",
+    summary="Выйти из текущего аккаунта",
+    description="Закрывает текущую сессию пользователя",
+)
+async def logout(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    logout_service: Annotated[LogoutService, Depends(get_logout_service)],
+    key_manager: Annotated[JWTProcessor, Depends(get_key_manager)],
+) -> JSONResponse:
+    await key_manager.validate_access_token(authorize)
+    access_data = await authorize.get_raw_jwt()
+    await logout_service.logout_session(access_data)
+    content = {"message": "Вы успешно вышли из аккаунта!"}
+    return JSONResponse(status_code=HTTPStatus.OK, content=content)
+
+
+@router.post(
+    path="/logoutall",
+    summary="Выйти из всех аккаунтов",
+    description="Закрывает все активные сессии пользователя, кроме текущей",
+)
+async def logoutall(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    logout_service: Annotated[LogoutService, Depends(get_logout_service)],
+    key_manager: Annotated[JWTProcessor, Depends(get_key_manager)],
+) -> JSONResponse:
+    await key_manager.validate_access_token(authorize)
+    access_data = await authorize.get_raw_jwt()
+    await logout_service.logout_sessions(access_data)
+    content = {"message": "Вы успешно вышли из всех аккаунтов!"}
+    return JSONResponse(status_code=HTTPStatus.OK, content=content)
