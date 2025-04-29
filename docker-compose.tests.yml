@@ -5,7 +5,7 @@ services:
     env_file:
       - ./.env-tests
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+      - test_elasticsearch_data:/usr/share/elasticsearch/data
     environment:
       - "discovery.type=single-node"
       - "xpack.security.enabled=false"
@@ -34,7 +34,7 @@ services:
     ports:
       - "${TEST_REDIS__PORT}:${TEST_REDIS__PORT}"
     volumes:
-      - redis_data:/data
+      - test_redis_data:/data
     deploy:
       resources:
         limits:
@@ -61,13 +61,13 @@ services:
       retries: 5
     restart: always
 
-  theatre-api:
+  async-api:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./services/async-api/src/Dockerfile
     env_file:
       - ./.env-tests
-    container_name: theatre-api-container
+    container_name: async-api-container
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -77,11 +77,11 @@ services:
       - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
     restart: always
 
-  tests:
+  tests-async-api:
     build:
       context: .
-      dockerfile: ./tests/functional/Dockerfile-tests
-    container_name: tests-container
+      dockerfile: ./services/async-api/tests/functional/Dockerfile-tests
+    container_name: tests-async-api-container
     env_file:
       - ./.env-tests
     depends_on:
@@ -96,14 +96,16 @@ services:
     env_file:
       - ./.env-tests
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./configs:/etc/nginx/conf.d:ro
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
     depends_on:
-      - theatre-api
+      - async-api
+      # - auth-api
     ports:
       - "${TEST_NGINX_PORT}:${TEST_NGINX_PORT}"
     restart: always
 
 volumes:
-  elasticsearch_data:
-  redis_data:
+  test_redis_data:
+  test_pg_data_volume:
+  test_elasticsearch_data:
