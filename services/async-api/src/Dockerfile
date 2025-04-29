@@ -13,9 +13,11 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY services/async-api/src/pyproject.toml services/async-api/src/poetry.lock ./
+COPY .env ./
+COPY services/async-api/src/pyproject.toml ./
+COPY services/async-api/src/poetry.lock ./
 
-RUN poetry install --without test && which gunicorn
+RUN poetry install --only main
 
 COPY services/async-api/src/ .
 

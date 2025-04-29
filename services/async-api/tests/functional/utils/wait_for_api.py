@@ -9,8 +9,8 @@ logger = get_logger("wait_for_api")
 
 @backoff(exception=(ConnectionRefusedError, socket.timeout, ValueError))
 def check_api():
-    host = test_conf.api.host
-    port = test_conf.api.port
+    host = test_conf.asyncapi.host
+    port = test_conf.asyncapi.port
     path = "/api/openapi.json"
 
     with socket.create_connection((host, port), timeout=2) as sock:

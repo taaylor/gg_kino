@@ -3,37 +3,31 @@ services:
     image: redis:7-alpine
     container_name: redis-container
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_USER=${REDIS_USER}
-      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DB=${REDIS_DB}
-    volumes:
-      - redis_data:/data
+      - REDIS_PASSWORD=${TEST_REDIS__PASSWORD}
+      - REDIS_USER=${TEST_REDIS__USER}
+      - REDIS_USER_PASSWORD=${TEST_REDIS_USER__PASSWORD}
+      - REDIS_HOST=${TEST_REDIS__HOST}
+      - REDIS_PORT=${TEST_REDIS__PORT}
+      - REDIS_DB=${TEST_REDIS__DB}
     ports:
-      - "6379:6379"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+      - "${TEST_REDIS__PORT}:${TEST_REDIS__PORT}"
+    volumes:
+      - test_redis_data:/data
+    cpus: "2"
+    mem_limit: 512M
     command: >
       sh -c '
         mkdir -p /usr/local/etc/redis &&
         echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
-        echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $TEST_REDIS__PASSWORD" >> /usr/local/etc/redis/redis.conf &&
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default off" > /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $TEST_REDIS__USER on >$TEST_REDIS_USER__PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
+      test: ["CMD", "redis-cli", "-a", "$TEST_REDIS__PASSWORD", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -43,6 +37,7 @@ services:
     build:
       context: .
       dockerfile: ./services/auth-service/src/Dockerfile
+    container_name: auth-api-container
     ports:
       - "8000:8000"
     depends_on:
@@ -56,15 +51,15 @@ services:
     image: postgres:17-alpine
     container_name: postgres-container
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${TEST_POSTGRES__USER}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES__PASSWORD}
+      POSTGRES_DB: ${TEST_POSTGRES__DB}
     volumes:
-      - pg_data_volume:/var/lib/postgresql/data
+      - test_pg_data_volume:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_POSTGRES__USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,5 +77,5 @@ services:
         condition: service_healthy
 
 volumes:
-  redis_data:
-  pg_data_volume:
+  test_redis_data:
+  test_pg_data_volume:

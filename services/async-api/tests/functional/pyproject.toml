@@ -1,7 +1,7 @@
 [project]
-name = "auth-api-tests"
+name = "async-api-tests"
 version = "0.1.0"
-description = "Functional tests from auth-api"
+description = "Functional tests from async-api"
 readme = "README.md"
 requires-python = ">=3.12"
 
@@ -14,9 +14,9 @@ aiohttp = "3.11.16"
 pytest-asyncio = "0.26.0"
 python-dotenv = "1.1.0"
 redis = "5.0.4"
-asyncpg = "0.30.0"
 pydantic = "2.11.3"
 pydantic-settings = "2.9.1"
+elasticsearch = {extras = ["async"], version = "8.13.2"}
 
 
 [build-system]
