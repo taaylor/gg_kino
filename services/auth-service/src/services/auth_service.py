@@ -236,14 +236,11 @@ class LogoutService:
         self.session = session
         self.cache = cache
 
-    async def logout_session(self, access_data: dict[str, Any]):
+    async def _get_valid_session_data(self, access_data: dict[str, Any]) -> SessionUserData:
         user_data = SessionUserData.model_validate(access_data)
-        user_id = user_data.user_id
-        session_id = user_data.session_id
-        username = user_data.username
 
         current_session = await self.repository.fetch_session_by_id(
-            session=self.session, session_id=session_id
+            session=self.session, session_id=user_data.session_id
         )
 
         if not current_session:
@@ -251,44 +248,44 @@ class LogoutService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Текущая сессия не найдена",
             )
+        return user_data
 
-        await self.repository.drop_session_by_id(session=self.session, session_id=session_id)
+    async def logout_session(self, access_data: dict[str, Any]):
+        user_data = await self._get_valid_session_data(access_data=access_data)
+        current_session = user_data.session_id
+        username = user_data.username
+
+        await self.repository.drop_session_by_id(session=self.session, session_id=current_session)
 
         logger.info(
             "Пользователь {username} вышел из сессии {session_id}".format(
-                username=username, session_id=session_id
+                username=username, session_id=current_session
             )
         )
 
-        cache_key = self.CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=session_id)
+        cache_key = self.CACHE_KEY_DROP_SESSION.format(
+            user_id=user_data.user_id, session_id=current_session
+        )
+
         await self.cache.background_set(
             key=cache_key,
-            value=str(session_id),
+            value=str(current_session),
             expire=app_config.cache_expire_in_seconds,
         )
 
     async def logout_sessions(self, access_data: dict[str, Any]):
-        user_data = SessionUserData.model_validate(access_data)
-        user_id = user_data.user_id
-        session_id = user_data.session_id
+        user_data = await self._get_valid_session_data(access_data=access_data)
+        current_session = user_data.session_id
         username = user_data.username
 
-        current_session = await self.repository.fetch_session_by_id(
-            session=self.session, session_id=session_id
-        )
-
-        if not current_session:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Текущая сессия не актуальная",
-            )
-
         result = await self.repository.drop_sessions_except_current(
-            session=self.session, current_session=session_id, user_id=user_id
+            session=self.session, current_session=current_session, user_id=user_data.user_id
         )
 
         for del_session in result:
-            cache_key = self.CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=del_session)
+            cache_key = self.CACHE_KEY_DROP_SESSION.format(
+                user_id=user_data.user_id, session_id=del_session
+            )
             await self.cache.background_set(
                 key=cache_key,
                 value=str(del_session),
