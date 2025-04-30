@@ -19,7 +19,7 @@ COPY services/auth-service/src/pyproject.toml services/auth-service/src/poetry.l
 COPY libs/auth_utils /opt/app/libs/auth_utils
 RUN cd /opt/app/libs/auth_utils && poetry build && cd /opt/app && poetry add libs/auth_utils
 
-RUN poetry install
+RUN poetry install --only main
 
 COPY services/auth-service/src/ .
 
