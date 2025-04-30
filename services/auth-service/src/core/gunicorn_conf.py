@@ -1,10 +1,10 @@
-import multiprocessing
+# import multiprocessing
 
 from core.config import app_config
 
 # Количество воркеров (процессов), обрабатывающих запросы
-workers = multiprocessing.cpu_count() * 2 + 1
-# workers = 1
+# workers = multiprocessing.cpu_count() * 2 + 1
+workers = 1
 
 worker_class = app_config.server.worker_class
 

@@ -1,3 +1,4 @@
+import logging
 from http import HTTPStatus
 from typing import Annotated
 
@@ -7,9 +8,12 @@ from api.v1.role.schemas import (
     RoleDetailUpdateRequest,
     RoleResponse,
 )
+from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from fastapi.responses import JSONResponse
 from services.role import RoleService, get_role_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,7 +27,11 @@ router = APIRouter()
 )
 async def get_roles(
     service: Annotated[RoleService, Depends(get_role_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> list[RoleResponse]:
+    await authorize.jwt_required()
+    sub = authorize.get_jwt_subject()
+    logger.info(f"Из токена получен: {sub=}")
     roles = await service.get_roles()
     return roles
 

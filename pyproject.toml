@@ -15,6 +15,9 @@ flake8 = "^7.1.2"
 debugpy = "^1.8.13"
 ipython = "^9.1.0"
 
+
+[tool.poetry.dependencies]
+auth-utils = {path = "libs/auth_utils"}
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -1,13 +1,18 @@
 [tool.poetry]
 name = "auth_utils"
 version = "0.1.0"
-description = "Common utilities"
-authors = []
+description = "Utilities for JWT authentication in microservices"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "auth_utils"}]
+include = ["auth_utils/public.pem"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-
+async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
+pydantic = "^2.0.0"
+fastapi = "^0.115.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
