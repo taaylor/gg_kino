@@ -13,11 +13,14 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY .env ./
-COPY services/async-api/src/pyproject.toml ./
-COPY services/async-api/src/poetry.lock ./
+COPY services/auth-service/src/pyproject.toml services/auth-service/src/poetry.lock ./
+COPY services/async-api/src/pyproject.toml services/async-api/src/poetry.lock ./
 
-RUN poetry install --only main
+# Копируем auth_utils и собираем на месте
+COPY libs/auth_utils /opt/app/libs/auth_utils
+RUN cd /opt/app/libs/auth_utils && poetry build && cd /opt/app && poetry add libs/auth_utils
+
+RUN poetry install
 
 COPY services/async-api/src/ .
 

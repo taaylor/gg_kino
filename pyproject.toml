@@ -18,6 +18,7 @@ ipython = "^9.1.0"
 
 [tool.poetry.dependencies]
 auth-utils = {path = "libs/auth_utils"}
+elasticsearch = {extras = ["async"], version = "^8.13.2"}
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

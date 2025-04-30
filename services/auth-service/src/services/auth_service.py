@@ -251,7 +251,7 @@ class LogoutService(MixinAuthRepository):
         await self.cache.background_set(
             key=cache_key,
             value=str(current_session),
-            expire=app_config.cache_expire_in_seconds,
+            expire=app_config.jwt.refresh_token_lifetime_sec,
         )
 
     async def logout_all_sessions(self, access_data: dict[str, Any]):
@@ -270,7 +270,7 @@ class LogoutService(MixinAuthRepository):
             await self.cache.background_set(
                 key=cache_key,
                 value=str(del_session),
-                expire=app_config.cache_expire_in_seconds,
+                expire=app_config.jwt.refresh_token_lifetime_sec,
             )
             logger.info(f"Пользователь {username} вышел из сессии {del_session}")
 

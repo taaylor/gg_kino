@@ -25,7 +25,6 @@ psycopg2 = "^2.9.10"
 async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
 gunicorn = "^23.0.0"
 cd = "^1.1.0"
-auth-utils = {path = "../../../libs/auth_utils"}
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

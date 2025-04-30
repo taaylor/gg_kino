@@ -8,6 +8,8 @@ ENV_FILE = dotenv.find_dotenv()
 
 logger = logging.getLogger(__name__)
 
+logger.info(f"ENV АВТОРИЗАЦИЯ: {ENV_FILE}")
+
 
 class Redis(BaseModel):
     host: str = "localhost"
@@ -33,7 +35,6 @@ class AuthUtilsConfig(BaseSettings):
     iwIDAQAB
     -----END PUBLIC KEY-----
     """
-
     redis: Redis = Redis()
 
     model_config = SettingsConfigDict(
