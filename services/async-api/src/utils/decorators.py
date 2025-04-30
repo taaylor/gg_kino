@@ -63,6 +63,7 @@ def backoff(
     jitter: bool = True,
     max_attempts: int = 5,
 ):
+
     def func_wrapper[**P, R](
         func: Callable[P, Coroutine[Any, Any, R]],
     ) -> Callable[P, Coroutine[Any, Any, R]]:

@@ -10,6 +10,7 @@ from utils.exceptions_handlers import setup_exception_handlers
 app = FastAPI(
     title="Auth API для онлайн-кинотеатра",
     version="1.0.0",
+    description="Сервис авторизации киносервиса",
     docs_url=app_config.docs_url,
     openapi_url=app_config.openapi_url,
     default_response_class=ORJSONResponse,

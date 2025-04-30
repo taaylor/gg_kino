@@ -38,13 +38,18 @@ class BaseService:
         return exequted_query.scalar_one_or_none()
 
 
-class BaseAuthService:
+class MixinAuthRepository:
+    def __init__(self, repository: AuthRepository, session: AsyncSession):
+        self.repository = repository
+        self.session = session
+
+
+class BaseAuthService(MixinAuthRepository):
     def __init__(
         self,
         repository: AuthRepository,
         session: AsyncSession,
         session_maker: SessionMaker,
     ):
-        self.repository = repository
-        self.session = session
+        super().__init__(repository, session)
         self.session_maker = session_maker

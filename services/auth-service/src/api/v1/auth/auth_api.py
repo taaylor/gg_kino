@@ -7,16 +7,22 @@ from api.v1.auth.schemas import (
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
+    SessionsHistory,
 )
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Body, Depends, Request
+from schemas.entity import MessageResponse
 from services.auth_service import (
     LoginService,
+    LogoutService,
     RefreshService,
     RegisterService,
+    SessionService,
     get_login_service,
+    get_logout_service,
     get_refresh_service,
     get_register_service,
+    get_session_service,
 )
 from utils.key_manager import auth_dep
 
@@ -71,3 +77,50 @@ async def refresh(
     user_agent = request.headers.get("user-agent")
     logger.info(f"Из рефреш токена получена: {session_id=}")
     return await refresh_service.refresh_session(session_id, user_agent)
+
+
+@router.post(
+    path="/logout",
+    summary="Выйти из текущего аккаунта",
+    description="Закрывает текущую сессию пользователя",
+    response_model=MessageResponse,
+)
+async def logout(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    logout_service: Annotated[LogoutService, Depends(get_logout_service)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    await logout_service.logout_session(access_data)
+    return MessageResponse(message="Вы успешно вышли из аккаунта!")
+
+
+@router.post(
+    path="/logout-all",
+    summary="Выйти из всех аккаунтов, кроме текущего",
+    description="Закрывает все активные сессии пользователя, кроме текущей",
+    response_model=MessageResponse,
+)
+async def logout_all(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    logout_service: Annotated[LogoutService, Depends(get_logout_service)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    await logout_service.logout_all_sessions(access_data)
+    return MessageResponse(message="Вы успешно вышли из всех аккаунтов!")
+
+
+@router.get(
+    path="/entry-history",
+    summary="Последние действия в аккаунте",
+    description="Отдает информацию о последних действиях в аккаунте пользователя",
+)
+async def entry_history(
+    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    sessions_service: Annotated[SessionService, Depends(get_session_service)],
+) -> SessionsHistory:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    history = await sessions_service.get_history_session(access_data)
+    return history

@@ -35,3 +35,7 @@ class UserCredResponse(BaseModel):
 
 class UserRoleResponse(UserResponse):
     role: str = Field(...)
+
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Сообщение состояния HTTP")
