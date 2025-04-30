@@ -201,7 +201,7 @@ test = ["distro (>=1.9.0,<1.10.0)", "flake8 (>=6.1,<7.0)", "flake8-pyi (>=24.1.0
 
 [[package]]
 name = "auth-utils"
-version = "0.1.0"
+version = "0.1.1"
 description = "Utilities for JWT authentication in microservices"
 optional = false
 python-versions = "^3.12"
@@ -211,12 +211,26 @@ develop = false
 
 [package.dependencies]
 async-fastapi-jwt-auth = {version = "^0.6.6", extras = ["asymmetric"]}
+dotenv = "^0.9.9"
 fastapi = "^0.115.0"
 pydantic = "^2.0.0"
+pydantic-settings = "^2.9.1"
+redis = "^5.3.0"
 
 [package.source]
 type = "directory"
 url = "../../../libs/auth_utils"
+
+[[package]]
+name = "cd"
+version = "1.1.0"
+description = "A simple printer of nester lists"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "CD-1.1.0.zip", hash = "sha256:8afb77a3d873ff182d57e27f0e0b332a5914adbe5f0a25f5dea4584f35137424"},
+]
 
 [[package]]
 name = "certifi"
@@ -416,6 +430,20 @@ doq = ["aioquic (>=1.0.0)"]
 idna = ["idna (>=3.7)"]
 trio = ["trio (>=0.23)"]
 wmi = ["wmi (>=1.5.1)"]
+
+[[package]]
+name = "dotenv"
+version = "0.9.9"
+description = "Deprecated package"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
+]
+
+[package.dependencies]
+python-dotenv = "*"
 
 [[package]]
 name = "email-validator"
@@ -1204,14 +1232,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyjwt"
-version = "2.10.1"
+version = "2.9.0"
 description = "JSON Web Token implementation in Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb"},
-    {file = "pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953"},
+    {file = "PyJWT-2.9.0-py3-none-any.whl", hash = "sha256:3b02fb0f44517787776cf48f2ae25d8e14f300e6d7545a4315cee571a415e850"},
+    {file = "pyjwt-2.9.0.tar.gz", hash = "sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c"},
 ]
 
 [package.extras]
@@ -1312,15 +1340,18 @@ files = [
 
 [[package]]
 name = "redis"
-version = "5.2.1"
+version = "5.3.0"
 description = "Python client for Redis database and key-value store"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "redis-5.2.1-py3-none-any.whl", hash = "sha256:ee7e1056b9aea0f04c6c2ed59452947f34c4940ee025f5dd83e6a6418b6989e4"},
-    {file = "redis-5.2.1.tar.gz", hash = "sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f"},
+    {file = "redis-5.3.0-py3-none-any.whl", hash = "sha256:f1deeca1ea2ef25c1e4e46b07f4ea1275140526b1feea4c6459c0ec27a10ef83"},
+    {file = "redis-5.3.0.tar.gz", hash = "sha256:8d69d2dde11a12dc85d0dbf5c45577a5af048e2456f7077d87ad35c1c81c310e"},
 ]
+
+[package.dependencies]
+PyJWT = ">=2.9.0,<2.10.0"
 
 [package.extras]
 hiredis = ["hiredis (>=3.0.0)"]
@@ -1878,4 +1909,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "e6ab131e944de7126a0b4ad989a672af4c0d602ac9be48db329fbc97150511f9"
+content-hash = "5a0fd85b3b6cded8e972befcd12dcad61bde863bb3dcd8399fdc07ffa499f983"
