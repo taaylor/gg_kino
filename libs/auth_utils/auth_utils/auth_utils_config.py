@@ -1,7 +1,7 @@
 import logging
+
 import dotenv
 from pydantic import BaseModel
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = dotenv.find_dotenv()
@@ -19,8 +19,9 @@ class Redis(BaseModel):
 
 class AuthUtilsConfig(BaseSettings):
     algorithm: str = "RS256"
+    cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
     denylist_enabled: bool = True
-    authjwt_denylist_token_checks: set = {"access"}
+    token_checks: set = {"access", "refresh"}
     public_key: str = """
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7XpysaZje95xChyW8u

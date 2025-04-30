@@ -30,7 +30,7 @@ async def get_roles(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> list[RoleResponse]:
     await authorize.jwt_required()
-    sub = authorize.get_jwt_subject()
+    sub = await authorize.get_jwt_subject()
     logger.info(f"Из токена получен: {sub=}")
     roles = await service.get_roles()
     return roles
@@ -47,6 +47,7 @@ async def get_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор роли (код)")],
 ) -> RoleDetailResponse | None:
+
     role = await service.get_role(pk=role_code)
     return role
 

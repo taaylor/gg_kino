@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 DEFAULT_ROLE = app_config.default_role
+CACHE_KEY_DROP_SESSION = app_config.jwt.cache_key_drop_session
 
 
 class RegisterService(BaseAuthService):
@@ -229,7 +230,6 @@ class RefreshService(BaseAuthService):
 
 
 class LogoutService(MixinAuthRepository):
-    CACHE_KEY_DROP_SESSION = "session:drop:{user_id}:{session_id}"
 
     def __init__(self, repository: AuthRepository, session: AsyncSession, cache: Cache):
         super().__init__(repository, session)
@@ -244,7 +244,7 @@ class LogoutService(MixinAuthRepository):
 
         logger.info(f"Пользователь {username} вышел из сессии {current_session}")
 
-        cache_key = self.CACHE_KEY_DROP_SESSION.format(
+        cache_key = CACHE_KEY_DROP_SESSION.format(
             user_id=user_data.user_id, session_id=current_session
         )
 
@@ -264,7 +264,7 @@ class LogoutService(MixinAuthRepository):
         )
 
         for del_session in result:
-            cache_key = self.CACHE_KEY_DROP_SESSION.format(
+            cache_key = CACHE_KEY_DROP_SESSION.format(
                 user_id=user_data.user_id, session_id=del_session
             )
             await self.cache.background_set(
