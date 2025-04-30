@@ -20,7 +20,7 @@ from models.logic_models import SessionUserData
 from models.models import User, UserCred
 from passlib.context import CryptContext
 from services.auth_repository import AuthRepository, get_auth_repository
-from services.base_service import BaseAuthService
+from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -228,40 +228,21 @@ class RefreshService(BaseAuthService):
         )
 
 
-class LogoutService:
+class LogoutService(MixinAuthRepository):
     CACHE_KEY_DROP_SESSION = "session:drop:{user_id}:{session_id}"
 
     def __init__(self, repository: AuthRepository, session: AsyncSession, cache: Cache):
-        self.repository = repository
-        self.session = session
+        super().__init__(repository, session)
         self.cache = cache
 
-    async def _get_valid_session_data(self, access_data: dict[str, Any]) -> SessionUserData:
-        user_data = SessionUserData.model_validate(access_data)
-
-        current_session = await self.repository.fetch_session_by_id(
-            session=self.session, session_id=user_data.session_id
-        )
-
-        if not current_session:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Текущая сессия не найдена",
-            )
-        return user_data
-
     async def logout_session(self, access_data: dict[str, Any]):
-        user_data = await self._get_valid_session_data(access_data=access_data)
+        user_data = SessionUserData.model_validate(access_data)
         current_session = user_data.session_id
         username = user_data.username
 
         await self.repository.drop_session_by_id(session=self.session, session_id=current_session)
 
-        logger.info(
-            "Пользователь {username} вышел из сессии {session_id}".format(
-                username=username, session_id=current_session
-            )
-        )
+        logger.info(f"Пользователь {username} вышел из сессии {current_session}")
 
         cache_key = self.CACHE_KEY_DROP_SESSION.format(
             user_id=user_data.user_id, session_id=current_session
@@ -273,8 +254,8 @@ class LogoutService:
             expire=app_config.cache_expire_in_seconds,
         )
 
-    async def logout_sessions(self, access_data: dict[str, Any]):
-        user_data = await self._get_valid_session_data(access_data=access_data)
+    async def logout_all_sessions(self, access_data: dict[str, Any]):
+        user_data = SessionUserData.model_validate(access_data)
         current_session = user_data.session_id
         username = user_data.username
 
@@ -291,49 +272,35 @@ class LogoutService:
                 value=str(del_session),
                 expire=app_config.cache_expire_in_seconds,
             )
-            logger.info(
-                "Пользователь {username} вышел из сессии {session_id}".format(
-                    username=username, session_id=del_session
-                )
-            )
+            logger.info(f"Пользователь {username} вышел из сессии {del_session}")
 
 
-class SessionService(BaseAuthService):
-
-    def __init__(self, repository: AuthRepository, session: AsyncSession):
-        self.repository = repository
-        self.session = session
+class SessionService(MixinAuthRepository):
 
     async def get_history_session(self, access_data: dict[str, Any]) -> SessionsHistory:
         user_data = SessionUserData.model_validate(access_data)
         user_id = user_data.user_id
-        session_id = user_data.session_id
+        current_session_id = user_data.session_id
 
-        current_session = await self.repository.fetch_session_by_id(
-            session=self.session, session_id=session_id
+        history_sessions = await self.repository.fetch_history_sessions(
+            session=self.session, user_id=user_id
         )
 
-        if not current_session:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Текущая сессия не актуальная",
-            )
-
-        result = await self.repository.fetch_history_sessions(session=self.session, user_id=user_id)
-
-        history = []
+        history_convert = []
         current_session_data = None
 
-        for item in result:
-            if item.session_id == current_session.session_id:
-                current_session_data = item
+        for session in history_sessions:
+            if session.session_id == current_session_id:
+                current_session_data = session
             else:
-                history.append(EntryPoint(user_agent=item.user_agent, created_at=item.created_at))
+                history_convert.append(
+                    EntryPoint(user_agent=session.user_agent, created_at=session.created_at)
+                )
 
         return SessionsHistory(
             actual_user_agent=current_session_data.user_agent,
             create_at=current_session_data.created_at,
-            history=history,
+            history=history_convert,
         )
 
 
@@ -361,8 +328,6 @@ def get_refresh_service(
     repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> RefreshService:
-    repository = repository
-    session_maker = session_maker
     return RefreshService(repository=repository, session=session, session_maker=session_maker)
 
 

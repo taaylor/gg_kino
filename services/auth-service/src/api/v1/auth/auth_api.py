@@ -1,5 +1,4 @@
 import logging
-from http import HTTPStatus
 from typing import Annotated
 
 from api.v1.auth.schemas import (
@@ -12,7 +11,7 @@ from api.v1.auth.schemas import (
 )
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Body, Depends, Request
-from fastapi.responses import JSONResponse
+from schemas.entity import MessageResponse
 from services.auth_service import (
     LoginService,
     LogoutService,
@@ -84,32 +83,32 @@ async def refresh(
     path="/logout",
     summary="Выйти из текущего аккаунта",
     description="Закрывает текущую сессию пользователя",
+    response_model=MessageResponse,
 )
 async def logout(
     authorize: Annotated[AuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
-) -> JSONResponse:
+) -> MessageResponse:
     await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
     await logout_service.logout_session(access_data)
-    content = {"message": "Вы успешно вышли из аккаунта!"}
-    return JSONResponse(status_code=HTTPStatus.OK, content=content)
+    return MessageResponse(message="Вы успешно вышли из аккаунта!")
 
 
 @router.post(
-    path="/logoutall",
+    path="/logout-all",
     summary="Выйти из всех аккаунтов, кроме текущего",
     description="Закрывает все активные сессии пользователя, кроме текущей",
+    response_model=MessageResponse,
 )
-async def logoutall(
+async def logout_all(
     authorize: Annotated[AuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
-) -> JSONResponse:
+) -> MessageResponse:
     await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
-    await logout_service.logout_sessions(access_data)
-    content = {"message": "Вы успешно вышли из всех аккаунтов!"}
-    return JSONResponse(status_code=HTTPStatus.OK, content=content)
+    await logout_service.logout_all_sessions(access_data)
+    return MessageResponse(message="Вы успешно вышли из всех аккаунтов!")
 
 
 @router.get(
