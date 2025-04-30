@@ -1,22 +1,19 @@
 # Auth Utils
 
-JWT authentication utilities for microservices.
+JWT авторизация для сервисов
 
-## Installation
-
-```bash
-poetry add git+https://your-repository-url/auth_utils.git
+## Использоватение
+1. Добавить библиотеку при сборке контейнера
 ```
-
-## Usage
-
-```python
-from auth_utils.check_auth import auth_dep
-
-# Use auth_dep as FastAPI dependency for protected endpoints
-@app.get("/protected", dependencies=[Depends(auth_dep)])
-async def protected_route():
-    return {"message": "This is protected"}
+# Копируем auth_utils и собираем на месте
+COPY libs/auth_utils /opt/app/libs/auth_utils
+RUN cd /opt/app/libs/auth_utils && poetry build && cd /opt/app && poetry add libs/auth_utils
 ```
-
-Make sure to place your `public.pem` file in the root directory of your service.
+2. Добавить импорт к своему API
+```
+from auth_utils import LibAuthJWT, auth_dep
+```
+3. Использовать точно также как
+```
+from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
+```
