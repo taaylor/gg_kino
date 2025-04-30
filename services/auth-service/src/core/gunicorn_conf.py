@@ -1,4 +1,4 @@
-# import multiprocessing
+import multiprocessing  # noqa: F401
 
 from core.config import app_config
 

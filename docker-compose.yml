@@ -7,6 +7,9 @@ services:
     environment:
       - "discovery.type=single-node"
       - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    cpus: "2"         # Прямое ограничение CPU
+    mem_limit: 512M   # Прямое ограничение памяти
     command: bin/elasticsearch
     expose:
       - ${ELASTIC_PORT}
@@ -23,6 +26,8 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
       - ELASTICSEARCH_SECURITY_ENABLED=false
+    cpus: "2"         # Прямое ограничение CPU
+    mem_limit: 512M   # Прямое ограничение памяти
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -83,40 +88,44 @@ services:
       retries: 5
     restart: always
 
-  # auth-api:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/auth-service/src/Dockerfile
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
-  #     postgres:
-  #       condition: service_healthy
-  #   restart: always
-  #   healthcheck:
-  #     test: [
-  #       "CMD-SHELL",
-  #       "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';\" | xargs -I {} test {} -ge 4"
-  #     ]
-  #     interval: 20s
-  #     timeout: 10s
-  #     retries: 10
-  #     start_period: 30s
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/src/Dockerfile
+    ports:
+      - "8000:8000"
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';\" | xargs -I {} test {} -ge 4"
+      ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
-  # async-api:
-  #   build:
-  #     context: .
-  #     dockerfile: ./services/async-api/src/Dockerfile
-  #   depends_on:
-  #     elasticsearch:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   env_file:
-  #     - ./.env
-  #   restart: always
+  async-api:
+    build:
+      context: .
+      dockerfile: ./services/async-api/src/Dockerfile
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    restart: always
 
   postgres:
     image: postgres:17-alpine
@@ -153,18 +162,18 @@ services:
   #     auth-api:
   #       condition: service_healthy
 
-  # nginx:
-  #   image: nginx:latest
-  #   env_file: .env
-  #   volumes:
-  #     - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./infra/nginx/configs:/etc/nginx/conf.d:ro
-  #   depends_on:
-  #     - async-api
-  #     - auth-api
-  #   ports:
-  #     - "${NGINX_PORT}:${NGINX_PORT}"
-  #   restart: always
+  nginx:
+    image: nginx:1.27-alpine
+    env_file: .env
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - async-api
+      - auth-api
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    restart: always
 
 volumes:
   redis_data:

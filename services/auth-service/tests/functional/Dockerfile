@@ -5,20 +5,23 @@ RUN apt-get update && apt-get install -y curl build-essential netcat-openbsd \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/app
+WORKDIR /opt
 
 RUN curl -sSL https://install.python-poetry.org | python3 - \
     && export PATH="/root/.local/bin:$PATH" \
     && poetry config virtualenvs.create false
 
 ENV PATH="/root/.local/bin:${PATH}"
+ENV PYTHONPATH="/opt"
 
-COPY .env ./
-COPY services/async-api/src/pyproject.toml ./
-COPY services/async-api/src/poetry.lock ./
+COPY .env .
+COPY ./services/auth-service/tests/functional/pyproject.toml .
+COPY ./services/auth-service/tests/functional/poetry.lock .
 
 RUN poetry install --only main
 
-COPY services/async-api/src/ .
+COPY services/auth-service/tests ./tests
 
-CMD ["gunicorn", "main:app", "--config", "./core/gunicorn_conf.py"]
+RUN chmod +x tests/functional/start-test.sh
+
+CMD ["./tests/functional/start-test.sh"]

@@ -1,9 +1,10 @@
 import logging
+from functools import lru_cache
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from models.models import DictRoles, RolesPermissions, User, UserCred, UserSession, UserSessionsHist
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_handler_exeptions
 
@@ -94,6 +95,44 @@ class AuthRepository:
         upd_user_session_hist.user_agent = user_session.user_agent
         upd_user_session_hist.expires_at = user_session.expires_at
 
+    @sqlalchemy_handler_exeptions
+    async def drop_session_by_id(self, session: AsyncSession, session_id: UUID):
+        stmt = delete(UserSession).where(UserSession.session_id == session_id)
+        await session.execute(stmt)
 
+    @sqlalchemy_handler_exeptions
+    async def drop_sessions_except_current(
+        self, session: AsyncSession, current_session: UUID, user_id: UUID
+    ) -> list[UUID]:
+        stmt = (
+            delete(UserSession)
+            .where(UserSession.user_id == user_id)
+            .where(UserSession.session_id != current_session)
+            .returning(UserSession.session_id)
+        )
+        result = await session.execute(stmt)
+        delete_sessions = result.scalars().all()
+        return delete_sessions
+
+    @sqlalchemy_handler_exeptions
+    async def fetch_history_sessions(self, session: AsyncSession, user_id: UUID) -> list[tuple]:
+        stmt = (
+            select(
+                UserSessionsHist.user_agent,
+                UserSessionsHist.created_at,
+                UserSessionsHist.session_id,
+            )
+            .where(UserSessionsHist.user_id == user_id)
+            .limit(20)
+            .order_by(UserSessionsHist.created_at.desc())
+        )
+        result = await session.execute(stmt)
+        data = result.all()
+        logger.info(data)
+
+        return data
+
+
+@lru_cache()
 def get_auth_repository():
     return AuthRepository()

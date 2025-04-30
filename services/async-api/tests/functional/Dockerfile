@@ -12,14 +12,16 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
     && poetry config virtualenvs.create false
 
 ENV PATH="/root/.local/bin:${PATH}"
-ENV PYTHONPATH=/opt
+ENV PYTHONPATH="/opt"
 
-COPY pyproject.toml poetry.lock ./
+COPY .env ./
+COPY services/async-api/tests/functional/pyproject.toml ./
+COPY services/async-api/tests/functional/poetry.lock ./
 
-RUN poetry install --only tests
+RUN poetry install --only main
 
-COPY ./tests ./tests
+COPY services/async-api/tests ./tests
 
 RUN chmod +x ./tests/functional/start-tests.sh
 
-ENTRYPOINT [ "./tests/functional/start-tests.sh" ]
+ENTRYPOINT ["./tests/functional/start-tests.sh"]
