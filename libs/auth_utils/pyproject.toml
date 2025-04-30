@@ -1,10 +1,9 @@
 [tool.poetry]
 name = "auth_utils"
-version = "0.1.1"
-description = "Utilities for JWT authentication in microservices"
-authors = ["Your Name <your.email@example.com>"]
+version = "0.1.0"
+description = "Библиотека для авторизации пользователей в сервисах"
 readme = "README.md"
-packages = [{include = "auth_utils"}]  # Указываем конкретную папку
+packages = [{include = "auth_utils"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
