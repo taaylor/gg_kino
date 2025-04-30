@@ -1,26 +1,4 @@
 services:
-  elasticsearch:
-    image: elasticsearch:8.16.5
-    container_name: elasticsearch-container
-    env_file:
-      - ./.env-tests
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    environment:
-      - "discovery.type=single-node"
-      - "xpack.security.enabled=false"
-    command: bin/elasticsearch
-    ports:
-      - ${TEST_ELASTIC__PORT}:${TEST_ELASTIC__PORT}
-    expose:
-      - ${TEST_ELASTIC__PORT}
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: redis-container
@@ -34,15 +12,9 @@ services:
     ports:
       - "${TEST_REDIS__PORT}:${TEST_REDIS__PORT}"
     volumes:
-      - redis_data:/data
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+      - test_redis_data:/data
+    cpus: "2"
+    mem_limit: 512M
     command: >
       sh -c '
         mkdir -p /usr/local/etc/redis &&
@@ -61,49 +33,49 @@ services:
       retries: 5
     restart: always
 
-  theatre-api:
+  auth-api:
     build:
       context: .
-      dockerfile: ./Dockerfile
-    env_file:
-      - ./.env-tests
-    container_name: theatre-api-container
+      dockerfile: ./services/auth-service/src/Dockerfile
+    container_name: auth-api-container
+    ports:
+      - "8000:8000"
     depends_on:
-      elasticsearch:
-        condition: service_healthy
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: ${TEST_POSTGRES__USER}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES__PASSWORD}
+      POSTGRES_DB: ${TEST_POSTGRES__DB}
+    volumes:
+      - test_pg_data_volume:/var/lib/postgresql/data
     ports:
-      - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_POSTGRES__USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   tests:
     build:
       context: .
-      dockerfile: ./tests/functional/Dockerfile-tests
+      dockerfile: ./services/auth-service/tests/functional/Dockerfile
     container_name: tests-container
-    env_file:
-      - ./.env-tests
     depends_on:
-      elasticsearch:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
 
-
-  nginx:
-    image: nginx:latest
-    env_file:
-      - ./.env-tests
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./configs:/etc/nginx/conf.d:ro
-    depends_on:
-      - theatre-api
-    ports:
-      - "${TEST_NGINX_PORT}:${TEST_NGINX_PORT}"
-    restart: always
-
 volumes:
-  elasticsearch_data:
-  redis_data:
+  test_redis_data:
+  test_pg_data_volume:

@@ -1,0 +1,87 @@
+services:
+  elasticsearch:
+    image: elasticsearch:8.16.5
+    container_name: elasticsearch-container
+    volumes:
+      - test_elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    cpus: "2"         # Прямое ограничение CPU
+    mem_limit: 512M   # Прямое ограничение памяти
+    command: bin/elasticsearch
+    ports:
+      - ${TEST_ELASTIC__PORT}:${TEST_ELASTIC__PORT}
+    expose:
+      - ${TEST_ELASTIC__PORT}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container
+    environment:
+      - REDIS_PASSWORD=${TEST_REDIS__PASSWORD}
+      - REDIS_USER=${TEST_REDIS__USER}
+      - REDIS_USER_PASSWORD=${TEST_REDIS_USER__PASSWORD}
+      - REDIS_HOST=${TEST_REDIS__HOST}
+      - REDIS_PORT=${TEST_REDIS__PORT}
+      - REDIS_DB=${TEST_REDIS__DB}
+    ports:
+      - "${TEST_REDIS__PORT}:${TEST_REDIS__PORT}"
+    volumes:
+      - test_redis_data:/data
+    cpus: "2"
+    mem_limit: 512M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $TEST_REDIS__PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default off" > /usr/local/etc/redis/users.acl &&
+        echo "user $TEST_REDIS__USER on >$TEST_REDIS_USER__PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$TEST_REDIS__PASSWORD", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+  async-api:
+    build:
+      context: .
+      dockerfile: ./services/async-api/src/Dockerfile
+    container_name: async-api-container
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
+    restart: always
+
+  tests-async-api:
+    build:
+      context: .
+      dockerfile: ./services/async-api/tests/functional/Dockerfile
+    container_name: tests-async-api-container
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+
+volumes:
+  test_redis_data:
+  test_elasticsearch_data:
