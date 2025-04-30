@@ -1,61 +1,47 @@
-import psycopg
-from psycopg import DatabaseError, OperationalError
+from datetime import datetime
+from typing import AsyncGenerator
+
 from pytest import fixture
-from tests.functional.core.config_log import get_logger
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from tests.functional.core.settings import test_conf
 
-logger = get_logger(__name__)
 
-
-@fixture(name="postgres_client", scope="session")
-def postgres_client():
+# Базовый класс для всех моделей
+class Base(AsyncAttrs, DeclarativeBase):
     """
-    Фикстура для создания синхронного клиента PostgreSQL.
-    """
-    try:
-        conn = psycopg.connect(
-            host=test_conf.postgres.host,
-            port=test_conf.postgres.port,
-            user=test_conf.postgres.user,
-            password=test_conf.postgres.password,
-            dbname=test_conf.postgres.db,
-        )
-        logger.debug("PostgreSQL клиент успешно подключён")
-        yield conn
-    except (OperationalError, DatabaseError) as e:
-        logger.error(f"Ошибка подключения к PostgreSQL: {e}")
-        raise
-    finally:
-        conn.close()
-        logger.debug("PostgreSQL клиент закрыт")
+    AsyncAttrs: Позволяет создавать асинхронные модели, что улучшает
+    производительность при работе с асинхронными операциями.
 
+    __abstract__ = True - абстрактный класс, чтобы не создавать отдельную таблицу для него
 
-@fixture(name="postgres_test")
-def postgres_test(postgres_client: psycopg.Connection):
-    """
-    Фикстура для выполнения SQL-запросов к PostgreSQL.
+    Mapped — это современный способ аннотировать типы данных для колонок в моделях SQLAlchemy.
+
+    mapped_column — это функция, которая используется для создания колонок в моделях SQLAlchemy.
+    Она принимает в качестве аргументов тип данных колонки и дополнительные параметры,
+    такие как primary_key, nullable, default и так далее
     """
 
-    def inner(query: str, params: tuple | dict | None = None) -> list:
-        """
-        Выполняет SQL-запрос и возвращает результаты.
+    __abstract__ = True
 
-        :param query: SQL-запрос (например, 'SELECT * FROM users WHERE id = %s')
-        :param params: Параметры для запроса (кортеж или словарь)
-        :return: Список строк результата
-        """
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+
+engine = create_async_engine(test_conf.postgres.ASYNC_DATABASE_URL, echo=True, future=True)
+async_session_maker = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+@fixture(name="pg_session")
+async def pg_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
         try:
-            with postgres_client.cursor() as cur:
-                cur.execute(query, params)
-                # Проверяем, есть ли результат (SELECT возвращает строки, другие запросы — нет)
-                if cur.description:  # Если есть столбцы в результате
-                    result = cur.fetchall()
-                    logger.debug(f"PostgreSQL запрос выполнен: {query}, результат: {result}")
-                    return result
-                logger.debug(f"PostgreSQL запрос выполнен: {query}, без результата")
-                return []
-        except (OperationalError, DatabaseError) as e:
-            logger.error(f"Ошибка выполнения запроса PostgreSQL: {e}")
-            raise
-
-    return inner
+            yield session
+        finally:
+            # опционально: откатить, чтобы тесты не влияли друг на друга
+            await session.rollback()

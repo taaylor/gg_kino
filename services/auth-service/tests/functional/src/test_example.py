@@ -1,14 +1,20 @@
+from sqlalchemy import delete
+from tests.functional.plugins.testdata import DictRoles
+
+
 def test_example():
     assert True
 
 
-def test_postgres_connection(postgres_test):
-    result = postgres_test("SELECT 1")
-    assert result == [(1,)], "PostgreSQL должен вернуть [(1,)]"
-
-
-def test_postgres_insert_and_select(postgres_test):
-    postgres_test("CREATE TABLE IF NOT EXISTS some_table (name TEXT)")
-    postgres_test("INSERT INTO some_table (name) VALUES (%s)", ("some-data",))
-    result = postgres_test("SELECT name FROM some_table WHERE name = %s", ("some-data",))
-    assert result == [("some-data",)], "Должна быть одна строка с именем 'some-data'"
+async def test_postgres_example(pg_session):
+    role = DictRoles(role="some-role", descriptions="test role")
+    pg_session.add(role)
+    # pg_session.flush() вместо pg_session.commit()
+    # алхимия отправит INSERT’ы в базу, но не зафиксирует их.
+    # а в фикстуре pg_session rollback() откатит всё.
+    await pg_session.flush()
+    assert role.role == "some-role"
+    result = await pg_session.execute(
+        delete(DictRoles).where(DictRoles.role == "some-role").returning(DictRoles.role)
+    )
+    assert result.scalar_one() == "some-role"
