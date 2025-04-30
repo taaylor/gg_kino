@@ -11,7 +11,7 @@ logger = get_logger("wait_for_api")
 def check_api():
     host = test_conf.asyncapi.host
     port = test_conf.asyncapi.port
-    path = "/api/openapi.json"
+    path = "/async/openapi.json"
 
     with socket.create_connection((host, port), timeout=2) as sock:
         request = f"GET {path} HTTP/1.1\r\n" f"Host: {host}\r\n" f"Connection: close\r\n\r\n"
