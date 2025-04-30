@@ -46,8 +46,9 @@ async def get_roles(
 async def get_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор роли (код)")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse | None:
-
+    await authorize.jwt_required()
     role = await service.get_role(pk=role_code)
     return role
 
@@ -65,7 +66,9 @@ async def create_role(
     request_body: Annotated[
         RoleDetailRequest, Body(description="Данные для создания роли в формате JSON")
     ],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse | dict[str, str]:
+    await authorize.jwt_required()
     role = await service.create_role(request_body=request_body)
     return role
 
@@ -83,7 +86,9 @@ async def update_role(
         RoleDetailUpdateRequest, Body(description="Обновленные данные роли в формате JSON")
     ],
     role_code: Annotated[str, Path(description="Уникальный идентификатор обновляемой роли")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse:
+    await authorize.jwt_required()
     role = await service.update_role(pk=role_code, request_body=request_body)
     return role
 
@@ -98,6 +103,8 @@ async def update_role(
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор удаляемой роли")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> MessageResponse:
+    await authorize.jwt_required()
     await service.destroy_role(pk=role_code)
     return MessageResponse(message=f"Роль успешно удалена {role_code=}")
