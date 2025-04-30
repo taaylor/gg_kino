@@ -200,39 +200,6 @@ gssauth = ["gssapi", "sspilib"]
 test = ["distro (>=1.9.0,<1.10.0)", "flake8 (>=6.1,<7.0)", "flake8-pyi (>=24.1.0,<24.2.0)", "gssapi", "k5test", "mypy (>=1.8.0,<1.9.0)", "sspilib", "uvloop (>=0.15.3)"]
 
 [[package]]
-name = "auth-utils"
-version = "0.1.1"
-description = "Utilities for JWT authentication in microservices"
-optional = false
-python-versions = "^3.12"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-async-fastapi-jwt-auth = {version = "^0.6.6", extras = ["asymmetric"]}
-dotenv = "^0.9.9"
-fastapi = "^0.115.0"
-pydantic = "^2.0.0"
-pydantic-settings = "^2.9.1"
-redis = "^5.3.0"
-
-[package.source]
-type = "directory"
-url = "../../../libs/auth_utils"
-
-[[package]]
-name = "cd"
-version = "1.1.0"
-description = "A simple printer of nester lists"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "CD-1.1.0.zip", hash = "sha256:8afb77a3d873ff182d57e27f0e0b332a5914adbe5f0a25f5dea4584f35137424"},
-]
-
-[[package]]
 name = "certifi"
 version = "2025.4.26"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -430,20 +397,6 @@ doq = ["aioquic (>=1.0.0)"]
 idna = ["idna (>=3.7)"]
 trio = ["trio (>=0.23)"]
 wmi = ["wmi (>=1.5.1)"]
-
-[[package]]
-name = "dotenv"
-version = "0.9.9"
-description = "Deprecated package"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
-]
-
-[package.dependencies]
-python-dotenv = "*"
 
 [[package]]
 name = "email-validator"
@@ -1909,4 +1862,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "5a0fd85b3b6cded8e972befcd12dcad61bde863bb3dcd8399fdc07ffa499f983"
+content-hash = "71f1f08eb725253b8b69260a83e4091256900fb59a31c1d517bbc055b1319d76"

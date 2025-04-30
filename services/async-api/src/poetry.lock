@@ -207,39 +207,6 @@ tests = ["cloudpickle", "hypothesis", "mypy (>=1.11.1)", "pympler", "pytest (>=4
 tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
-name = "auth-utils"
-version = "0.1.1"
-description = "Utilities for JWT authentication in microservices"
-optional = false
-python-versions = "^3.12"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-async-fastapi-jwt-auth = {version = "^0.6.6", extras = ["asymmetric"]}
-dotenv = "^0.9.9"
-fastapi = "^0.115.0"
-pydantic = "^2.0.0"
-pydantic-settings = "^2.9.1"
-redis = "^5.3.0"
-
-[package.source]
-type = "directory"
-url = "../../../libs/auth_utils"
-
-[[package]]
-name = "cd"
-version = "1.1.0"
-description = "A simple printer of nester lists"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "CD-1.1.0.zip", hash = "sha256:8afb77a3d873ff182d57e27f0e0b332a5914adbe5f0a25f5dea4584f35137424"},
-]
-
-[[package]]
 name = "certifi"
 version = "2025.4.26"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -438,20 +405,6 @@ doq = ["aioquic (>=1.0.0)"]
 idna = ["idna (>=3.7)"]
 trio = ["trio (>=0.23)"]
 wmi = ["wmi (>=1.5.1)"]
-
-[[package]]
-name = "dotenv"
-version = "0.9.9"
-description = "Deprecated package"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
-]
-
-[package.dependencies]
-python-dotenv = "*"
 
 [[package]]
 name = "elastic-transport"
@@ -2241,4 +2194,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "69db844e1a685996010c4414bd5c0e53b68bbb86638591df294d7322c2023231"
+content-hash = "843d89bd86ff3ef129363358a0f0eaf1ccd3a6225a16f8e22e5ca452dfc85a71"

@@ -35,7 +35,6 @@ class JWTSettings(BaseModel):
 
 class JWTProcessor:
     def __init__(self):
-        # Используем оригинальный AuthJWT
         self.authorize = AuthJWT()
 
     async def create_tokens(self, user_data: SessionUserData):
@@ -50,7 +49,7 @@ class JWTProcessor:
         return access_token, refresh_token
 
 
-@AuthJWT.load_config  # Конфигурация для оригинального AuthJWT
+@AuthJWT.load_config
 def get_config():
     return load_jwt_settings()
 
