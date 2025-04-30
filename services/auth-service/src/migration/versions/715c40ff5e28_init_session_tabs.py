@@ -47,15 +47,9 @@ def upgrade() -> None:
             nullable=False,
             comment="Рефреш токен пользовательской сессии (JWT)",
         ),
-        sa.Column(
-            "expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"
-        ),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
-        sa.Column(
-            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
+        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("session_id"),
         schema="session",
     )
@@ -79,15 +73,9 @@ def upgrade() -> None:
             nullable=True,
             comment="Клиентское устройство пользователя",
         ),
-        sa.Column(
-            "expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"
-        ),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
-        sa.Column(
-            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
+        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("session_id"),
         schema="session",
     )

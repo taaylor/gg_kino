@@ -11,7 +11,7 @@ logger = get_logger("wait_for_api")
 def check_api():
     host = test_conf.authapi.host
     port = test_conf.authapi.port
-    path = "/auth/api/openapi.json"
+    path = "/auth/openapi.json"
 
     with socket.create_connection((host, port), timeout=2) as sock:
         request = f"GET {path} HTTP/1.1\r\n" f"Host: {host}\r\n" f"Connection: close\r\n\r\n"

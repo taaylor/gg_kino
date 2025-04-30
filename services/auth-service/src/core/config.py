@@ -60,8 +60,8 @@ class JWTSettings(BaseModel):
 class AppConfig(BaseSettings):
     project_name: str = "auth"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_url: str = "/auth/api/openapi"
-    openapi_url: str = "/auth/api/openapi.json"
+    docs_url: str = "/auth/openapi"
+    openapi_url: str = "/auth/openapi.json"
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_role: str = "UNSUB_USER"
 

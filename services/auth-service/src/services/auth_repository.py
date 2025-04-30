@@ -1,16 +1,17 @@
 import logging
+from functools import lru_cache
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from models.models import DictRoles, RolesPermissions, User, UserCred, UserSession, UserSessionsHist
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_handler_exeptions
 
 logger = logging.getLogger(__name__)
 
 
-class AuthReository:
+class AuthRepository:
 
     @sqlalchemy_handler_exeptions
     async def fetch_user_by_id(self, session: AsyncSession, user_id: str) -> User | None:
@@ -83,7 +84,8 @@ class AuthReository:
         # Проверяем, что обе сущности найдены. Если хотя бы одна отсутствует, выбрасываем ошибку.
         if not (upd_user_session and upd_user_session_hist):
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Сессия не найдена"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Сессия не найдена",
             )
 
         upd_user_session.user_agent = user_session.user_agent
@@ -93,6 +95,44 @@ class AuthReository:
         upd_user_session_hist.user_agent = user_session.user_agent
         upd_user_session_hist.expires_at = user_session.expires_at
 
+    @sqlalchemy_handler_exeptions
+    async def drop_session_by_id(self, session: AsyncSession, session_id: UUID):
+        stmt = delete(UserSession).where(UserSession.session_id == session_id)
+        await session.execute(stmt)
 
+    @sqlalchemy_handler_exeptions
+    async def drop_sessions_except_current(
+        self, session: AsyncSession, current_session: UUID, user_id: UUID
+    ) -> list[UUID]:
+        stmt = (
+            delete(UserSession)
+            .where(UserSession.user_id == user_id)
+            .where(UserSession.session_id != current_session)
+            .returning(UserSession.session_id)
+        )
+        result = await session.execute(stmt)
+        delete_sessions = result.scalars().all()
+        return delete_sessions
+
+    @sqlalchemy_handler_exeptions
+    async def fetch_history_sessions(self, session: AsyncSession, user_id: UUID) -> list[tuple]:
+        stmt = (
+            select(
+                UserSessionsHist.user_agent,
+                UserSessionsHist.created_at,
+                UserSessionsHist.session_id,
+            )
+            .where(UserSessionsHist.user_id == user_id)
+            .limit(20)
+            .order_by(UserSessionsHist.created_at.desc())
+        )
+        result = await session.execute(stmt)
+        data = result.all()
+        logger.info(data)
+
+        return data
+
+
+@lru_cache()
 def get_auth_repository():
-    return AuthReository()
+    return AuthRepository()

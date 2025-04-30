@@ -35,7 +35,7 @@ class APIConf(BaseModel):
 
     @property
     def host_service(self):
-        return f"http://{self.host}:{self.port}/api"
+        return f"http://{self.host}:{self.port}/async/api/v1"
 
 
 class TestConfig(BaseSettings):

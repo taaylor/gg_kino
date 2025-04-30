@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from services.auth_repository import AuthReository
+from services.auth_repository import AuthRepository
 from services.session_maker import SessionMaker
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,10 +38,18 @@ class BaseService:
         return exequted_query.scalar_one_or_none()
 
 
-class BaseAuthService:
-    def __init__(
-        self, repository: AuthReository, session: AsyncSession, session_maker: SessionMaker
-    ):
+class MixinAuthRepository:
+    def __init__(self, repository: AuthRepository, session: AsyncSession):
         self.repository = repository
         self.session = session
+
+
+class BaseAuthService(MixinAuthRepository):
+    def __init__(
+        self,
+        repository: AuthRepository,
+        session: AsyncSession,
+        session_maker: SessionMaker,
+    ):
+        super().__init__(repository, session)
         self.session_maker = session_maker
