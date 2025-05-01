@@ -16,6 +16,7 @@ class TestRoles:
         [
             (
                 {
+                    "superuser": True,
                     "test": True,  # valid test
                     "path_uuid": "ANONYMOUS",
                     "role": "ANONYMOUS",
@@ -33,6 +34,7 @@ class TestRoles:
             ),
             (
                 {
+                    "superuser": True,
                     "test": False,  # invalid test
                     "path_uuid": "RRRR",
                     "role": "ANONYMOUS",
@@ -48,7 +50,10 @@ class TestRoles:
                 },
             ),
         ],
-        ids=["Test valid role", "Test invalid role"],
+        ids=[
+            "Test valid role",
+            "Test invalid role",
+        ],
     )
     async def test_get_role_detail(
         self,
@@ -57,6 +62,7 @@ class TestRoles:
         redis_test,
         query_data: dict[str, Any],
         expected_answer: dict[str, Any],
+        create_user,
     ):
         role_detail = RoleDetailResponse(
             role=query_data.get("role"),
@@ -82,9 +88,10 @@ class TestRoles:
         pg_session.add_all(permissions)
         await pg_session.commit()
 
+        headers = await create_user(superuser_flag=query_data.get("superuser"))
         uri = f"/roles/{query_data.get("path_uuid")}"
 
-        body, status = await make_get_request(uri=uri)
+        body, status = await make_get_request(uri=uri, headers=headers)
         cache_data = await redis_test(
             key=f"role:{role_detail.role}", cached_data=query_data.get("cached_data")
         )
