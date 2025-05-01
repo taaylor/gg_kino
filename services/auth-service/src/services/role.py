@@ -1,7 +1,6 @@
 import json
 import logging
 from functools import lru_cache
-from http import HTTPStatus
 
 from api.v1.role.schemas import (
     Permission,
@@ -13,7 +12,7 @@ from api.v1.role.schemas import (
 from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from models.models import DictRoles, RolesPermissions
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
@@ -76,13 +75,13 @@ class RoleService:
         cache_key = CACHE_KEY_ROLE + pk
         role_cache = await self.cache.get(cache_key)
         if role_cache:
-            logger.debug(f"Список ролей получен из кеша: {role_cache}")
+            logger.debug(f"Роль получена из кеша: {role_cache}")
             return RoleDetailResponse.model_validate_json(role_cache)
 
         role_model = await self._get_model_role(pk=pk)
 
         if not role_model:
-            return None
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="объект не найден")
 
         role = RoleDetailResponse(
             role=role_model.role,
@@ -122,7 +121,7 @@ class RoleService:
             await self.session_db.rollback()
             logger.debug(f"Ошибка целостности данных: {e}")
             raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST, detail="Объект уже существует"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Объект уже существует"
             ) from e
 
         role = RoleDetailResponse(
@@ -149,7 +148,7 @@ class RoleService:
             role = await self._get_model_role(pk=pk)
             if role is None:
                 raise HTTPException(
-                    status_code=HTTPStatus.BAD_REQUEST, detail={"message": "объект не найден"}
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="объект не найден"
                 )
             role.descriptions = request_body.descriptions
 
