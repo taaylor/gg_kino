@@ -4,7 +4,7 @@ from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import Request, Response
 from pydantic import BaseModel
-from redis import Redis
+from redis.asyncio import Redis
 
 from .auth_utils_config import auth_utils_conf
 
@@ -57,7 +57,7 @@ async def check_if_session_in_denylist(decrypted_token: dict) -> bool:
     session_id = decrypted_token.get("session_id")
 
     cache_key = CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=session_id)
-    entry = redis_conn.get(cache_key)
+    entry = await redis_conn.get(cache_key)
     return entry is not None
 
 
