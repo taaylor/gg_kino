@@ -1,15 +1,10 @@
 import uuid
 from datetime import datetime
-from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from tests.functional.plugins.fixture_postgres import Base
-
-
-class GenderEnum(StrEnum):
-    MALE = "мужчина"
-    FEMALE = "женщина"
+from tests.functional.testdata.model_types import GenderEnum
 
 
 class User(Base):

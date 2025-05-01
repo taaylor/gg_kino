@@ -13,9 +13,9 @@ async def aiohttp_session():
 @pytest_asyncio.fixture(name="make_get_request")
 def make_get_request(aiohttp_session: aiohttp.ClientSession):
 
-    async def inner(uri: str, params: dict | None = None) -> tuple[list, int]:
+    async def inner(uri: str, params: dict | None = None) -> tuple[list | dict, int]:
 
-        url = test_conf.asyncapi.host_service + uri
+        url = test_conf.authapi.host_service + uri
 
         async with aiohttp_session.get(url, params=params) as response:
             body = await response.json()

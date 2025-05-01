@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import AsyncGenerator
 
-from pytest import fixture
-from sqlalchemy import func
+import pytest_asyncio
+from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from tests.functional.core.settings import test_conf
@@ -29,19 +28,33 @@ class Base(AsyncAttrs, DeclarativeBase):
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
 
-engine = create_async_engine(test_conf.postgres.ASYNC_DATABASE_URL, echo=True, future=True)
-async_session_maker = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+@pytest_asyncio.fixture(name="async_session_maker", scope="session")
+async def async_session_maker():
+    engine = create_async_engine(test_conf.postgres.ASYNC_DATABASE_URL, echo=True, future=True)
+    async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    # создание таблиц перед открытием соединения не требуется,
+    # так как они создаются с помощью миграций в API
+
+    yield async_session_maker
+
+    # дропаем все таблицы после завершения всех тестов
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
 
 
-@fixture(name="pg_session")
-async def pg_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        try:
-            yield session
-        finally:
-            # опционально: откатить, чтобы тесты не влияли друг на друга
-            await session.rollback()
+@pytest_asyncio.fixture(name="pg_session")
+def pg_session(async_session_maker):
+    async def inner():
+        async with async_session_maker() as session:
+            await session.begin()  # Открываем транзакцию
+            try:
+                yield session
+            finally:
+                await session.rollback()
+                # очищаем таблицы после транзакции
+                for table in reversed(Base.metadata.sorted_tables):
+                    await session.execute(text(f"TRUNCATE {table.name} CASCADE;"))
+
+    return inner
