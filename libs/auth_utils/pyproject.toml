@@ -1,13 +1,19 @@
 [tool.poetry]
 name = "auth_utils"
 version = "0.1.0"
-description = "Common utilities"
-authors = []
+description = "Библиотека для авторизации пользователей в сервисах"
+readme = "README.md"
+packages = [{include = "auth_utils"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-
+async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
+pydantic = "^2.0.0"
+fastapi = "^0.115.0"
+dotenv = "^0.9.9"
+pydantic-settings = "^2.9.1"
+redis = "^5.3.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
