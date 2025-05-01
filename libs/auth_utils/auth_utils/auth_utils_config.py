@@ -35,6 +35,7 @@ class AuthUtilsConfig(BaseSettings):
     iwIDAQAB
     -----END PUBLIC KEY-----
     """
+
     redis: Redis = Redis()
 
     model_config = SettingsConfigDict(

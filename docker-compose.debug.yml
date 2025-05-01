@@ -1,7 +1,58 @@
 services:
+  elasticsearch:
+    image: elasticsearch:8.16.5
+    container_name: elasticsearch-container
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    cpus: "2"         # Прямое ограничение CPU
+    mem_limit: 1024M   # Прямое ограничение памяти
+    command: bin/elasticsearch
+    expose:
+      - ${ELASTIC_PORT}
+    ports:
+      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: kibana:8.16.5
+    container_name: kibana-container
+    environment:
+      - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
+      - ELASTICSEARCH_SECURITY_ENABLED=false
+    cpus: "2"         # Прямое ограничение CPU
+    mem_limit: 1024M   # Прямое ограничение памяти
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "${KIBANA_PORT}:${KIBANA_PORT}"
+    restart: always
+
+  es-init:
+    container_name: es-init-container
+    build:
+      context: .
+      dockerfile: backup/elastic_dump/dump_loader/Dockerfile
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_PORT=${ELASTIC_PORT}
+    restart: "no"
+
   redis:
     image: redis:7-alpine
-    container_name: redis-debug
+    container_name: redis-container
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USER=${REDIS_USER}
@@ -35,21 +86,65 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
     restart: always
 
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/src/Dockerfile
+    env_file:
+      - ./.env
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "PGPASSWORD=${POSTGRES_PASSWORD} psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t -c \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'profile';\" | xargs -I {} test {} -ge 4"
+      ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "8000:8000"
+
+  async-api:
+    build:
+      context: .
+      dockerfile: ./services/async-api/src/Dockerfile
+    env_file:
+      - ./.env
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    ports:
+      - "8001:8001"
 
   postgres:
     image: postgres:17-alpine
-    container_name: postgres-debug
+    container_name: postgres-container
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
-      - ./auth-service/src/dumps:/dumps
+      - ./backup/postgres_dump-auth/dumps:/dumps
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -57,35 +152,36 @@ services:
       retries: 5
     restart: always
 
-  auth-api:
+  pg-import:
     build:
       context: .
-      dockerfile: ./services/auth-service/src/Dockerfile.debug
+      dockerfile: ./backup/postgres_dump-auth/Dockerfile
+    environment:
+      - PG_HOST=${POSTGRES_HOST}
+      - PG_PORT=${POSTGRES_PORT}
+      - PG_USER=${POSTGRES_USER}
+      - PG_DB=${POSTGRES_DB}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-    env_file:
-      - ./.env
-    ports:
-      - "8000:8000"
-      - "5678:5678"
-    command: ./entrypoint_debug.sh
-    restart: always
+      auth-api:
+        condition: service_healthy
 
-  # nginx:
-  #   image: nginx:1.27-alpine
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./nginx/configs/site.conf:/etc/nginx/conf.d:ro
-  #   depends_on:
-  #     - theatre-api
-  #     - auth-api
-  #   ports:
-  #     - "${NGINX_PORT}:${NGINX_PORT}"
-  #   restart: always
+  nginx:
+    image: nginx:1.27-alpine
+    env_file: .env
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - async-api
+      - auth-api
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    restart: always
 
 volumes:
   redis_data:
   pg_data_volume:
+  elasticsearch_data:

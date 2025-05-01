@@ -224,8 +224,8 @@ tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "auth-utils"
-version = "0.1.1"
-description = "Utilities for JWT authentication in microservices"
+version = "0.1.0"
+description = "Библиотека для авторизации пользователей в сервисах"
 optional = false
 python-versions = "^3.12"
 groups = ["main"]

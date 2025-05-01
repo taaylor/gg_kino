@@ -1,6 +1,6 @@
+from api.v1.update_user_data.schemas import UserResponse, UserRoleResponse
 from models.models import DictRoles, User, UserCred
 from passlib.hash import argon2
-from schemas.entity import UserResponse, UserRoleResponse
 from services.base_service import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -56,3 +56,7 @@ class RoleDetailUpdateRequest(BaseModel):
         min_items=1,
         example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
     )
+
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Сообщение состояния HTTP")

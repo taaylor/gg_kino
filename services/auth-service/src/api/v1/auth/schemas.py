@@ -27,9 +27,7 @@ class Session(RefreshTokenField, AccessTokenField):
 
 
 class UserFields(BaseModel):
-    username: str = Field(
-        ..., min_length=4, max_length=30, description="Юзернейм пользователя"
-    )
+    username: str = Field(..., min_length=4, max_length=30, description="Юзернейм пользователя")
     email: str = Field(
         ..., min_length=5, max_length=254, description="Электронная почта пользователя"
     )
@@ -46,9 +44,7 @@ class UserFields(BaseModel):
 
 
 class RegisterRequest(UserFields):
-    password: str = Field(
-        ..., min_length=8, max_length=128, description="Пароль для регистрации"
-    )
+    password: str = Field(..., min_length=8, max_length=128, description="Пароль для регистрации")
 
 
 class RegisterResponse(UserFields):
@@ -60,9 +56,7 @@ class LoginRequest(BaseModel):
     email: str = Field(
         ..., min_length=5, max_length=254, description="Электронная почта пользователя"
     )
-    password: str = Field(
-        ..., min_length=8, max_length=128, description="Пароль пользователя"
-    )
+    password: str = Field(..., min_length=6, max_length=128, description="Пароль пользователя")
 
 
 class LoginResponse(Session):
@@ -82,6 +76,8 @@ class EntryPoint(BaseModel):
 class SessionsHistory(BaseModel):
     actual_user_agent: str = Field(..., description="Актуальная точка входа в аккаунт")
     create_at: datetime = Field(..., description="Время входа в аккаунт")
-    history: list[EntryPoint] = Field(
-        default=[], description="Последние дествия в аккаунте"
-    )
+    history: list[EntryPoint] = Field(default=[], description="Последние дествия в аккаунте")
+
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Сообщение состояния HTTP")
