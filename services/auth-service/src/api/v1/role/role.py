@@ -8,7 +8,7 @@ from api.v1.role.schemas import (
     RoleResponse,
 )
 from fastapi import APIRouter, Body, Depends, Path
-from fastapi.responses import JSONResponse
+from schemas.entity import MessageResponse
 from services.role import RoleService, get_role_service
 
 router = APIRouter()
@@ -84,12 +84,11 @@ async def update_role(
     summary="Удалить роль (REST-стиль)",
     description="Удаление роли из системы киносервиса",
     response_description="Статус операции удаления с сообщением о результате",
+    response_model=MessageResponse,
 )
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор удаляемой роли")],
-) -> JSONResponse:
+) -> MessageResponse:
     await service.destroy_role(pk=role_code)
-    return JSONResponse(
-        status_code=HTTPStatus.OK, content={"message": f"Роль успешно удалена {role_code=}"}
-    )
+    return MessageResponse(message=f"Роль успешно удалена {role_code=}")

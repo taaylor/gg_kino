@@ -6,7 +6,7 @@ from .config_log import get_logger
 
 logger = get_logger(__name__)
 
-ENV_FILE = find_dotenv(filename=".env-tests")
+ENV_FILE = find_dotenv()
 
 
 class ESConf(BaseModel):
@@ -35,13 +35,15 @@ class APIConf(BaseModel):
 
     @property
     def host_service(self):
-        return f"http://{self.host}:{self.port}/api"
+        return f"http://{self.host}:{self.port}/async/api/v1"
 
 
 class TestConfig(BaseSettings):
     redis: RedisConf = Field(default_factory=RedisConf, description="Конфигурация Redis")
     elastic: ESConf = Field(default_factory=ESConf, description="Конфигурация ElasticSearch")
-    api: APIConf = Field(default_factory=APIConf, description="Конфигурация сервиса FastAPI")
+    asyncapi: APIConf = Field(
+        default_factory=APIConf, description="Конфигурация сервиса AsyncAPI FastAPI"
+    )
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -54,6 +56,7 @@ class TestConfig(BaseSettings):
 
 def _get_test_config() -> TestConfig:
     test_conf = TestConfig()
+    logger.debug(test_conf.model_dump_json())
     return test_conf
 
 

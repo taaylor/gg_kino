@@ -60,7 +60,7 @@ services:
   auth-api:
     build:
       context: .
-      dockerfile: ./auth-service/src/Dockerfile.debug
+      dockerfile: ./services/auth-service/src/Dockerfile.debug
     depends_on:
       redis:
         condition: service_healthy
