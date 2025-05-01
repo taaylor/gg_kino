@@ -1,8 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
+from auth_utils import LibAuthJWT, auth_dep
 from db.postgres import get_session
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from models.models import DictRoles, User, UserCred
 from schemas.entity import (
     AssignRoleRequest,
@@ -25,10 +26,12 @@ router = APIRouter()
     response_description="Успешное изменение имени пользователя",
 )
 async def change_username(
-    request_body: ChangeUsernameRequest,
-    session: AsyncSession = Depends(get_session),
+    request_body: Annotated[ChangeUsernameRequest, Body(description="Данные для изменения имени")],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserResponse | None:
     """Меняет имя пользователя."""
+    await authorize.jwt_required()
     user = await UserService.find_one_or_none(
         session, User.id == request_body.id, options=[joinedload(User.user_cred)]
     )
@@ -46,10 +49,12 @@ async def change_username(
     response_description="Успешное изменение пароля пользователя",
 )
 async def change_password(
-    request_body: ChangePasswordRequest,
-    session: AsyncSession = Depends(get_session),
+    request_body: Annotated[ChangePasswordRequest, Body(description="Данные для изменения пароля")],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserResponse | None:
     """Меняет пароль пользователя."""
+    await authorize.jwt_required()
     new_password, repeated_password = request_body.password, request_body.repeat_password
     if new_password != repeated_password:
         raise HTTPException(
@@ -74,13 +79,13 @@ async def change_password(
 )
 async def assign_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
-    request_body: AssignRoleRequest,
-    session: AsyncSession = Depends(get_session),
+    request_body: Annotated[AssignRoleRequest, Body(description="Данные для назначения роли")],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
+    await authorize.jwt_required()
     new_role = request_body.role
     user = await UserService.find_one_or_none(session, User.id == user_id)
-    # можно было бы `if not user or not role:`
-    # но сделал так чтобы предотвратить лишний запрос в БД если user не найден
     if not user:
         return None
     role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
@@ -99,8 +104,10 @@ async def assign_role(
 )
 async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
+    await authorize.jwt_required()
     user = await UserService.find_one_or_none(
         session, User.id == user_id, options=[joinedload(User.user_cred)]
     )

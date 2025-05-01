@@ -1,3 +1,4 @@
+import logging
 from http import HTTPStatus
 from typing import Annotated
 
@@ -7,9 +8,12 @@ from api.v1.role.schemas import (
     RoleDetailUpdateRequest,
     RoleResponse,
 )
+from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from schemas.entity import MessageResponse
 from services.role import RoleService, get_role_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,7 +27,11 @@ router = APIRouter()
 )
 async def get_roles(
     service: Annotated[RoleService, Depends(get_role_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> list[RoleResponse]:
+    await authorize.jwt_required()
+    sub = await authorize.get_jwt_subject()
+    logger.info(f"Из токена получен: {sub=}")
     roles = await service.get_roles()
     return roles
 
@@ -38,7 +46,9 @@ async def get_roles(
 async def get_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор роли (код)")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse | None:
+    await authorize.jwt_required()
     role = await service.get_role(pk=role_code)
     return role
 
@@ -56,7 +66,9 @@ async def create_role(
     request_body: Annotated[
         RoleDetailRequest, Body(description="Данные для создания роли в формате JSON")
     ],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse | dict[str, str]:
+    await authorize.jwt_required()
     role = await service.create_role(request_body=request_body)
     return role
 
@@ -74,7 +86,9 @@ async def update_role(
         RoleDetailUpdateRequest, Body(description="Обновленные данные роли в формате JSON")
     ],
     role_code: Annotated[str, Path(description="Уникальный идентификатор обновляемой роли")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse:
+    await authorize.jwt_required()
     role = await service.update_role(pk=role_code, request_body=request_body)
     return role
 
@@ -89,6 +103,8 @@ async def update_role(
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     role_code: Annotated[str, Path(description="Уникальный идентификатор удаляемой роли")],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> MessageResponse:
+    await authorize.jwt_required()
     await service.destroy_role(pk=role_code)
     return MessageResponse(message=f"Роль успешно удалена {role_code=}")

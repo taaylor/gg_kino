@@ -16,6 +16,7 @@ pydantic-settings = "^2.8.1"
 gunicorn = "^23.0.0"
 async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
 
+
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

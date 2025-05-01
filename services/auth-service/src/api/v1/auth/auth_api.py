@@ -9,7 +9,7 @@ from api.v1.auth.schemas import (
     RegisterResponse,
     SessionsHistory,
 )
-from async_fastapi_jwt_auth import AuthJWT
+from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Request
 from schemas.entity import MessageResponse
 from services.auth_service import (
@@ -24,7 +24,6 @@ from services.auth_service import (
     get_register_service,
     get_session_service,
 )
-from utils.key_manager import auth_dep
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +69,7 @@ async def login(
 async def refresh(
     request: Request,
     refresh_service: Annotated[RefreshService, Depends(get_refresh_service)],
-    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RefreshResponse:
     await authorize.jwt_refresh_token_required()
     session_id = await authorize.get_jwt_subject()
@@ -86,7 +85,7 @@ async def refresh(
     response_model=MessageResponse,
 )
 async def logout(
-    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
 ) -> MessageResponse:
     await authorize.jwt_required()
@@ -102,7 +101,7 @@ async def logout(
     response_model=MessageResponse,
 )
 async def logout_all(
-    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
 ) -> MessageResponse:
     await authorize.jwt_required()
@@ -117,7 +116,7 @@ async def logout_all(
     description="Отдает информацию о последних действиях в аккаунте пользователя",
 )
 async def entry_history(
-    authorize: Annotated[AuthJWT, Depends(auth_dep)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sessions_service: Annotated[SessionService, Depends(get_session_service)],
 ) -> SessionsHistory:
     await authorize.jwt_required()
