@@ -2,6 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
+from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Depends, Path, Query
 from services.filmwork import FilmService, get_film_service
 
@@ -21,6 +22,7 @@ router = APIRouter()
 )
 async def film_search(
     film_service: Annotated[FilmService, Depends(get_film_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     query: Annotated[str, Query(description="Поле запроса по поиску кинопроизведений")] = "",
     page_size: Annotated[
         int, Query(ge=1, le=100, description="Количество записей на странице")
@@ -28,7 +30,7 @@ async def film_search(
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> list[FilmListResponse]:
     """Endpoint для поискового запроса по кинопроизведениям"""
-
+    await authorize.jwt_optional()
     if not query:
         return []
 
@@ -58,10 +60,11 @@ async def film_search(
 )
 async def film_detail(
     film_service: Annotated[FilmService, Depends(get_film_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     film_id: Annotated[UUID, Path(description="UUID кинопроизведения")],
 ) -> FilmDetailResponse | None:
     """Endpoint для получения детальной информации о кинопроизведении по UUID"""
-
+    await authorize.jwt_optional()
     film = await film_service.get_film_by_id(film_id=film_id)
 
     return film
@@ -80,6 +83,7 @@ async def film_detail(
 )
 async def film_list(
     film_service: Annotated[FilmService, Depends(get_film_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sort: Annotated[
         FilmSorted, Query(description="Сортировка по рейтингу кинопроизведения")
     ] = FilmSorted.RATING_DESC,
@@ -93,7 +97,7 @@ async def film_list(
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> list[FilmListResponse]:
     """Endpoint для получения кинопроизведений с использованием фильтрации"""
-
+    await authorize.jwt_optional()
     total_pages = await film_service.get_total_pages(page_size=page_size)
 
     if page_number > total_pages:

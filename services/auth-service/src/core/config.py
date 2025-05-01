@@ -53,8 +53,9 @@ class JWTSettings(BaseModel):
         os.path.dirname(os.path.abspath(__file__)), "keys/public.pem"
     )
     algorithm: str = "RS256"
-    access_token_lifetime_sec: int = 300  # 5 минут
-    refresh_token_lifetime_sec: int = 1200  # 20 минут
+    access_token_lifetime_sec: int = 1200  # 10 минут
+    refresh_token_lifetime_sec: int = 2400  # 40 минут
+    cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
 
 class AppConfig(BaseSettings):

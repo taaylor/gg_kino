@@ -9,7 +9,7 @@ services:
       - "xpack.security.enabled=false"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     cpus: "2"         # Прямое ограничение CPU
-    mem_limit: 512M   # Прямое ограничение памяти
+    mem_limit: 1024M   # Прямое ограничение памяти
     command: bin/elasticsearch
     expose:
       - ${ELASTIC_PORT}
@@ -27,7 +27,7 @@ services:
       - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
       - ELASTICSEARCH_SECURITY_ENABLED=false
     cpus: "2"         # Прямое ограничение CPU
-    mem_limit: 512M   # Прямое ограничение памяти
+    mem_limit: 1024M   # Прямое ограничение памяти
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -60,8 +60,6 @@ services:
       - REDIS_DB=${REDIS_DB}
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     deploy:
       resources:
         limits:
@@ -92,8 +90,8 @@ services:
     build:
       context: .
       dockerfile: ./services/auth-service/src/Dockerfile
-    ports:
-      - "8000:8000"
+    env_file:
+      - ./.env
     cpus: "1"
     mem_limit: 256M
     depends_on:
@@ -116,6 +114,8 @@ services:
     build:
       context: .
       dockerfile: ./services/async-api/src/Dockerfile
+    env_file:
+      - ./.env
     cpus: "1"
     mem_limit: 256M
     depends_on:
@@ -123,8 +123,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - ./.env
     restart: always
 
   postgres:
