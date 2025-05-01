@@ -1,10 +1,30 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from tests.functional.plugins.fixture_postgres import Base
-from tests.functional.testdata.model_types import GenderEnum
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, func
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from tests.functional.testdata.model_enum import GenderEnum
+
+
+class Base(AsyncAttrs, DeclarativeBase):
+    """
+    AsyncAttrs: Позволяет создавать асинхронные модели, что улучшает
+    производительность при работе с асинхронными операциями.
+
+    __abstract__ = True - абстрактный класс, чтобы не создавать отдельную таблицу для него
+
+    Mapped — это современный способ аннотировать типы данных для колонок в моделях SQLAlchemy.
+
+    mapped_column — это функция, которая используется для создания колонок в моделях SQLAlchemy.
+    Она принимает в качестве аргументов тип данных колонки и дополнительные параметры,
+    такие как primary_key, nullable, default и так далее
+    """
+
+    __abstract__ = True
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
 
 class User(Base):

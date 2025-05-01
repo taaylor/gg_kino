@@ -3,8 +3,8 @@ from typing import Any
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from tests.functional.testdata.model_enum import PermissionEnum
 from tests.functional.testdata.model_orm import DictRoles, RolesPermissions
-from tests.functional.testdata.model_types import PermissionEnum
 from tests.functional.testdata.schemes import Permission, RoleDetailResponse
 
 

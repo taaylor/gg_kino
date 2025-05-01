@@ -51,4 +51,5 @@ async def redis_test(redis_client: Redis):
 
     yield inner
 
-    await redis_client.flushdb()  # дропаем все ключи после теста
+    await redis_client.flushdb()
+    logger.debug("[REDIS] База данных очищена")

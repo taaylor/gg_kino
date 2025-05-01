@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from tests.functional.testdata.model_types import PermissionEnum
+from tests.functional.testdata.model_enum import PermissionEnum
 
 
 class Permission(BaseModel):

@@ -1,31 +1,8 @@
-from datetime import datetime
-
 import pytest_asyncio
-from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from tests.functional.core.settings import test_conf
-
-
-# Базовый класс для всех моделей
-class Base(AsyncAttrs, DeclarativeBase):
-    """
-    AsyncAttrs: Позволяет создавать асинхронные модели, что улучшает
-    производительность при работе с асинхронными операциями.
-
-    __abstract__ = True - абстрактный класс, чтобы не создавать отдельную таблицу для него
-
-    Mapped — это современный способ аннотировать типы данных для колонок в моделях SQLAlchemy.
-
-    mapped_column — это функция, которая используется для создания колонок в моделях SQLAlchemy.
-    Она принимает в качестве аргументов тип данных колонки и дополнительные параметры,
-    такие как primary_key, nullable, default и так далее
-    """
-
-    __abstract__ = True
-
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+from tests.functional.testdata.model_orm import Base
 
 
 @pytest_asyncio.fixture(name="async_session_maker", scope="session")

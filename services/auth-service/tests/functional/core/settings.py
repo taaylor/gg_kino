@@ -10,11 +10,11 @@ ENV_FILE = find_dotenv()
 
 
 class Postgres(BaseModel):
-    user: str = Field(..., env="TEST_POSTGRES__USER")
-    password: str = Field(..., env="TEST_POSTGRES__PASSWORD")
-    host: str = Field("postgres", env="TEST_POSTGRES__HOST")
-    port: int = Field(5432, env="TEST_POSTGRES__PORT")
-    db: str = Field(..., env="TEST_POSTGRES__DB")
+    host: str = "postgres"
+    port: int = 5432
+    user: str = "postgres"
+    password: str = "postgres"
+    db: str = "pg_db"
 
     @property
     def ASYNC_DATABASE_URL(self):
