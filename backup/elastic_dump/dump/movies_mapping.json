@@ -1,1 +1,100 @@
-{"movies":{"mappings":{"dynamic":"strict","properties":{"actors":{"type":"nested","dynamic":"strict","properties":{"id":{"type":"keyword"},"name":{"type":"text","analyzer":"ru_en"}}},"actors_names":{"type":"text","analyzer":"ru_en"},"description":{"type":"text","analyzer":"ru_en"},"directors":{"type":"nested","dynamic":"strict","properties":{"id":{"type":"keyword"},"name":{"type":"text","analyzer":"ru_en"}}},"directors_names":{"type":"text","analyzer":"ru_en"},"genres":{"type":"nested","dynamic":"strict","properties":{"id":{"type":"keyword"},"name":{"type":"text","analyzer":"ru_en"}}},"genres_names":{"type":"text","analyzer":"ru_en"},"id":{"type":"keyword"},"imdb_rating":{"type":"float"},"title":{"type":"text","fields":{"raw":{"type":"keyword"}},"analyzer":"ru_en"},"type":{"type":"text","analyzer":"ru_en"},"writers":{"type":"nested","dynamic":"strict","properties":{"id":{"type":"keyword"},"name":{"type":"text","analyzer":"ru_en"}}},"writers_names":{"type":"text","analyzer":"ru_en"}}}}}
+{
+    "movies": {
+        "mappings": {
+            "dynamic": "strict",
+            "properties": {
+                "actors": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "name": {
+                            "type": "text",
+                            "analyzer": "ru_en"
+                        }
+                    }
+                },
+                "actors_names": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                },
+                "description": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                },
+                "directors": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "name": {
+                            "type": "text",
+                            "analyzer": "ru_en"
+                        }
+                    }
+                },
+                "directors_names": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                },
+                "genres": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "name": {
+                            "type": "text",
+                            "analyzer": "ru_en"
+                        }
+                    }
+                },
+                "genres_names": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                },
+                "id": {
+                    "type": "keyword"
+                },
+                "imdb_rating": {
+                    "type": "float"
+                },
+                "title": {
+                    "type": "text",
+                    "fields": {
+                        "raw": {
+                            "type": "keyword"
+                        }
+                    },
+                    "analyzer": "ru_en"
+                },
+                "type": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                },
+                "writers": {
+                    "type": "nested",
+                    "dynamic": "strict",
+                    "properties": {
+                        "id": {
+                            "type": "keyword"
+                        },
+                        "name": {
+                            "type": "text",
+                            "analyzer": "ru_en"
+                        }
+                    }
+                },
+                "writers_names": {
+                    "type": "text",
+                    "analyzer": "ru_en"
+                }
+            }
+        }
+    }
+}
