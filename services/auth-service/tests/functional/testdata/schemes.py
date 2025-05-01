@@ -62,3 +62,12 @@ class LoginRequest(BaseModel):
         ..., min_length=5, max_length=254, description="Электронная почта пользователя"
     )
     password: str = Field(..., min_length=8, max_length=128, description="Пароль пользователя")
+
+
+class RoleResponse(BaseModel):
+    """Упрощенное представление роли (для списков и краткой информации)"""
+
+    role: str = Field(..., description="Системное название роли", example="content_moderator")
+    descriptions: str | None = Field(
+        description="Краткое описание назначения роли", example="Роль для модерации контента"
+    )
