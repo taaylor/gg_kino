@@ -16,7 +16,7 @@ async def async_session_maker():
 
 
 @pytest_asyncio.fixture(name="pg_session")
-async def pg_session(async_session_maker):
+async def pg_session(async_session_maker: sessionmaker):
     async with async_session_maker() as session:
         await session.begin()  # Открываем транзакцию
 
