@@ -224,8 +224,8 @@ tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "auth-utils"
-version = "0.1.1"
-description = "Utilities for JWT authentication in microservices"
+version = "0.1.0"
+description = "Библиотека для авторизации пользователей в сервисах"
 optional = false
 python-versions = "^3.12"
 groups = ["main"]
@@ -234,6 +234,7 @@ develop = false
 
 [package.dependencies]
 async-fastapi-jwt-auth = {version = "^0.6.6", extras = ["asymmetric"]}
+backoff = "^2.2.1"
 dotenv = "^0.9.9"
 fastapi = "^0.115.0"
 pydantic = "^2.0.0"
@@ -243,6 +244,18 @@ redis = "^5.3.0"
 [package.source]
 type = "directory"
 url = "libs/auth_utils"
+
+[[package]]
+name = "backoff"
+version = "2.2.1"
+description = "Function decoration for backoff and retry"
+optional = false
+python-versions = ">=3.7,<4.0"
+groups = ["main"]
+files = [
+    {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
+    {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
+]
 
 [[package]]
 name = "black"
@@ -1982,4 +1995,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "42f36c9661f5eb64b90975a3596eb484aebb7ec1dfd9c3ef4c27547261fb2e08"
+content-hash = "696a2a6856fcdff63ad0dc4cc14ac14e9190e633a9ba1d872615302a5bf3a15b"

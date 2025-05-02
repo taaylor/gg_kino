@@ -2,11 +2,13 @@ from typing import Annotated
 from uuid import UUID
 
 from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
-from auth_utils import LibAuthJWT, auth_dep
+from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Depends, Path, Query
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()
+
+DEFAULT_PERMISSION = Permissions.FREE_FILMS.value
 
 
 @router.get(
@@ -31,6 +33,11 @@ async def film_search(
 ) -> list[FilmListResponse]:
     """Endpoint для поискового запроса по кинопроизведениям"""
     await authorize.jwt_optional()
+    user_permissions = {DEFAULT_PERMISSION}
+    user_token = await authorize.get_raw_jwt()
+    if user_token:
+        user_permissions = set(user_token.get("permissions"))
+
     if not query:
         return []
 
@@ -40,7 +47,7 @@ async def film_search(
         return []
 
     search_films = await film_service.get_list_film_by_search_query(
-        query=query, page_size=page_size, page_number=page_number
+        query=query, page_size=page_size, page_number=page_number, user_permissions=user_permissions
     )
 
     return search_films
@@ -65,7 +72,12 @@ async def film_detail(
 ) -> FilmDetailResponse | None:
     """Endpoint для получения детальной информации о кинопроизведении по UUID"""
     await authorize.jwt_optional()
-    film = await film_service.get_film_by_id(film_id=film_id)
+    user_permissions = {DEFAULT_PERMISSION}
+    user_token = await authorize.get_raw_jwt()
+    if user_token:
+        user_permissions = set(user_token.get("permissions"))
+
+    film = await film_service.get_film_by_id(film_id=film_id, user_permissions=user_permissions)
 
     return film
 
@@ -98,13 +110,21 @@ async def film_list(
 ) -> list[FilmListResponse]:
     """Endpoint для получения кинопроизведений с использованием фильтрации"""
     await authorize.jwt_optional()
+    user_permissions = {DEFAULT_PERMISSION}
+    user_token = await authorize.get_raw_jwt()
+    if user_token:
+        user_permissions = set(user_token.get("permissions"))
     total_pages = await film_service.get_total_pages(page_size=page_size)
 
     if page_number > total_pages:
         return []
 
     films = await film_service.get_list_film(
-        sort=sort, genre=genre, page_size=page_size, page_number=page_number
+        sort=sort,
+        genre=genre,
+        page_size=page_size,
+        page_number=page_number,
+        user_permissions=user_permissions,
     )
 
     return films

@@ -13,12 +13,8 @@ from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
-from models.models import DictRoles, RolesPermissions
-from sqlalchemy import delete
-from sqlalchemy.exc import IntegrityError
+from services.role_repository import RoleRepository, get_role_repository
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
 
 logger = logging.getLogger(__name__)
 
@@ -28,20 +24,10 @@ CACHE_KEY_ROLES = "role:all"
 
 class RoleService:
 
-    def __init__(self, session_db: AsyncSession, cache: Cache):
+    def __init__(self, session_db: AsyncSession, cache: Cache, repository: RoleRepository):
         self.session_db = session_db
         self.cache = cache
-
-    async def _get_model_role(self, pk: str) -> DictRoles | None:
-        """Возвращает модель DictRoles по pk"""
-        stmt = (
-            select(DictRoles).where(DictRoles.role == pk).options(joinedload(DictRoles.permissions))
-        )
-
-        result = await self.session_db.execute(stmt)
-        role = result.unique().scalar_one_or_none()
-
-        return role
+        self.repository = repository
 
     async def get_roles(self) -> list[RoleResponse]:
         """Возвращает список всех ролей с базовой информацией"""
@@ -53,9 +39,7 @@ class RoleService:
 
             return [RoleResponse.model_validate(r) for r in json.loads(role_cache)]
 
-        stmt = select(DictRoles.role, DictRoles.descriptions).order_by(DictRoles.role)
-        result = await self.session_db.execute(stmt)
-        roles = result.all()
+        roles = await self.repository.fetch_list_roles(session=self.session_db)
 
         if not roles:
             return []
@@ -78,7 +62,7 @@ class RoleService:
             logger.debug(f"Роль получена из кеша: {role_cache}")
             return RoleDetailResponse.model_validate_json(role_cache)
 
-        role_model = await self._get_model_role(pk=pk)
+        role_model = await self.repository.fetch_role_by_pk(session=self.session_db, pk=pk)
 
         if not role_model:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="объект не найден")
@@ -99,37 +83,15 @@ class RoleService:
 
     async def create_role(self, request_body: RoleDetailRequest) -> RoleDetailResponse:
         """Возвращает созданную роль в системе"""
-        try:
-            async with self.session_db.begin():
-                role = DictRoles(role=request_body.role, descriptions=request_body.descriptions)
-                self.session_db.add(role)
 
-                await self.session_db.flush()
-
-                permissions = [
-                    RolesPermissions(
-                        role_code=role.role,
-                        permission=perm.permission.value,
-                        descriptions=perm.descriptions,
-                    )
-                    for perm in request_body.permissions
-                ]
-
-                self.session_db.add_all(permissions)
-                await self.session_db.commit()
-        except IntegrityError as e:
-            await self.session_db.rollback()
-            logger.debug(f"Ошибка целостности данных: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Объект уже существует"
-            ) from e
+        await self.repository.create_role(session=self.session_db, request_body=request_body)
 
         role = RoleDetailResponse(
-            role=role.role,
-            descriptions=role.descriptions,
+            role=request_body.role,
+            descriptions=request_body.descriptions,
             permissions=[
-                Permission(permission=p.permission, descriptions=p.descriptions)
-                for p in permissions
+                Permission(permission=p.permission.value, descriptions=p.descriptions)
+                for p in request_body.permissions
             ],
         )
 
@@ -144,31 +106,15 @@ class RoleService:
         self, pk: str, request_body: RoleDetailUpdateRequest
     ) -> RoleDetailResponse:
         """Обновляет роль, возвращает обновленный объект роли"""
-        async with self.session_db.begin():
-            role = await self._get_model_role(pk=pk)
-            if role is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="объект не найден"
-                )
-            role.descriptions = request_body.descriptions
 
-            new_permissons = [
-                RolesPermissions(
-                    role=role, permission=p.permission.value, descriptions=p.descriptions
-                )
-                for p in request_body.permissions
-            ]
-
-            role.permissions = new_permissons
-            self.session_db.add(role)
-            await self.session_db.commit()
+        await self.repository.update_role(session=self.session_db, request_body=request_body, pk=pk)
 
         role = RoleDetailResponse(
-            role=role.role,
-            descriptions=role.descriptions,
+            role=pk,
+            descriptions=request_body.descriptions,
             permissions=[
-                Permission(permission=p.permission, descriptions=p.descriptions)
-                for p in new_permissons
+                Permission(permission=p.permission.value, descriptions=p.descriptions)
+                for p in request_body.permissions
             ],
         )
 
@@ -181,10 +127,8 @@ class RoleService:
 
     async def destroy_role(self, pk: str) -> None:
         """Удаляет роль по pk"""
-        async with self.session_db.begin():
-            stmt = delete(DictRoles).where(DictRoles.role == pk)
-            await self.session_db.execute(stmt)
-            logger.info(f"Роль {pk} удалена")
+
+        await self.repository.destroy_role_by_pk(session=self.session_db, pk=pk)
 
         await self.cache.background_destroy(key=CACHE_KEY_ROLE + pk)
         await self.cache.background_destroy(key=CACHE_KEY_ROLES)
@@ -193,6 +137,8 @@ class RoleService:
 
 @lru_cache()
 def get_role_service(
-    cache: Cache = Depends(get_cache), session_db: AsyncSession = Depends(get_session)
+    cache: Cache = Depends(get_cache),
+    session_db: AsyncSession = Depends(get_session),
+    repository: RoleRepository = Depends(get_role_repository),
 ) -> RoleService:
-    return RoleService(session_db, cache)
+    return RoleService(session_db, cache, repository)

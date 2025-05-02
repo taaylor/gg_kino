@@ -5,12 +5,10 @@ from pydantic import BaseModel, Field
 
 
 class ChangeUsernameRequest(BaseModel):
-    id: UUID = Field(...)
     username: str = Field(..., min_length=4, max_length=50)
 
 
 class ChangePasswordRequest(BaseModel):
-    id: UUID = Field(...)
     password: str = Field(...)
     repeat_password: str = Field(...)
 

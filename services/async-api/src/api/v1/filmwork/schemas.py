@@ -1,8 +1,14 @@
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from models.schemas_logic import FilmLogic, GenreLogic, PersonLogic
 from pydantic import BaseModel, Field
+
+
+class FilmsType(StrEnum):
+    FREE = "FREE"
+    PAID = "PAID"
+    ARCHIVED = "ARCHIVED"
 
 
 class FilmDetailResponse(BaseModel):
@@ -42,6 +48,7 @@ class FilmDetailResponse(BaseModel):
         default_factory=list,
         description="Список режиссеров фильма.",
     )
+    type: FilmsType = Field(..., description="Тип фильма")
 
     @classmethod
     def transform_from_FilmLogic(cls, film: FilmLogic) -> "FilmDetailResponse":
@@ -54,6 +61,7 @@ class FilmDetailResponse(BaseModel):
             directors=film.directors,
             actors=film.actors,
             writers=film.writers,
+            type=film.type,
         )
 
 
@@ -71,9 +79,10 @@ class FilmListResponse(BaseModel):
         None,
         description="Рейтинг фильма по версии IMDB. Может отсутствовать.",
     )
+    type: FilmsType = Field(..., description="Тип фильма")
 
 
-class FilmSorted(Enum):
+class FilmSorted(StrEnum):
     RATING_DESC = "-imdb_rating"
     RATING_ASC = "imdb_rating"
 

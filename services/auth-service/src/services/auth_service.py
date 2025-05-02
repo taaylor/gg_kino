@@ -18,15 +18,14 @@ from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import SessionUserData
 from models.models import User, UserCred
-from passlib.context import CryptContext
 from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.key_manager import pwd_context
 
 logger = logging.getLogger(__name__)
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 DEFAULT_ROLE = app_config.default_role
 CACHE_KEY_DROP_SESSION = app_config.jwt.cache_key_drop_session

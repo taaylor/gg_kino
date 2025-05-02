@@ -77,3 +77,7 @@ class SessionsHistory(BaseModel):
     actual_user_agent: str = Field(..., description="Актуальная точка входа в аккаунт")
     create_at: datetime = Field(..., description="Время входа в аккаунт")
     history: list[EntryPoint] = Field(default=[], description="Последние дествия в аккаунте")
+
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Сообщение состояния HTTP")

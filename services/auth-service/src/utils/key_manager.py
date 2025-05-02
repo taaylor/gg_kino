@@ -4,11 +4,14 @@ from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from core.config import app_config
 from models.logic_models import SessionUserData
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
 auth_dep = AuthJWTBearer()
+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 def load_jwt_settings():
