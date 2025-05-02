@@ -57,13 +57,6 @@ class JWTSettings(BaseModel):
     refresh_token_lifetime_sec: int = 2400  # 40 минут
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
-    all_permissions: set = {
-        "CRUD_ROLE",
-        "FREE_FILMS",
-        "PAID_FILMS",
-        "ASSIGN_ROLE",
-    }
-
 
 class AppConfig(BaseSettings):
     project_name: str = "auth"

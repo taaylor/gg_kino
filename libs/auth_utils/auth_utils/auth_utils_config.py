@@ -1,4 +1,5 @@
 import logging
+from enum import StrEnum
 
 import dotenv
 from pydantic import BaseModel
@@ -9,6 +10,14 @@ ENV_FILE = dotenv.find_dotenv()
 logger = logging.getLogger(__name__)
 
 logger.info(f"ENV АВТОРИЗАЦИЯ: {ENV_FILE}")
+
+
+class Permissions(StrEnum):
+    CRUD_ROLE = "CRUD_ROLE"
+    CRUD_FILMS = "CRUD_FILMS"
+    FREE_FILMS = "FREE_FILMS"
+    PAID_FILMS = "PAID_FILMS"
+    ASSIGN_ROLE = "ASSIGN_ROLE"
 
 
 class Redis(BaseModel):
