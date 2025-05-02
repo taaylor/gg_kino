@@ -1,3 +1,4 @@
+import asyncio
 from http import HTTPStatus
 from typing import Any, Literal
 
@@ -281,6 +282,7 @@ class TestRoles:
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
         headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
         body, status = await make_post_request(uri="/roles", data=role_dict, headers=headers)
+        await asyncio.sleep(0.3)  # делаем паузу чтобы кеш успел положится в redis
         cache_data = await redis_test(
             key=f"role:{role_request.role}", cached_data=query_data.get("cached_data")
         )
@@ -349,3 +351,51 @@ class TestRoles:
         role_update_request.setdefault("role", role_detail.role)
         assert body == role_update_request
         assert cache_data == role_update_request, expected_answer.get("err_msg_cache")
+
+    @pytest.mark.parametrize(
+        "query_data, expected_answer",
+        [
+            (
+                {
+                    "superuser": True,
+                    "cached_data": False,
+                    "role": "NEW_ROLE",
+                    "descriptions": "описание",
+                    "permissions": [
+                        {
+                            "permission": PermissionEnum.ASSIGN_ROLE.value,
+                            "descriptions": "описание",
+                        },
+                        {
+                            "permission": PermissionEnum.FREE_FILMS.value,
+                            "descriptions": "описание",
+                        },
+                    ],
+                },
+                {
+                    "status": HTTPStatus.OK,
+                    "err_msg_cache": "После удаление роли, кеш должен быть удален",
+                },
+            )
+        ],
+    )
+    async def test_delete_role(
+        self,
+        make_delete_request,
+        pg_session: AsyncSession,
+        redis_test,
+        query_data: dict[str, Any],
+        expected_answer: dict[str, Any],
+        create_user,
+    ):
+        role_detail = self._convert_to_RoleDetail(query_data, "request")
+        await self._create_role_in_db(pg_session=pg_session, role_detail=role_detail)
+
+        tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
+        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        body, status = await make_delete_request(uri=f"/roles/{role_detail.role}", headers=headers)
+        cache_data = await redis_test(key=f"role:{role_detail.role}", cached_data=False)
+
+        assert status == expected_answer.get("status")
+        assert cache_data is None
+        assert await pg_session.get(DictRoles, role_detail.role) is None
