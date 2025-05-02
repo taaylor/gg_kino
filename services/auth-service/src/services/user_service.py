@@ -3,6 +3,7 @@ from models.models import DictRoles, User, UserCred
 from passlib.hash import argon2
 from services.base_service import BaseService
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.decorators import backoff, sqlalchemy_handler_exeptions
 
 
 class UserService(BaseService):
@@ -13,6 +14,8 @@ class UserService(BaseService):
     model = User
 
     @classmethod
+    @backoff()
+    @sqlalchemy_handler_exeptions
     async def set_username(cls, session: AsyncSession, user: User, new_username: str) -> User:
         """
         Устанавливает новое имя пользователя и сохраняет изменения в базе данных.
@@ -42,6 +45,8 @@ class UserCredService(BaseService):
     model = UserCred
 
     @classmethod
+    @backoff()
+    @sqlalchemy_handler_exeptions
     async def set_password(
         cls, session: AsyncSession, user_cred: UserCred, new_password: str
     ) -> UserCred:
@@ -73,6 +78,8 @@ class RoleService(BaseService):
     model = DictRoles
 
     @classmethod
+    @backoff()
+    @sqlalchemy_handler_exeptions
     async def set_role(cls, session: AsyncSession, user: User, new_role: str) -> User:
         """
         Устанавливает новую роль для пользователя и сохраняет изменения в базе данных.
