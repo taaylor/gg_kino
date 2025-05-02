@@ -94,7 +94,6 @@ async def assign_role(
     decrypted_token = await authorize.get_raw_jwt()
     await authorize.compare_permissions(decrypted_token, REQUIRED_PERMISSIONS)
     new_role = request_body.role
-    # user = await UserService.find_one_or_none(session, User.id == user_id)
     user = await UserService.find_one_or_none(
         session, User.id == user_id, options=[joinedload(User.user_cred)]
     )
