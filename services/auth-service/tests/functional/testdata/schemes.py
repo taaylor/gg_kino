@@ -71,3 +71,16 @@ class RoleResponse(BaseModel):
     descriptions: str | None = Field(
         description="Краткое описание назначения роли", example="Роль для модерации контента"
     )
+
+
+class RoleDetailUpdateRequest(BaseModel):
+    descriptions: str | None = Field(
+        description="Подробное описание назначения и привилегий роли",
+        example="Роль для модерации пользовательского контента",
+    )
+    permissions: list[Permission] = Field(
+        ...,
+        description="Список связанных прав доступа",
+        min_items=1,
+        example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
+    )
