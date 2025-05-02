@@ -53,8 +53,6 @@ def create(username: str, email: str, password: str):
         user_cred = UserCred(
             user=user,
             email=email,
-            # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
-            # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
             password=pwd_context.hash(password),
         )
         session.add(user_cred)
