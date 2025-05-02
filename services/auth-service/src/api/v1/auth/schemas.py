@@ -56,7 +56,7 @@ class LoginRequest(BaseModel):
     email: str = Field(
         ..., min_length=5, max_length=254, description="Электронная почта пользователя"
     )
-    password: str = Field(..., min_length=6, max_length=128, description="Пароль пользователя")
+    password: str = Field(..., min_length=8, max_length=128, description="Пароль пользователя")
 
 
 class LoginResponse(Session):

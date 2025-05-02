@@ -10,7 +10,7 @@ ENV_FILE = find_dotenv()
 
 
 class Postgres(BaseModel):
-    host: str = "localhost"
+    host: str = "postgres"
     port: int = 5432
     user: str = "postgres"
     password: str = "postgres"
@@ -35,7 +35,7 @@ class AuthAPICong(BaseModel):
 
     @property
     def host_service(self):
-        return f"http://{self.host}:{self.port}/auth/api/v1/"
+        return f"http://{self.host}:{self.port}/auth/api/v1"
 
 
 class TestConfig(BaseSettings):
