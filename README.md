@@ -5,26 +5,8 @@
 ---
 
 ## 🚀 Запуск проекта
-
-В корневой директории проекта выполните следующие команды:
-
-```bash
-docker compose up --build -d
-docker compose exec postgres psql -U postgres -d pg_db
-\dt
-```
-
-Вывод должен быть:
-
-```bash
-              List of relations
- Schema |      Name       | Type  |  Owner
---------+-----------------+-------+----------
- public | alembic_version | table | postgres
- public | example         | table | postgres
- public | example_2       | table | postgres
-(3 rows)
-```
+1. Создать `.env` cкопировать содержимое `.env.example` в `.env`
+2. В корневой директории проекта выполнить команду `docker compose up -d --build `
 
 ---
 
