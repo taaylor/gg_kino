@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Server(BaseModel):
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = 8001
     timeout: int = 30
     backlog: int = 512
     max_requests: int = 1000

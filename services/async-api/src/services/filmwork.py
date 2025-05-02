@@ -5,12 +5,13 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
+from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted, FilmsType
+from auth_utils import Permissions
 from core.config import app_config
 from db.cache import Cache, get_cache
 from db.database import PaginateBaseDB
 from db.elastic import get_paginate_repository
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from models.schemas_logic import FilmLogic
 
 logger = logging.getLogger(__name__)
@@ -74,13 +75,15 @@ class FilmRepository:
         return found_films
 
     async def get_list_film_by_query(
-        self, query: str, page_size: int, page_number: int
+        self, query: str, page_size: int, page_number: int, categories: list[str]
     ) -> list[FilmLogic]:
         """Получить список фильмов из ElasticSearch по поисковому запросу"""
+        # Фильтрация работает по нижнему регистру из-за особенностей хранения в ES
 
         query_search = {
             "query": {
                 "bool": {
+                    "filter": [{"terms": {"type": categories}}],
                     "should": [
                         {
                             "multi_match": {
@@ -154,14 +157,22 @@ class FilmService:
         self.cache = cache
         self.repository = repository
 
-    async def get_film_by_id(self, film_id: UUID) -> FilmDetailResponse | None:
+    async def get_film_by_id(
+        self, film_id: UUID, user_permissions: set[str]
+    ) -> FilmDetailResponse | None:
         """Получить детальную информацию о фильме по UUID."""
 
         cached_data = await self.cache.get(key=str(film_id))
 
         if cached_data:
-            logger.debug(f"Фильм {film_id} найден в кеше. Возвращаю...")
-            return FilmDetailResponse.model_validate_json(cached_data)
+            logger.debug(f"Фильм {film_id} найден в кеше.")
+            film = FilmDetailResponse.model_validate_json(cached_data)
+            if not await self._validate_film_for_user(film.type, user_permissions):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Недостаточно прав для получения этого фильма",
+                )
+            return film
 
         film = await self.repository.get_film_by_id(film_id=film_id)
 
@@ -174,21 +185,36 @@ class FilmService:
             key=str(film_id), value=film_dto.model_dump_json(), expire=REDIS_FILMS_CACHE_EXPIRES
         )
 
+        if not await self._validate_film_for_user(film_dto.type, user_permissions):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Недостаточно прав для получения этого фильма",
+            )
         return film_dto
 
     async def get_list_film(
-        self, sort: FilmSorted, genre: list[UUID], page_size: int, page_number: int
+        self,
+        sort: FilmSorted,
+        genre: list[UUID],
+        page_size: int,
+        page_number: int,
+        user_permissions: set[str],
     ) -> list[FilmListResponse]:
         """Получить список фильмов с фильтрацией."""
-
+        films_result = []
         genre_key = f":genres{'-'.join(str(g) for g in sorted(set(genre)))}" if genre else ""
         cache_key = f"{REDIS_KEY_FILMS}{sort.value}:page{page_number}:size{page_size}{genre_key}"
 
         cached_data = await self.cache.get(key=cache_key)
 
         if cached_data:
-            logger.info("Список фильмов найден в кеше. Возвращаю...")
-            return [FilmListResponse.model_validate(film) for film in json.loads(cached_data)]
+            logger.info("Список фильмов найден в кеше.")
+            films_list = [FilmListResponse.model_validate(film) for film in json.loads(cached_data)]
+
+            for film in films_list:
+                if await self._validate_film_for_user(film.type, user_permissions):
+                    films_result.append(film)
+            return films_result
 
         films = await self.repository.get_list_film(
             sort=sort, genre=genre, page_size=page_size, page_number=page_number
@@ -197,17 +223,21 @@ class FilmService:
         if not films:
             return []
 
-        film_list = [
-            FilmListResponse(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating)
+        films_list = [
+            FilmListResponse(
+                uuid=film.id, title=film.title, imdb_rating=film.imdb_rating, type=film.type
+            )
             for film in films
         ]
 
-        json_films = json.dumps([film.model_dump(mode="json") for film in film_list])
+        json_films = json.dumps([film.model_dump(mode="json") for film in films_list])
         await self.cache.background_set(
             key=cache_key, value=json_films, expire=REDIS_FILMS_CACHE_EXPIRES
         )
-
-        return film_list
+        for film in films_list:
+            if await self._validate_film_for_user(film.type, user_permissions):
+                films_result.append(film)
+        return films_result
 
     async def get_total_pages(self, page_size: int) -> int:
         """Получить количество доступных страниц для пагинации."""
@@ -236,21 +266,55 @@ class FilmService:
         return total_pages
 
     async def get_list_film_by_search_query(
-        self, query: str, page_size: int, page_number: int
+        self, query: str, page_size: int, page_number: int, user_permissions: set[str]
     ) -> list[FilmListResponse]:
         """Получить список фильмов по поисковому запросу."""
 
+        categories = await self._get_categories_for_permissions(user_permissions)
+
         films = await self.repository.get_list_film_by_query(
-            query=query, page_size=page_size, page_number=page_number
+            query=query, page_size=page_size, page_number=page_number, categories=categories
         )
 
         if films:
             return [
-                FilmListResponse(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating)
+                FilmListResponse(
+                    uuid=film.id, title=film.title, imdb_rating=film.imdb_rating, type=film.type
+                )
                 for film in films
             ]
 
         return films
+
+    async def _validate_film_for_user(self, film_type: str, user_permissions: set[str]) -> bool:
+        logger.debug(
+            f"Получен фильм для проверки: {film_type}, права пользователя {user_permissions}"
+        )
+        if (
+            film_type == FilmsType.ARCHIVED.value
+            and Permissions.CRUD_FILMS.value in user_permissions
+        ):
+            return True
+        if film_type == FilmsType.PAID.value and (
+            Permissions.PAID_FILMS.value in user_permissions
+            or Permissions.CRUD_FILMS.value in user_permissions
+        ):
+            return True
+        if film_type == FilmsType.FREE.value:
+            return True
+        return False
+
+    async def _get_categories_for_permissions(self, user_permissions: set[str]) -> list[str]:
+        if Permissions.CRUD_FILMS.value in user_permissions:
+            return [FilmsType.PAID.value, FilmsType.ARCHIVED.value, FilmsType.FREE.value]
+        if Permissions.PAID_FILMS.value in user_permissions:
+            return [FilmsType.PAID.value, FilmsType.FREE.value]
+        if Permissions.FREE_FILMS.value in user_permissions:
+            return [FilmsType.FREE.value]
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Недостаточно прав для получения этого фильма",
+        )
 
 
 @lru_cache()
