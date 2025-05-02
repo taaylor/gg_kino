@@ -19,7 +19,7 @@ class TestRoles:
             role=query_data.get("role"),
             descriptions=query_data.get("descriptions"),
             permissions=[
-                Permission(permission=perm.get("permisson"), descriptions=perm.get("descriptions"))
+                Permission(permission=perm.get("permission"), descriptions=perm.get("descriptions"))
                 for perm in query_data.get("permissions")
             ],
         )
@@ -100,9 +100,9 @@ class TestRoles:
     ):
         role_detail = await self._create_role_in_db(pg_session=pg_session, query_data=query_data)
 
-        headers = await create_user(superuser_flag=query_data.get("superuser"))
+        tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
+        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
         uri = f"/roles/{query_data.get("path_uuid")}"
-
         body, status = await make_get_request(uri=uri, headers=headers)
         cache_data = await redis_test(
             key=f"role:{role_detail.role}", cached_data=query_data.get("cached_data")
@@ -130,11 +130,11 @@ class TestRoles:
                             "descriptions": "описание",
                             "permissions": [
                                 {
-                                    "permisson": PermissionEnum.ASSIGN_ROLE.value,
+                                    "permission": PermissionEnum.ASSIGN_ROLE.value,
                                     "descriptions": "описание",
                                 },
                                 {
-                                    "permisson": PermissionEnum.FREE_FILMS.value,
+                                    "permission": PermissionEnum.FREE_FILMS.value,
                                     "descriptions": "описание",
                                 },
                             ],
@@ -144,11 +144,11 @@ class TestRoles:
                             "descriptions": "описание",
                             "permissions": [
                                 {
-                                    "permisson": PermissionEnum.ASSIGN_ROLE.value,
+                                    "permission": PermissionEnum.ASSIGN_ROLE.value,
                                     "descriptions": "описание",
                                 },
                                 {
-                                    "permisson": PermissionEnum.FREE_FILMS.value,
+                                    "permission": PermissionEnum.FREE_FILMS.value,
                                     "descriptions": "описание",
                                 },
                             ],
@@ -170,7 +170,7 @@ class TestRoles:
                             "descriptions": "описание",
                             "permissions": [
                                 {
-                                    "permisson": PermissionEnum.ASSIGN_ROLE.value,
+                                    "permission": PermissionEnum.ASSIGN_ROLE.value,
                                     "descriptions": "описание",
                                 },
                             ],
@@ -201,9 +201,9 @@ class TestRoles:
             role = await self._create_role_in_db(query_data=role_data, pg_session=pg_session)
             list_role.append(RoleResponse(role=role.role, descriptions=role.descriptions))
 
-        headers = await create_user(superuser=query_data.get("superuser", False))
-        uri = "/roles"
-        body, status = await make_get_request(uri=uri, headers=headers)
+        tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
+        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        body, status = await make_get_request(uri="/roles", headers=headers)
         cache_data = await redis_test(key="role:all", cached_data=query_data.get("cached_data"))
 
         assert status == expected_answer.get("status")
