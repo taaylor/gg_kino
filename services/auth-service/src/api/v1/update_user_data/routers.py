@@ -8,7 +8,7 @@ from api.v1.update_user_data.schemas import (
     UserResponse,
     UserRoleResponse,
 )
-from auth_utils import LibAuthJWT, auth_dep
+from auth_utils import LibAuthJWT, Permissions, auth_dep
 from db.postgres import get_session
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from models.models import DictRoles, User, UserCred
@@ -18,7 +18,7 @@ from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
-REQUIRED_PERMISSIONS = {"ASSIGN_ROLE"}
+REQUIRED_PERMISSIONS = {Permissions.ASSIGN_ROLE.value}
 
 
 @router.post(

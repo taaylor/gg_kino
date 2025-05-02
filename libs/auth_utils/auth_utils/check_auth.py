@@ -1,10 +1,12 @@
 import logging
 
+import backoff
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import HTTPException, Request, Response, status
 from pydantic import BaseModel
 from redis.asyncio import Redis
+from redis.exceptions import RedisError
 
 from .auth_utils_config import auth_utils_conf
 
@@ -71,14 +73,24 @@ def get_config():
 
 
 @AuthJWT.token_in_denylist_loader
+@backoff.on_exception(
+    backoff.expo, (RedisError, ConnectionError), max_tries=5, jitter=backoff.full_jitter
+)
 async def check_if_session_in_denylist(decrypted_token: dict) -> bool:
     logger.info(f"Проверка токена: {decrypted_token}")
     user_id = decrypted_token.get("user_id")
     session_id = decrypted_token.get("session_id")
 
     cache_key = CACHE_KEY_DROP_SESSION.format(user_id=user_id, session_id=session_id)
-    entry = await redis_conn.get(cache_key)
-    return entry is not None
+    try:
+        entry = await redis_conn.get(cache_key)
+        return entry is not None
+    except (RedisError, ConnectionError) as e:
+        logger.error(f"Ошибка при обращении к Redis: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при проверке токена в denylist",
+        )
 
 
 auth_dep = LibAuthJWTBearer()

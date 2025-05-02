@@ -2,8 +2,8 @@ from enum import StrEnum
 
 
 class GenderEnum(StrEnum):
-    MALE = "мужчина"
-    FEMALE = "женщина"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
 
 class PermissionEnum(StrEnum):

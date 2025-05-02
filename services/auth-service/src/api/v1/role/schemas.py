@@ -26,7 +26,12 @@ class RoleDetailRequest(BaseModel):
         ...,
         description="Список связанных прав доступа",
         min_items=1,
-        example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
+        example=[
+            {
+                "permission": "FREE_FILMS",
+                "descriptions": "Возможность просматривать бесплатные фильмы",
+            }
+        ],
     )
 
 

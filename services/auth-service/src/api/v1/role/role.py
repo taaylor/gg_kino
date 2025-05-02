@@ -9,7 +9,7 @@ from api.v1.role.schemas import (
     RoleDetailUpdateRequest,
     RoleResponse,
 )
-from auth_utils import LibAuthJWT, auth_dep
+from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from services.role import RoleService, get_role_service
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-REQUIRED_PERMISSIONS = {"CRUD_ROLE"}
+REQUIRED_PERMISSIONS = {Permissions.CRUD_ROLE.value}
 
 
 @router.get(

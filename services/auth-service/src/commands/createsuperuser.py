@@ -1,7 +1,7 @@
 import typer
 from db.postgres import sync_session_maker
 from models.models import User, UserCred
-from passlib.hash import argon2
+from utils.key_manager import pwd_context
 
 MAX_ATTEMPTS = 3
 
@@ -55,7 +55,7 @@ def create(username: str, email: str, password: str):
             email=email,
             # argon2 считается лучше чем pbkdf2_sha256, bcrypt, и scrypt.
             # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.argon2.html?highlight=argon2#passlib.hash.argon2
-            password=argon2.hash(password),
+            password=pwd_context.hash(password),
         )
         session.add(user_cred)
         session.commit()

@@ -72,7 +72,7 @@ class Mapping:
                     "fields": {"raw": {"type": "keyword"}},
                     "analyzer": "ru_en",
                 },
-                "type": {"type": "text", "analyzer": "ru_en"},
+                "type": {"type": "keyword"},
                 "writers": {
                     "type": "nested",
                     "dynamic": "strict",
