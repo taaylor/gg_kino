@@ -96,7 +96,7 @@ class RoleService:
         )
 
         await self.cache.background_set(
-            key=CACHE_KEY_ROLE + role.role,
+            key=CACHE_KEY_ROLE + request_body.role,
             value=role.model_dump_json(),
             expire=app_config.cache_expire_in_seconds,
         )

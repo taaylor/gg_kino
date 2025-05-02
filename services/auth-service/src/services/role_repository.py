@@ -52,7 +52,7 @@ class RoleRepository:
 
         session.add_all(permissions)
         await session.commit()
-        logger.info(f"Создана роль {role.id}")
+        logger.info(f"Создана роль {role.role}")
 
     @backoff()
     @sqlalchemy_handler_exeptions
@@ -65,8 +65,6 @@ class RoleRepository:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Роль не существует"
             )
-
-        await session.execute(delete(RolesPermissions).where(RolesPermissions.role_code == pk))
 
         role.descriptions = request_body.descriptions
 
