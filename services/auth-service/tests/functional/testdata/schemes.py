@@ -1,3 +1,6 @@
+from datetime import datetime
+from uuid import UUID
+
 from pydantic import BaseModel, Field
 from tests.functional.testdata.model_enum import GenderEnum, PermissionEnum
 
@@ -36,6 +39,22 @@ class RoleDetailResponse(RoleDetailRequest):
     pass
 
 
+class AccessTokenField(BaseModel):
+    access_token: str = Field(
+        ..., min_length=10, max_length=5000, description="Токен доступа для авторизации"
+    )
+
+
+class RefreshTokenField(BaseModel):
+    refresh_token: str = Field(
+        ..., min_length=10, max_length=5000, description="Токен для обновления сессии"
+    )
+
+
+class Session(RefreshTokenField, AccessTokenField):
+    expires_at: datetime = Field(..., description="Дата и время истечения токена")
+
+
 class UserFields(BaseModel):
     username: str = Field(..., min_length=4, max_length=30, description="Юзернейм пользователя")
     email: str = Field(
@@ -57,6 +76,11 @@ class RegisterRequest(UserFields):
     password: str = Field(..., min_length=8, max_length=128, description="Пароль для регистрации")
 
 
+class RegisterResponse(UserFields):
+    user_id: UUID = Field(..., description="Уникальный идентификатор пользователя")
+    session: Session = Field(..., description="Сессия пользователя")
+
+
 class LoginRequest(BaseModel):
     email: str = Field(
         ..., min_length=5, max_length=254, description="Электронная почта пользователя"
@@ -70,4 +94,17 @@ class RoleResponse(BaseModel):
     role: str = Field(..., description="Системное название роли", example="content_moderator")
     descriptions: str | None = Field(
         description="Краткое описание назначения роли", example="Роль для модерации контента"
+    )
+
+
+class RoleDetailUpdateRequest(BaseModel):
+    descriptions: str | None = Field(
+        description="Подробное описание назначения и привилегий роли",
+        example="Роль для модерации пользовательского контента",
+    )
+    permissions: list[Permission] = Field(
+        ...,
+        description="Список связанных прав доступа",
+        min_items=1,
+        example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
     )

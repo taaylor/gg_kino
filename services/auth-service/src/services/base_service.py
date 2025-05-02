@@ -4,6 +4,7 @@ from services.auth_repository import AuthRepository
 from services.session_maker import SessionMaker
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.decorators import backoff, sqlalchemy_handler_exeptions
 
 
 class BaseService:
@@ -14,6 +15,8 @@ class BaseService:
     model = None
 
     @classmethod
+    @backoff()
+    @sqlalchemy_handler_exeptions
     async def find_one_or_none(
         cls,
         session: AsyncSession,

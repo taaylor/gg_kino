@@ -63,7 +63,7 @@ def create_user(pg_session: AsyncSession, make_post_request):
                 refresh={refresh_token[:5]}"
         )
 
-        headers = {"access_token": access_token, "refresh_token": refresh_token}
+        headers = {"access_token": access_token, "refresh_token": refresh_token, "user_id": user.id}
 
         return headers
 

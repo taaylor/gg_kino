@@ -7,7 +7,15 @@ from typing import Any, Callable, Coroutine, Type
 
 from fastapi import HTTPException, status
 from redis.asyncio import ConnectionError, RedisError, TimeoutError
-from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound, OperationalError
+from sqlalchemy.exc import (
+    DBAPIError,
+    DisconnectionError,
+    IntegrityError,
+    InterfaceError,
+    MultipleResultsFound,
+    NoResultFound,
+    OperationalError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +37,12 @@ def redis_handler_exeptions[**P, R](
 
 
 def backoff(
-    exception: tuple[Type[Exception], ...],
+    exception: tuple[Type[Exception], ...] = (
+        OperationalError,
+        DisconnectionError,
+        DBAPIError,
+        InterfaceError,
+    ),
     start_sleep_time: float = 0.1,
     factor: float = 2,
     border_sleep_time: float = 10,
@@ -45,11 +58,21 @@ def backoff(
             time = start_sleep_time
             attempt = 1
             last_exception = None
+            session = None
+            if len(args) >= 2:  # args[0] = cls (для @classmethod), args[1] = session
+                session = args[1]
+            else:
+                session = kwargs.get("session")
 
             while attempt <= max_attempts:
                 try:
                     return await func(*args, **kwargs)
                 except exception as error:
+                    await session.rollback()
+                    last_exception = error
+                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                except Exception as error:
+                    await session.rollback()
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
                 if attempt == max_attempts:
@@ -77,7 +100,12 @@ def sqlalchemy_handler_exeptions[**P, R](
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        session = kwargs.get("session")
+        session = None
+        if len(args) >= 2:  # args[0] = cls (для @classmethod), args[1] = session
+            session = args[1]
+        else:
+            session = kwargs.get("session")
+
         if session is None:
             raise ValueError("Сессия должна быть передан в функцию")
         try:
@@ -104,21 +132,6 @@ def sqlalchemy_handler_exeptions[**P, R](
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Ошибка: найдено несколько записей",
-            )
-
-        except OperationalError as e:
-            await session.rollback()
-            logger.error(f"Ошибка подключения к базе данных: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="База данных недоступна"
-            )
-
-        except Exception as e:
-            await session.rollback()
-            logger.error(f"Непредвиденная ошибка: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Внутренняя ошибка сервера",
             )
 
     return wrapper
