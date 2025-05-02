@@ -94,12 +94,18 @@ async def assign_role(
     decrypted_token = await authorize.get_raw_jwt()
     await authorize.compare_permissions(decrypted_token, REQUIRED_PERMISSIONS)
     new_role = request_body.role
-    user = await UserService.find_one_or_none(session, User.id == user_id)
+    # user = await UserService.find_one_or_none(session, User.id == user_id)
+    user = await UserService.find_one_or_none(
+        session, User.id == user_id, options=[joinedload(User.user_cred)]
+    )
     if not user:
         return None
     role = await RoleService.find_one_or_none(session, DictRoles.role == new_role)
     if not role:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role does not exist",
+        )
     await RoleService.set_role(session, user, new_role)
     response = RoleService.to_response_body(user, new_role)
     return response
@@ -124,6 +130,12 @@ async def revoke_role(
     )
     if not user:
         return None
+    role = await RoleService.find_one_or_none(session, DictRoles.role == "ANONYMOUS")
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role does not exist",
+        )
     await RoleService.set_role(session, user, "ANONYMOUS")
     response = RoleService.to_response_body(user, "ANONYMOUS")
     return response
