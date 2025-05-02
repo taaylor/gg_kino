@@ -1,6 +1,13 @@
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+
+
+class FilmsType(StrEnum):
+    FREE = "FREE"
+    PAID = "PAID"
+    ARCHIVED = "ARCHIVED"
 
 
 class PersonLogic(BaseModel):
@@ -58,3 +65,4 @@ class FilmLogic(BaseModel):
     actors_names: list[str] = Field(default_factory=list)
     writers_names: list[str] = Field(default_factory=list)
     directors_names: list[str] = Field(default_factory=list)
+    type: FilmsType

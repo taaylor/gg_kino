@@ -4,6 +4,7 @@ from typing import Annotated
 from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
+    MessageResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
@@ -11,7 +12,6 @@ from api.v1.auth.schemas import (
 )
 from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Request
-from schemas.entity import MessageResponse
 from services.auth_service import (
     LoginService,
     LogoutService,

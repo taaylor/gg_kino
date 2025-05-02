@@ -26,7 +26,12 @@ class RoleDetailRequest(BaseModel):
         ...,
         description="Список связанных прав доступа",
         min_items=1,
-        example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
+        example=[
+            {
+                "permission": "FREE_FILMS",
+                "descriptions": "Возможность просматривать бесплатные фильмы",
+            }
+        ],
     )
 
 
@@ -56,3 +61,7 @@ class RoleDetailUpdateRequest(BaseModel):
         min_items=1,
         example=[{"permission": "FREE_FILMS", "descriptions": "ЛЯЛЯЛЯ"}],
     )
+
+
+class MessageResponse(BaseModel):
+    message: str = Field(..., description="Сообщение состояния HTTP")
