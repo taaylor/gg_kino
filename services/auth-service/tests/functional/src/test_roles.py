@@ -343,6 +343,7 @@ class TestRoles:
         body, status = await make_put_request(
             uri=f"/roles/{role_detail.role}", data=role_update_request, headers=headers
         )
+        await asyncio.sleep(0.3)  # делаем паузу чтобы кеш успел положится в redis
         cache_data = await redis_test(
             key=f"role:{role_detail.role}", cached_data=query_data.get("cached_data")
         )
