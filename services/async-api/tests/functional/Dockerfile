@@ -14,7 +14,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="/opt"
 
-COPY .env ./
 COPY services/async-api/tests/functional/pyproject.toml ./
 COPY services/async-api/tests/functional/poetry.lock ./
 

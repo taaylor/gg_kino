@@ -42,7 +42,12 @@ class FilmRepository:
         return film
 
     async def get_list_film(
-        self, sort: FilmSorted, genre: list[UUID], page_size: int, page_number: int
+        self,
+        sort: FilmSorted,
+        genre: list[UUID],
+        page_size: int,
+        page_number: int,
+        categories: list[str],
     ) -> list[FilmLogic]:
         """Получить список фильмов из ElasticSearch по фильтрации переданных данных"""
 
@@ -50,24 +55,27 @@ class FilmRepository:
             [{sort.value[1:]: "desc"}] if sort.value.startswith("-") else [{sort.value[:]: "asc"}]
         )
 
-        query = {"sort": sort_}
+        query = {
+            "sort": sort_,
+            "query": {
+                "bool": {
+                    "filter": [{"terms": {"type": categories}}],
+                }
+            },
+        }
 
         if genre:
             genre_ids = [str(g) for g in genre]
-            genre_query = {
-                "bool": {
-                    "should": [
-                        {
-                            "nested": {
-                                "path": "genres",
-                                "query": {"bool": {"must": [{"terms": {"genres.id": genre_ids}}]}},
-                            }
-                        }
-                    ],
-                    "minimum_should_match": 1,
+            should = [
+                {
+                    "nested": {
+                        "path": "genres",
+                        "query": {"bool": {"must": [{"terms": {"genres.id": genre_ids}}]}},
+                    }
                 }
-            }
-            query.setdefault("query", genre_query)
+            ]
+            query["query"]["bool"]["should"] = should
+            query["query"]["bool"]["minimum_should_match"] = 1
 
         found_films = await self._search_films(
             query_search=query, page_size=page_size, page_number=page_number
@@ -138,15 +146,18 @@ class FilmRepository:
         )
         return film_list
 
-    async def get_total_films(self) -> int:
+    async def get_total_films(self, categories: list[str]) -> int:
         """Получить количество фильмов из Elasticsearch"""
 
         logger.debug(
             "Делаю запрос на получение количества фильмов из ElasticSearch, "
             + "в кеше данных не оказалось..."
         )
-        total = await self.repository.get_count(index=self.FILMS_INDEX_ES)
-        logger.info(f"Получено количество фильмов {total=}, сохраняю результат в кеш")
+
+        total = await self.repository.get_count(index=self.FILMS_INDEX_ES, categories=categories)
+        logger.info(
+            f"Получено количество фильмов {total=}, сохраняю результат в кеш. Тип {categories}"
+        )
         return total
 
 
@@ -167,7 +178,7 @@ class FilmService:
         if cached_data:
             logger.debug(f"Фильм {film_id} найден в кеше.")
             film = FilmDetailResponse.model_validate_json(cached_data)
-            if not await self._validate_film_for_user(film.type, user_permissions):
+            if not self._validate_film_for_user(film.type, user_permissions):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Недостаточно прав для получения этого фильма",
@@ -185,7 +196,7 @@ class FilmService:
             key=str(film_id), value=film_dto.model_dump_json(), expire=REDIS_FILMS_CACHE_EXPIRES
         )
 
-        if not await self._validate_film_for_user(film_dto.type, user_permissions):
+        if not self._validate_film_for_user(film_dto.type, user_permissions):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Недостаточно прав для получения этого фильма",
@@ -201,23 +212,27 @@ class FilmService:
         user_permissions: set[str],
     ) -> list[FilmListResponse]:
         """Получить список фильмов с фильтрацией."""
-        films_result = []
+        categories = sorted(self._get_categories_for_permissions(user_permissions))
         genre_key = f":genres{'-'.join(str(g) for g in sorted(set(genre)))}" if genre else ""
-        cache_key = f"{REDIS_KEY_FILMS}{sort.value}:page{page_number}:size{page_size}{genre_key}"
-
+        cache_key = (
+            f"{REDIS_KEY_FILMS}{sort.value}"
+            f":page{page_number}"
+            f":size{page_size}{genre_key}"
+            f":{'-'.join(categories)}"
+        )
         cached_data = await self.cache.get(key=cache_key)
 
         if cached_data:
             logger.info("Список фильмов найден в кеше.")
             films_list = [FilmListResponse.model_validate(film) for film in json.loads(cached_data)]
-
-            for film in films_list:
-                if await self._validate_film_for_user(film.type, user_permissions):
-                    films_result.append(film)
-            return films_result
+            return films_list
 
         films = await self.repository.get_list_film(
-            sort=sort, genre=genre, page_size=page_size, page_number=page_number
+            sort=sort,
+            genre=genre,
+            page_size=page_size,
+            page_number=page_number,
+            categories=categories,
         )
 
         if not films:
@@ -234,22 +249,20 @@ class FilmService:
         await self.cache.background_set(
             key=cache_key, value=json_films, expire=REDIS_FILMS_CACHE_EXPIRES
         )
-        for film in films_list:
-            if await self._validate_film_for_user(film.type, user_permissions):
-                films_result.append(film)
-        return films_result
+        return films_list
 
-    async def get_total_pages(self, page_size: int) -> int:
+    async def get_total_pages(self, page_size: int, user_permissions: set[str]) -> int:
         """Получить количество доступных страниц для пагинации."""
 
         logger.debug("Запрашиваю общее количество страниц для фильмов...")
-        total_films_cache_key = f"{REDIS_KEY_FILMS}total"
+        categories = sorted(self._get_categories_for_permissions(user_permissions))
+        total_films_cache_key = f"{REDIS_KEY_FILMS}total:{'-'.join(categories)}"
 
         total_films = await self.cache.get(key=total_films_cache_key)
         if total_films is None:
             logger.info("Общее количество фильмов не найдено в кеше, делаю запрос...")
 
-            total_films = await self.repository.get_total_films()
+            total_films = await self.repository.get_total_films(categories)
 
             if not total_films or total_films == 0:
                 return 0
@@ -270,7 +283,7 @@ class FilmService:
     ) -> list[FilmListResponse]:
         """Получить список фильмов по поисковому запросу."""
 
-        categories = await self._get_categories_for_permissions(user_permissions)
+        categories = sorted(self._get_categories_for_permissions(user_permissions))
 
         films = await self.repository.get_list_film_by_query(
             query=query, page_size=page_size, page_number=page_number, categories=categories
@@ -286,7 +299,7 @@ class FilmService:
 
         return films
 
-    async def _validate_film_for_user(self, film_type: str, user_permissions: set[str]) -> bool:
+    def _validate_film_for_user(self, film_type: str, user_permissions: set[str]) -> bool:
         logger.debug(
             f"Получен фильм для проверки: {film_type}, права пользователя {user_permissions}"
         )
@@ -304,7 +317,7 @@ class FilmService:
             return True
         return False
 
-    async def _get_categories_for_permissions(self, user_permissions: set[str]) -> list[str]:
+    def _get_categories_for_permissions(self, user_permissions: set[str]) -> list[str]:
         if Permissions.CRUD_FILMS.value in user_permissions:
             return [FilmsType.PAID.value, FilmsType.ARCHIVED.value, FilmsType.FREE.value]
         if Permissions.PAID_FILMS.value in user_permissions:

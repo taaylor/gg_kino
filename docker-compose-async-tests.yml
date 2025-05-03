@@ -2,6 +2,8 @@ services:
   elasticsearch:
     image: elasticsearch:8.16.5
     container_name: elasticsearch-container
+    env_file:
+      - ./.env
     volumes:
       - test_elasticsearch_data:/usr/share/elasticsearch/data
     environment:
@@ -25,6 +27,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-container
+    env_file:
+      - ./.env
     environment:
       - REDIS_PASSWORD=${TEST_REDIS__PASSWORD}
       - REDIS_USER=${TEST_REDIS__USER}
@@ -61,6 +65,8 @@ services:
       context: .
       dockerfile: ./services/async-api/src/Dockerfile
     container_name: async-api-container
+    env_file:
+      - ./.env
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -70,11 +76,49 @@ services:
       - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
     restart: always
 
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-container
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${TEST_POSTGRES__USER}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES__PASSWORD}
+      POSTGRES_DB: ${TEST_POSTGRES__DB}
+    volumes:
+      - test_pg_data_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_POSTGRES__USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/src/Dockerfile
+    container_name: auth-api-container
+    env_file:
+      - ./.env
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+
   tests-async-api:
     build:
       context: .
       dockerfile: ./services/async-api/tests/functional/Dockerfile
     container_name: tests-async-api-container
+    env_file:
+      - ./.env
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -85,3 +129,4 @@ services:
 volumes:
   test_redis_data:
   test_elasticsearch_data:
+  test_pg_data_volume:

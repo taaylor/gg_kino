@@ -9,6 +9,18 @@ logger = get_logger(__name__)
 ENV_FILE = find_dotenv()
 
 
+class Postgres(BaseModel):
+    host: str = "postgres"
+    port: int = 5432
+    user: str = "postgres"
+    password: str = "postgres"
+    db: str = "pg_db"
+
+    @property
+    def ASYNC_DATABASE_URL(self):
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+
+
 class ESConf(BaseModel):
     host: str = "localhost"
     port: int = 9200
@@ -38,11 +50,24 @@ class APIConf(BaseModel):
         return f"http://{self.host}:{self.port}/async/api/v1"
 
 
+class AuthAPICong(BaseModel):
+    host: str = "localhost"
+    port: int = 8000
+
+    @property
+    def host_service(self):
+        return f"http://{self.host}:{self.port}/auth/api/v1"
+
+
 class TestConfig(BaseSettings):
     redis: RedisConf = Field(default_factory=RedisConf, description="Конфигурация Redis")
     elastic: ESConf = Field(default_factory=ESConf, description="Конфигурация ElasticSearch")
     asyncapi: APIConf = Field(
         default_factory=APIConf, description="Конфигурация сервиса AsyncAPI FastAPI"
+    )
+    postgres: Postgres = Field(default_factory=Postgres, description="Конфигурация Postgres")
+    authapi: AuthAPICong = Field(
+        default_factory=AuthAPICong, description="Конфигурация сервиса Auth"
     )
 
     model_config = SettingsConfigDict(

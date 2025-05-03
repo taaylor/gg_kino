@@ -120,6 +120,7 @@ class PersonRepository:
                 uuid=film.get("id"),
                 title=film.get("title"),
                 imdb_rating=film.get("imdb_rating"),
+                type=film.get("type"),
             )
             for film in films_sources
         ]
@@ -136,10 +137,6 @@ class PersonRepository:
             "query": {
                 "bool": {
                     "should": [
-                        # тут вынес в отдельный метод для DRY
-                        # но реализация мне не совсем нравится,
-                        # немного нарушает KISS
-                        # имхо KISS важнее DRY)
                         self.build_nested_query_detail("actors", person_id),
                         self.build_nested_query_detail("directors", person_id),
                         self.build_nested_query_detail("writers", person_id),

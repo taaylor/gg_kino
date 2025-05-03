@@ -59,12 +59,15 @@ class PaginateElasticDB(PaginateBaseDB):
 
     @elastic_handler_exeptions
     @backoff(exception=(ConnectionError, ConnectionTimeout))
-    async def get_count(self, index: str, **kwargs) -> int:
-        logger.debug(f"Получаю количество документов в индексе {index} ElasticSearch.")
-        result = await self.elastic.count(index=index, **kwargs)
-        if result is None:
-            return 0
-        return int(result.get("count"))
+    async def get_count(self, index: str, categories: list[str], **kwargs) -> int:
+        logger.debug(
+            f"Получаю количество документов в индексе {index} \
+                ElasticSearch, с параметрами {categories}"
+        )
+        body = {"size": 0, "query": {"bool": {"filter": [{"terms": {"type": categories}}]}}}
+        result = await self.elastic.search(index=index, body=body, **kwargs)
+        total = result["hits"]["total"]["value"]
+        return int(total)
 
 
 es: AsyncElasticsearch | None = None
