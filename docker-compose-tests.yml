@@ -2,6 +2,7 @@ services:
   elasticsearch:
     image: elasticsearch:8.16.5
     container_name: elasticsearch-container
+    profiles: ["async-api-test"]
     env_file:
       - ./.env
     volumes:
@@ -27,6 +28,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-container
+    profiles: ["async-api-test", "auth-api-test"]
     env_file:
       - ./.env
     environment:
@@ -64,6 +66,7 @@ services:
     build:
       context: .
       dockerfile: ./services/async-api/src/Dockerfile
+    profiles: ["async-api-test"]
     container_name: async-api-container
     env_file:
       - ./.env
@@ -79,6 +82,7 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: postgres-container
+    profiles: ["async-api-test", "auth-api-test"]
     env_file:
       - ./.env
     environment:
@@ -100,6 +104,7 @@ services:
     build:
       context: .
       dockerfile: ./services/auth-service/src/Dockerfile
+    profiles: ["auth-api-test", "async-api-test"]
     container_name: auth-api-container
     env_file:
       - ./.env
@@ -116,11 +121,26 @@ services:
     build:
       context: .
       dockerfile: ./services/async-api/tests/functional/Dockerfile
+    profiles: ["async-api-test"]
     container_name: tests-async-api-container
     env_file:
       - ./.env
     depends_on:
       elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  tests:
+    build:
+      context: .
+      dockerfile: ./services/auth-service/tests/functional/Dockerfile
+    profiles: ["auth-api-test"]
+    container_name: tests-container
+    env_file:
+      - ./.env
+    depends_on:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
