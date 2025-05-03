@@ -214,8 +214,12 @@ class FilmService:
         """Получить список фильмов с фильтрацией."""
         categories = sorted(self._get_categories_for_permissions(user_permissions))
         genre_key = f":genres{'-'.join(str(g) for g in sorted(set(genre)))}" if genre else ""
-        cache_key = f"{REDIS_KEY_FILMS}{sort.value}:page{page_number}:size{page_size}{genre_key}:{'-'.join(categories)}"  # noqa: E501
-
+        cache_key = (
+            f"{REDIS_KEY_FILMS}{sort.value}"
+            f":page{page_number}"
+            f":size{page_size}{genre_key}"
+            f":{'-'.join(categories)}"
+        )
         cached_data = await self.cache.get(key=cache_key)
 
         if cached_data:
