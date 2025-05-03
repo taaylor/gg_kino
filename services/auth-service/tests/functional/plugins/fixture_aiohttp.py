@@ -19,8 +19,6 @@ def make_get_request(aiohttp_session: aiohttp.ClientSession):
     ) -> tuple[list | dict, int]:
         url = test_conf.authapi.host_service + uri
         async with aiohttp_session.get(url, params=params, headers=headers) as response:
-            # если пришёл ответ без тела, то response.json() вызовет ошибку
-            # добавил везде, можно заменить на try/except
             try:
                 body = await response.json()
             except (JSONDecodeError, TypeError, aiohttp.ContentTypeError):

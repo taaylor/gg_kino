@@ -206,6 +206,7 @@ class TestPersonsAPI:
                 "description": "Description "
                 + str(i)
                 + (" about horror" if i % 2 == 0 else " about triller"),
+                "type": "FREE",
             }
             for i in range(1, 51)
         ]

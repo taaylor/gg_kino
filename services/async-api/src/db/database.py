@@ -16,5 +16,5 @@ class BaseDB(ABC):
 
 class PaginateBaseDB(BaseDB):
     @abstractmethod
-    async def get_count(self, index: str, **kwargs) -> int:
+    async def get_count(self, index: str, categories: list[str], **kwargs) -> int:
         pass

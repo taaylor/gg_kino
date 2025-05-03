@@ -3,7 +3,9 @@
 echo "Запуск waiters..."
 python3 ./tests/functional/utils/wait_for_es.py
 python3 ./tests/functional/utils/wait_for_redis.py
+python3 ./tests/functional/utils/wait_for_postgres.py
 python3 ./tests/functional/utils/wait_for_api.py
+python3 ./tests/functional/utils/wait_for_auth-api.py
 
 echo "Запуск тестов..."
 

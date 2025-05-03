@@ -41,7 +41,7 @@ async def film_search(
     if not query:
         return []
 
-    total_pages = await film_service.get_total_pages(page_size)
+    total_pages = await film_service.get_total_pages(page_size, user_permissions)
 
     if page_number > total_pages:
         return []
@@ -114,7 +114,9 @@ async def film_list(
     user_token = await authorize.get_raw_jwt()
     if user_token:
         user_permissions = set(user_token.get("permissions"))
-    total_pages = await film_service.get_total_pages(page_size=page_size)
+    total_pages = await film_service.get_total_pages(
+        page_size=page_size, user_permissions=user_permissions
+    )
 
     if page_number > total_pages:
         return []
