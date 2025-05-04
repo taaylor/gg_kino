@@ -2,10 +2,9 @@ import asyncio
 import logging
 import random
 from functools import wraps
-from http import HTTPStatus
 from typing import Any, AsyncGenerator, Callable, Coroutine, Type
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from redis.asyncio import ConnectionError, RedisError, TimeoutError
 from sqlalchemy.exc import DBAPIError, DisconnectionError, InterfaceError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,7 +60,7 @@ def backoff(
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
                 except HTTPException as error:
-                    if error.status_code < 500:
+                    if error.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
                         raise
                 except Exception as error:
                     last_exception = error
@@ -69,7 +68,7 @@ def backoff(
                 if attempt == max_attempts:
                     logger.error("Backoff исчерпал попытки, прокидываю исключение...")
                     raise HTTPException(
-                        status_code=HTTPStatus.BAD_GATEWAY,
+                        status_code=status.HTTP_502_BAD_GATEWAY,
                         detail="Ошибка стороннего сервиса, повторите попытку позже",
                     ) from last_exception
 
