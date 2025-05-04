@@ -276,29 +276,39 @@ class LogoutService(MixinAuthRepository):
 
 class SessionService(MixinAuthRepository):
 
-    async def get_history_session(self, access_data: dict[str, Any]) -> SessionsHistory:
+    async def get_history_session(
+        self, access_data: dict[str, Any], page_size: int, page_number: int
+    ) -> SessionsHistory:
         user_data = SessionUserData.model_validate(access_data)
         user_id = user_data.user_id
         current_session_id = user_data.session_id
 
-        history_sessions = await self.repository.fetch_history_sessions(
-            session=self.session, user_id=user_id
+        check_current_session = await self.repository.fetch_session_by_id(
+            session=self.session, session_id=current_session_id
         )
 
-        history_convert = []
-        current_session_data = None
+        if not check_current_session:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Текущая сессия не найдена"
+            )
 
-        for session in history_sessions:
-            if session.session_id == current_session_id:
-                current_session_data = session
-            else:
-                history_convert.append(
-                    EntryPoint(user_agent=session.user_agent, created_at=session.created_at)
-                )
+        # получаем историю сессий
+        history_sessions = await self.repository.fetch_history_sessions(
+            session=self.session,
+            current_session=check_current_session.session_id,
+            user_id=user_id,
+            page_size=page_size,
+            page_number=page_number,
+        )
+
+        history_convert = [
+            EntryPoint(user_agent=session.user_agent, created_at=session.created_at)
+            for session in history_sessions
+        ]
 
         return SessionsHistory(
-            actual_user_agent=current_session_data.user_agent,
-            create_at=current_session_data.created_at,
+            actual_user_agent=check_current_session.user_agent,
+            create_at=check_current_session.created_at,
             history=history_convert,
         )
 

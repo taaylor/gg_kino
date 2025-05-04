@@ -126,7 +126,15 @@ class AuthRepository:
 
     @backoff()
     @sqlalchemy_handler_exeptions
-    async def fetch_history_sessions(self, session: AsyncSession, user_id: UUID) -> list[tuple]:
+    async def fetch_history_sessions(
+        self,
+        session: AsyncSession,
+        user_id: UUID,
+        current_session: UUID,
+        page_size: int,
+        page_number: int,
+    ) -> list[tuple]:
+        skip_records = (page_number - 1) * page_size
         stmt = (
             select(
                 UserSessionsHist.user_agent,
@@ -134,12 +142,13 @@ class AuthRepository:
                 UserSessionsHist.session_id,
             )
             .where(UserSessionsHist.user_id == user_id)
-            .limit(20)
+            .where(UserSessionsHist.session_id != current_session)
             .order_by(UserSessionsHist.created_at.desc())
+            .limit(page_size)
+            .offset(skip_records)
         )
         result = await session.execute(stmt)
         data = result.all()
-        logger.info(data)
 
         return data
 

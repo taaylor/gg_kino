@@ -11,7 +11,7 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends, Query, Request
 from services.auth_service import (
     LoginService,
     LogoutService,
@@ -118,8 +118,12 @@ async def logout_all(
 async def entry_history(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sessions_service: Annotated[SessionService, Depends(get_session_service)],
+    page_size: Annotated[
+        int, Query(ge=1, le=50, description="Количество записей на странице")
+    ] = 25,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> SessionsHistory:
     await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
-    history = await sessions_service.get_history_session(access_data)
+    history = await sessions_service.get_history_session(access_data, page_size, page_number)
     return history
