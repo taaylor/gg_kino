@@ -58,11 +58,11 @@ def backoff(
                         yield session
                     return
                 except exception as error:
-                    await session.rollback()
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                except HTTPException:
+                    raise
                 except Exception as error:
-                    await session.rollback()
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
                 if attempt == max_attempts:
