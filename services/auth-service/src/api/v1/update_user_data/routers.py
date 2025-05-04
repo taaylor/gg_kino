@@ -8,7 +8,7 @@ from api.v1.update_user_data.schemas import (
     UserResponse,
     UserRoleResponse,
 )
-from auth_utils import LibAuthJWT, Permissions, auth_dep
+from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
 from db.postgres import get_session
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
 from models.models import DictRoles, User, UserCred
@@ -84,15 +84,13 @@ async def change_password(
     summary=f"Назначение роли пользователю (REST-стиль). Необходимые разрешения:{REQUIRED_PERMISSIONS}",  # noqa: E501
     response_description="Роль успешно назначена пользователю",
 )
+@access_permissions_check(REQUIRED_PERMISSIONS)
 async def assign_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
     request_body: Annotated[AssignRoleRequest, Body(description="Данные для назначения роли")],
     session: Annotated[AsyncSession, Depends(get_session)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
-    await authorize.jwt_required()
-    decrypted_token = await authorize.get_raw_jwt()
-    await authorize.compare_permissions(decrypted_token, REQUIRED_PERMISSIONS)
     new_role = request_body.role
     user = await UserService.find_one_or_none(
         session, User.id == user_id, options=[joinedload(User.user_cred)]
@@ -116,14 +114,12 @@ async def assign_role(
     summary=f"Удаление роли пользователя (REST-стиль). Необходимые разрешения:{REQUIRED_PERMISSIONS}",  # noqa: E501
     response_description="Роль пользователя успешно удалена и установлена как ANONYMOUS",
 )
+@access_permissions_check(REQUIRED_PERMISSIONS)
 async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
     session: Annotated[AsyncSession, Depends(get_session)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
-    await authorize.jwt_required()
-    decrypted_token = await authorize.get_raw_jwt()
-    await authorize.compare_permissions(decrypted_token, REQUIRED_PERMISSIONS)
     user = await UserService.find_one_or_none(
         session, User.id == user_id, options=[joinedload(User.user_cred)]
     )

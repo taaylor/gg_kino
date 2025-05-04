@@ -173,13 +173,23 @@ yandex_kinoservice/
 ## 📖 Полезные команды
 
 ### Запуск тестов
-```bash
-pytest tests/functional/src/ -rf -v
-```
 
+**Запуск тестов async-api:**
+```bash
+docker-compose -f docker-compose-tests.yml --profile async-api-test up --build -d
+docker-compose -f docker-compose-tests.yml  logs -f tests-async-api
+docker-compose -f docker-compose-tests.yml --profile async-api-test  down -v
+```
+**Запуск тестов auth-api**
+```bash
+docker-compose -f docker-compose-tests.yml --profile auth-api-test up --build -d
+docker-compose -f docker-compose-tests.yml logs -f tests-auth-api
+docker-compose -f docker-compose-tests.yml --profile auth-api-test  down -v
+```
+---
 ### Остановка и удаление контейнеров
 ```bash
-docker compose down
+docker compose down -v
 ```
 
 ---

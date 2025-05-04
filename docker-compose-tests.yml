@@ -131,12 +131,12 @@ services:
       redis:
         condition: service_healthy
 
-  tests:
+  tests-auth-api:
     build:
       context: .
       dockerfile: ./services/auth-service/tests/functional/Dockerfile
     profiles: ["auth-api-test"]
-    container_name: tests-container
+    container_name: tests-auth-api-container
     env_file:
       - ./.env
     depends_on:
