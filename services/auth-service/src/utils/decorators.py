@@ -60,8 +60,9 @@ def backoff(
                 except exception as error:
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
-                except HTTPException:
-                    raise
+                except HTTPException as error:
+                    if error.status_code < 500:
+                        raise
                 except Exception as error:
                     last_exception = error
                     logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
