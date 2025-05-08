@@ -3,7 +3,7 @@ from datetime import datetime
 
 from db.postgres import Base
 from models.models_types import GenderEnum
-from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -32,6 +32,12 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    social_account: Mapped["SocialAccount"] = relationship(
+        "SocialAccount",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self):
         return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
 
@@ -48,6 +54,7 @@ class UserCred(Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str] = mapped_column(String(255))
+    is_fictional_email: Mapped[bool] = mapped_column(default=False)
 
     # обратная orm связь с user (one-to-one)
     user: Mapped["User"] = relationship("User", back_populates="user_cred", uselist=False)
@@ -57,6 +64,23 @@ class UserCred(Base):
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(user_id={self.user_id})"
+
+
+class SocialAccount(Base):
+    __tablename__ = "social_account"
+    __table_args__ = (
+        UniqueConstraint("social_name", "social_id", name="social_pk"),
+        {"schema": "profile"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profile.user.id", ondelete="CASCADE"))
+    social_id: Mapped[str] = mapped_column(
+        String(255), comment="Уникальный идентификатор пользователя в социальной сети"
+    )
+    social_name: Mapped[str] = mapped_column(String(255), comment="Наименование поставщика услуг")
+
+    user: Mapped["User"] = relationship("User", back_populates="social_account")
 
 
 class DictRoles(Base):
