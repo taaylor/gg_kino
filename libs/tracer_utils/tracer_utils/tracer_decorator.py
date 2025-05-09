@@ -4,7 +4,7 @@ from typing import Callable
 from opentelemetry import context, trace
 
 
-def trased(name: str = None):
+def traced(name: str = None):
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
