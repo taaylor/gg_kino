@@ -8,10 +8,12 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanProcessor
 from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
 from opentelemetry.trace import Context
 
+from .tracer_config import tracer_conf
+
 
 def init_tracer(app, service_name: str):
     # Настройка семплера
-    sampler = TraceIdRatioBased(1)
+    sampler = TraceIdRatioBased(tracer_conf.trace_percent)
 
     # Создаем ресурс с метаданными сервиса
     resource = Resource(attributes={"service.name": service_name})
@@ -21,7 +23,7 @@ def init_tracer(app, service_name: str):
 
     # Создаем OTLP экспортер
     otlp_exporter = OTLPSpanExporter(
-        endpoint="http://jaeger:4317", insecure=True  # Порт для OTLP gRPC
+        endpoint=tracer_conf.jaeger.jaeger_url, insecure=True  # Порт для OTLP gRPC
     )
 
     # Добавляем оба процессора

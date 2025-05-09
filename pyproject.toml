@@ -3,7 +3,7 @@ name = "monorepo-tools"
 version = "0.1.0"
 description = "Common development tools"
 requires-python = ">=3.12,<4.0"
-dependencies = ["elasticsearch[async]>=8.13.2,<9.0.0", "backoff==2.2.1"]
+dynamic = ["dependencies"]
 
 [project.optional-dependencies]
 dev = [
@@ -19,9 +19,11 @@ dev = [
 package-mode = false
 
 [tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+elasticsearch = { extras = ["async"], version = ">=8.13.2,<9.0.0" }
+backoff = "2.2.1"
 auth-utils = { path = "libs/auth_utils" }
-tracer-utils = { path = "libs/tracer_utils" }
-
+tracer = { path = "libs/tracer_utils" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
