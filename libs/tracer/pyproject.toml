@@ -1,0 +1,20 @@
+[project]
+name = "tracer"
+version = "0.1.0"
+description = "Библиотека для реализации трейсинга с помощью Jaeger"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "opentelemetry-api==1.32.1",
+    "opentelemetry-sdk==1.32.1",
+    "opentelemetry-instrumentation-fastapi==0.53b1",
+    "opentelemetry-exporter-jaeger==1.21.0",
+    "opentelemetry-exporter-otlp-proto-grpc==1.32.1",
+]
+
+[tool.poetry]
+packages = [{ include = "tracer" }]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
