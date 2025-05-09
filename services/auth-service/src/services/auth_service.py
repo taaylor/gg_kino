@@ -23,6 +23,8 @@ from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.key_manager import pwd_context
+from utils.decorators import trased
+
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +117,7 @@ class RegisterService(BaseAuthService):
 
 class LoginService(BaseAuthService):
 
+    @trased("user_ligin_service_process")
     async def login_user(self, user_data: LoginRequest, user_agent: str) -> LoginResponse:
         logger.info(f"Запрошена аутентификация для пользователя с email: {user_data.email}")
 

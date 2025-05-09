@@ -4,8 +4,14 @@ from api.v1.update_user_data import routers
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
+from utils.middlewares import request_id_middleware
+from utils.tracer import init_tracer
+
 
 app = FastAPI(
     title="Auth API для онлайн-кинотеатра",
@@ -19,6 +25,15 @@ app = FastAPI(
 
 # Подключение обработчиков
 setup_exception_handlers(app)
+
+# Добавляем middleware
+app.middleware("http")(request_id_middleware)
+
+# Инициализация трейсера
+init_tracer(app, "auth-service")
+
+# Добавлене инструментария FastAPI для трейсов
+FastAPIInstrumentor.instrument_app(app)
 
 SERVICE_PATH = "/auth/api/v1/"
 app.include_router(role.router, prefix=f"{SERVICE_PATH}roles", tags=["Роли"])

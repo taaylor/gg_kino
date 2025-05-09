@@ -83,3 +83,22 @@ def backoff(
         return wrapper
 
     return func_wrapper
+
+
+from functools import wraps
+from opentelemetry import trace
+from opentelemetry import context
+
+
+def trased(name: str = None):
+    def decorator(func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            traser = trace.get_tracer(__name__)
+            current_context = context.get_current()
+            with traser.start_as_current_span(name or func.__name__, current_context) as span:
+                return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
