@@ -176,6 +176,7 @@ cython_debug/
 .pypirc
 
 .vscode
+.idea
 
 # системный файл от macos
 .DS_Store
