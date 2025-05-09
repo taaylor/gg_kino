@@ -1,25 +1,38 @@
-from fastapi import Request, status
-from fastapi.responses import ORJSONResponse
+import logging
+import uuid
+from fastapi import Request
 from opentelemetry.baggage import set_baggage
 from opentelemetry import context
+from opentelemetry.trace import get_current_span, Span
+
+logger = logging.getLogger(__name__)
 
 
 async def request_id_middleware(request: Request, call_next):
+    token = None
     request_id = request.headers.get("X-Request-ID")
+
     if not request_id:
-        return ORJSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "X-Request-Id is required"}
+        request_id = f"service:{str(uuid.uuid4())}"
+        logger.warning(
+            f"Отсутствует заголовок X-Request-ID в запросе к {request.method} {request.url.path}. "
+            f"Сгенерирован request_id: {request_id}"
         )
+    else:
+        request_id = f"nginx:{request_id}"
 
-    # Создаем новый контекст с baggage
-    ctx = set_baggage("request_id", request_id)
-    ctx = set_baggage("http.method", request.method, context=ctx)
-    ctx = set_baggage("http.route", request.url.path, context=ctx)
+    # Проверяем, есть ли активный спан
+    current_span = get_current_span()
+    if isinstance(current_span, Span) and current_span.is_recording():
+        # Создаем контекст с baggage только если трассировка активна
+        ctx = set_baggage("request_id", request_id)
+        ctx = set_baggage("http.method", request.method, context=ctx)
+        ctx = set_baggage("http.route", request.url.path, context=ctx)
+        token = context.attach(ctx)
 
-    # Активируем контекст для всего запроса
-    token = context.attach(ctx)
     try:
         response = await call_next(request)
         return response
     finally:
-        context.detach(token)
+        if token:
+            context.detach(token)
