@@ -1452,4 +1452,4 @@ dev = ["black", "debugpy", "flake8", "ipython", "isort", "pre-commit"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "c6d738bb56ca5dcf124cdf7c4d34e4532ecf6cb683f76f1f2ef2b378f2c04b04"
+content-hash = "918230db42a3de9f53b927a172869698e2ebd99e6b3dc12a2c8211dcb00e3e3b"

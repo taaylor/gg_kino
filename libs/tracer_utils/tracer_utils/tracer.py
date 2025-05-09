@@ -1,11 +1,11 @@
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.baggage import set_baggage, get_baggage
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
-from opentelemetry.sdk.trace.export import SpanProcessor, BatchSpanProcessor
 from opentelemetry import context as context_api
+from opentelemetry import trace
+from opentelemetry.baggage import get_baggage, set_baggage
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanProcessor
+from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
 from opentelemetry.trace import Context
 
 

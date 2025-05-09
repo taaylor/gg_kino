@@ -16,7 +16,6 @@ dependencies = [
 
 [tool.poetry]
 packages = [{include = "auth_utils"}]
-package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

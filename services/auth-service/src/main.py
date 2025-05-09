@@ -5,13 +5,9 @@ from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-
+from tracer_utils import init_tracer, request_id_middleware
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
-from utils.middlewares import request_id_middleware
-from utils.tracer import init_tracer
-
 
 app = FastAPI(
     title="Auth API для онлайн-кинотеатра",

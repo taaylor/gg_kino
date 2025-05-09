@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{ include = "tracer" }]
+packages = [{ include = "tracer_utils" }]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

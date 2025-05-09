@@ -1,9 +1,10 @@
 import logging
 import uuid
+
 from fastapi import Request
-from opentelemetry.baggage import set_baggage
 from opentelemetry import context
-from opentelemetry.trace import get_current_span, Span
+from opentelemetry.baggage import set_baggage
+from opentelemetry.trace import Span, get_current_span
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,7 @@ from fastapi import HTTPException, status
 from models.models import DictRoles, RolesPermissions, User, UserCred, UserSession, UserSessionsHist
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from utils.decorators import trased
+from tracer_utils import trased
 
 logger = logging.getLogger(__name__)
 

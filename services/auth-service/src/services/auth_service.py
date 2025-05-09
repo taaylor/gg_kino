@@ -22,9 +22,8 @@ from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
+from tracer_utils import trased
 from utils.key_manager import pwd_context
-from utils.decorators import trased
-
 
 logger = logging.getLogger(__name__)
 
