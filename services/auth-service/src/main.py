@@ -4,6 +4,7 @@ from api.v1.update_user_data import routers
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
 
@@ -16,6 +17,8 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
+
+app.add_middleware(SessionMiddleware, secret_key=app_config.secret_key)
 
 # Подключение обработчиков
 setup_exception_handlers(app)

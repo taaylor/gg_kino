@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 
 import dotenv
 from core.logger_config import LoggerSettings
@@ -58,7 +59,16 @@ class JWTSettings(BaseModel):
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
 
+class OAuthYandex(BaseModel):
+    client_id: str = "a5edb4f3318349eb83de2836e52cbb1c"
+    authorize_url: str = "https://oauth.yandex.ru/authorize"
+    scope: str = "login:info login:email"
+    response_type: str = "code"
+    authorize_url: str = "https://oauth.yandex.ru/authorize"
+
+
 class AppConfig(BaseSettings):
+    secret_key: str = secrets.token_urlsafe(32)
     project_name: str = "auth"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/openapi"
@@ -70,6 +80,7 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     server: Server = Server()
     jwt: JWTSettings = JWTSettings()
+    yandex: OAuthYandex = OAuthYandex()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -89,3 +100,19 @@ def _get_config() -> AppConfig:
 
 
 app_config = _get_config()
+
+# def _get_oauth_provider() -> OAuth:
+#     oauth = OAuth()
+#     oauth.register(
+#         name="yandex",
+#         client_id=app_config.yandex.client_id,
+#         client_secret=app_config.yandex.client_secret,
+#         access_token_url="https://oauth.yandex.ru/token",
+#         client_kwargs={
+#             "scope": "openid login:info login:email",
+#             "token_endpoint_auth_method": "client_secret_post"
+#         }
+#     )
+#     return oauth
+
+# oauth = _get_oauth_provider()

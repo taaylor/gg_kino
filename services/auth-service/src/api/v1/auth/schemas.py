@@ -81,3 +81,20 @@ class SessionsHistory(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str = Field(..., description="Сообщение состояния HTTP")
+
+
+class OAuthParams(BaseModel):
+    client_id: str
+    scope: str
+    state: str
+    response_type: str
+    authorize_url: str
+
+
+class YandexParams(BaseModel):
+    url_auth: str
+    params: OAuthParams
+
+
+class OAuthSocialResponse(BaseModel):
+    yandex: YandexParams

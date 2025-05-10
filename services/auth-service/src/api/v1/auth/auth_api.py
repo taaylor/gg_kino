@@ -5,6 +5,7 @@ from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
     MessageResponse,
+    OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
@@ -15,11 +16,13 @@ from fastapi import APIRouter, Body, Depends, Query, Request
 from services.auth_service import (
     LoginService,
     LogoutService,
+    OAuthSocialService,
     RefreshService,
     RegisterService,
     SessionService,
     get_login_service,
     get_logout_service,
+    get_oauth_social_service,
     get_refresh_service,
     get_register_service,
     get_session_service,
@@ -127,3 +130,27 @@ async def entry_history(
     access_data = await authorize.get_raw_jwt()
     history = await sessions_service.get_history_session(access_data, page_size, page_number)
     return history
+
+
+@router.get(
+    path="/auth/social",
+    summary="OAuth параметры",
+    description="Возвращет параметры и ссылками на все поддерживаемые сервисы авторизации",
+    response_model=OAuthSocialResponse,
+)
+async def get_social_params(
+    request: Request,
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+) -> OAuthSocialResponse:
+    data = oauth_service.get_params_social()
+    request.session["state"] = data.yandex.params.state
+    return data
+
+
+@router.post(
+    path="/login/yandex",
+    summary="Авторизация через Yandex сервис",
+    description="Авторизует пользователя в системе через сервис Yandex",
+)
+async def login_yandex(request: Request, request_body):
+    pass

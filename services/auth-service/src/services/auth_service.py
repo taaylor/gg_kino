@@ -1,4 +1,7 @@
+import hashlib
+import hmac
 import logging
+import secrets
 import uuid
 from functools import lru_cache
 from typing import Any
@@ -7,10 +10,13 @@ from api.v1.auth.schemas import (
     EntryPoint,
     LoginRequest,
     LoginResponse,
+    OAuthParams,
+    OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
     SessionsHistory,
+    YandexParams,
 )
 from core.config import app_config
 from db.cache import Cache, get_cache
@@ -313,6 +319,66 @@ class SessionService(MixinAuthRepository):
         )
 
 
+class OAuthSocialService(BaseAuthService):
+
+    def _generate_signs_state() -> str:
+        """Возвращает подписанный state"""
+        nonce = secrets.token_urlsafe(16)
+
+        secret = app_config.secret_key.encode("utf-8")
+        signer = hmac.new(secret, digestmod=hashlib.sha256)
+        signer.update(nonce.encode("utf-8"))
+        signature = signer.hexdigest()
+
+        return f"{nonce}-{signature}"
+
+    def _validate_state(state: str) -> bool:
+        """Валидирует state"""
+        if not state.count("-") == 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверный формат state"
+            )
+
+        nonce, signature = state.split("-", 1)
+
+        secret = app_config.secret_key.encode("utf-8")
+        signer = hmac.new(secret, digestmod=hashlib.sha256)
+        signer.update(nonce.encode("utf-8"))
+        expected_signature = signer.hexdigest()
+
+        if not hmac.compare_digest(signature, expected_signature):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверная подпись state"
+            )
+
+        return True
+
+    def get_params_social(self) -> OAuthSocialResponse:
+        state = secrets.token_urlsafe(16)
+
+        yandex_separate_params = OAuthParams(
+            client_id=app_config.yandex.client_id,
+            scope=app_config.yandex.scope,
+            response_type=app_config.yandex.response_type,
+            authorize_url=app_config.yandex.authorize_url,
+            state=state,
+        )
+        url = (
+            "{url}?response_type={response_type}&client_id"
+            "={client_id}&scope={scope}&state={state}".format(
+                url=yandex_separate_params.authorize_url,
+                response_type=yandex_separate_params.response_type,
+                client_id=yandex_separate_params.client_id,
+                scope=yandex_separate_params.scope,
+                state=yandex_separate_params.state,
+            )
+        )
+
+        yandex_params = YandexParams(params=yandex_separate_params, url_auth=url)
+
+        return OAuthSocialResponse(yandex=yandex_params)
+
+
 @lru_cache
 def get_register_service(
     session: AsyncSession = Depends(get_session),
@@ -355,3 +421,12 @@ def get_session_service(
     repository: AuthRepository = Depends(get_auth_repository),
 ) -> SessionService:
     return SessionService(session=session, repository=repository)
+
+
+@lru_cache
+def get_oauth_social_service(
+    session: AsyncSession = Depends(get_session),
+    repository: AuthRepository = Depends(get_auth_repository),
+    session_maker: SessionMaker = Depends(get_auth_session_maker),
+) -> OAuthSocialService:
+    return OAuthSocialService(repository=repository, session=session, session_maker=session_maker)
