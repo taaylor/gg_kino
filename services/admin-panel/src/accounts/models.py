@@ -8,12 +8,6 @@ pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 class UserManager(BaseUserManager):
-    """
-    ADMIN,Administrator,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
-    SUB_USER,Subscribed user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
-    UNSUB_USER,Unsubscribed user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
-    ANONYMOUS,Anonymous user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
-    """
 
     def create_user(
         self,
@@ -76,6 +70,20 @@ class User(AbstractBaseUser):
     @property
     def email(self):
         return self.get_email()
+
+    @property
+    def is_staff(self):
+        return self.role_code == "ADMIN"
+
+    @property
+    def is_superuser(self):
+        return self.role_code == "ADMIN"
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
 
 
 class UserCred(models.Model):
