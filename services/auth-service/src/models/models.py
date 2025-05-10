@@ -1,10 +1,13 @@
 import uuid
+import logging
 from datetime import datetime
 
 from db.postgres import Base
 from models.models_types import GenderEnum
-from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+logger = logging.getLogger(__name__)
 
 
 class User(Base):
@@ -104,7 +107,7 @@ class RolesPermissions(Base):
         return f"<{self.__class__.__name__}(permission={self.permission})>"
 
     def __str__(self):
-        return f"Модель: {self.__class__.__name__}(permission={self.permission})"
+        return f"Модель: {self.__class__.__name__}(permission={self.permission})>"
 
 
 class UserSession(Base):
@@ -128,9 +131,36 @@ class UserSession(Base):
     )
 
 
+def create_partition(target, connection, **kwargs) -> None:
+    """Создание партиций для user_sessions_hist."""
+    logger.info("Создание партиций для таблицы user_sessions_hist")
+    connection.execute(
+        text(
+            """CREATE TABLE IF NOT EXISTS "users_sign_in_smart" PARTITION OF "user_session_hist" FOR VALUES IN ('TV')"""
+        )
+    )
+    connection.execute(
+        text(
+            """CREATE TABLE IF NOT EXISTS "users_sign_in_mobile" PARTITION OF "user_session_hist" FOR VALUES IN ('PHONE')"""
+        )
+    )
+    connection.execute(
+        text(
+            """CREATE TABLE IF NOT EXISTS "users_sign_in_web" PARTITION OF "user_session_hist" FOR VALUES IN ('WEB')"""
+        )
+    )
+    logger.info("Партиции успешно созданы")
+
+
 class UserSessionsHist(Base):
     __tablename__ = "user_sessions_hist"
-    __table_args__ = {"schema": "session"}
+    __table_args__ = (
+        {
+            "schema": "session",
+            "postgresql_partition_by": "LIST (user_device_type)",
+            "listeners": [("after_create", create_partition)],
+        },
+    )
 
     session_id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True, comment="Уникальный идентификатор сессии"
@@ -143,4 +173,7 @@ class UserSessionsHist(Base):
     )
     expires_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, comment="Дата истечения сессии"
+    )
+    user_device_type: Mapped[str] = mapped_column(
+        default="WEB", primary_key=True, comment="Тип устройства пользователя"
     )
