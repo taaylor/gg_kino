@@ -1,40 +1,25 @@
 import os
 from pathlib import Path
 
+from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
+from split_settings.tools import include
+
+load_dotenv()
+
+include(
+    "components/apps.py",
+    "components/middleware.py",
+    "components/database.py",
+)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
-SECRET_KEY = "django-insecure-4xs+p-8*ah7zj8oazo1g-8mzq8)8e&3sf5d7o6-gdmf=vl=woq"
+DEBUG = os.getenv("DEBUG") == "True"
 
-DEBUG = True
-
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "127.0.0.1:8002",
-    "127.0.0.1:8000",
-    "localhost",
-    "0.0.0.0",
-]
-
-INSTALLED_APPS = [
-    "accounts.apps.AccountsConfig",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-]
-
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split()
 
 ROOT_URLCONF = "config.urls"
 
@@ -55,24 +40,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "django"),
-        "USER": os.getenv("POSTGRES_USER", "django"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
-        "HOST": os.getenv("POSTGRES_HOST", ""),
-        "PORT": os.getenv("POSTGRES_PORT", 5432),
-        "OPTIONS": {"options": "-c search_path=public,profile"},
-    }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -96,7 +63,9 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-AUTH_API_LOGIN_URL = "/auth/api/v1/sessions/login"
+AUTH_BASE_URL = os.getenv("AUTH_BASE_URL")
+LOGIN_PATH = os.getenv("LOGIN_PATH")
+LOGIN_URL = f"{AUTH_BASE_URL}{LOGIN_PATH}"
 
 LANGUAGE_CODE = "ru-RU"
 
@@ -112,7 +81,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# settings.py
 
 LOGGING = {
     "version": 1,
