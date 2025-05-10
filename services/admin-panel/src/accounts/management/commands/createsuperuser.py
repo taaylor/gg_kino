@@ -15,9 +15,6 @@ class Command(createsuperuser.Command):
 
     def handle(self, *args, **options):
         username_field = User.USERNAME_FIELD
-        # interactive = options['interactive']
-
-        # if interactive:
         try:
             username = self._get_input_data(username_field, f"{username_field}: ", input_type=str)
             if not username:
@@ -41,8 +38,6 @@ class Command(createsuperuser.Command):
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"Error: {str(e)}"))
             raise
-        # else:
-        #     raise CommandError('Не интерактивный режим не реализован')
 
     def _get_input_data(self, field_name, message, input_type=str, hidden=False):
         """Вспомогательный метод для получения ввода"""

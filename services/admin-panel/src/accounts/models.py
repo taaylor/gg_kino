@@ -7,6 +7,13 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
+    """
+    ADMIN,Administrator,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
+    SUB_USER,Subscribed user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
+    UNSUB_USER,Unsubscribed user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
+    ANONYMOUS,Anonymous user,2025-04-24 10:38:17.920391,2025-04-24 10:38:17.920391
+    """
+
     def create_user(self, username, email, password, **extra_fields):
         if not username:
             raise ValueError("Users must have an username")
@@ -18,7 +25,7 @@ class UserManager(BaseUserManager):
             # password = username
             # raise ValueError(_('The Email field must be set'))
         email = self.normalize_email(email)
-        user = self.model(username=username)
+        user = self.model(username=username, role_code="ADMIN")
         user_cred = UserCred(user=user, email=email, password=password)
         # user_cred.set_password(password)
         user.save()
@@ -83,27 +90,17 @@ class User(AbstractBaseUser):
 
 
 class UserCred(models.Model):
-    # user_id = models.UUIDField(primary_key=True)
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name="user_cred",
         primary_key=True,
-        # null=True,
     )
 
     email = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # # ! -=-=-=-
-    # user = models.OneToOneField(
-    #     User,
-    #     on_delete=models.CASCADE,
-    #     related_name='user_cred',
-    #     null=True,
-    # )
-    # ! -=-=-=-
 
     class Meta:
         db_table = '"profile"."user_cred"'
