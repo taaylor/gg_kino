@@ -84,17 +84,33 @@ class MessageResponse(BaseModel):
 
 
 class OAuthParams(BaseModel):
-    client_id: str
-    scope: str
-    state: str
-    response_type: str
-    authorize_url: str
+    client_id: str = Field(
+        description="Идентификатор клиента, выданный сервисом для вашего приложения."
+    )
+    scope: str = Field(description="Список запрашиваемых разрешений")
+    state: str = Field(description="Уникальная строка. Подписывается сервером.")
+    response_type: str = Field(description="Тип ответа от OAuth-провайдера")
+    authorize_url: str = Field(description="URL эндпоинта авторизации")
+    redirect_uri: str = Field(
+        description="URL, на который OAuth-провайдер перенаправит пользователя после авторизации"
+    )
 
 
-class YandexParams(BaseModel):
-    url_auth: str
-    params: OAuthParams
+class OAuthProviderParams(BaseModel):
+    url_auth: str = Field(
+        description="URL для перенаправления пользователя на страницу авторизации провайдера."
+    )
+    params: OAuthParams = Field(
+        description="Параметры авторизации, используемые для формирования URL и передачи фронтенду."
+    )
 
 
 class OAuthSocialResponse(BaseModel):
-    yandex: YandexParams
+    yandex: OAuthProviderParams = Field(
+        description="Объект, содержащий параметры и URL для авторизации через Yandex."
+    )
+
+
+class OAuthRequest(BaseModel):
+    state: str = Field(description="Строка, возвращённая фронтендом после авторизации")
+    code: str = Field(description="Код авторизации, полученный от OAuth-провайдера")

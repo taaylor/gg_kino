@@ -1,24 +1,22 @@
-import hashlib
-import hmac
 import logging
-import secrets
 import uuid
 from functools import lru_cache
-from typing import Any
+from typing import Any, Literal
 
 from api.v1.auth.schemas import (
     EntryPoint,
     LoginRequest,
     LoginResponse,
     OAuthParams,
+    OAuthProviderParams,
     OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
     SessionsHistory,
-    YandexParams,
 )
-from core.config import app_config
+from authlib.oauth2 import OAuth2Error
+from core.config import app_config, oauth
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
@@ -321,62 +319,56 @@ class SessionService(MixinAuthRepository):
 
 class OAuthSocialService(BaseAuthService):
 
-    def _generate_signs_state() -> str:
-        """Возвращает подписанный state"""
-        nonce = secrets.token_urlsafe(16)
+    async def get_params_social(self) -> OAuthSocialResponse:
+        """Получение параметров и url OAuth-провайдеров"""
 
-        secret = app_config.secret_key.encode("utf-8")
-        signer = hmac.new(secret, digestmod=hashlib.sha256)
-        signer.update(nonce.encode("utf-8"))
-        signature = signer.hexdigest()
+        yandex_url, yandex_state = await oauth.yandex.create_authorization_url(
+            redirect_uri=app_config.yandex.redirect_uri,
+        )
 
-        return f"{nonce}-{signature}"
-
-    def _validate_state(state: str) -> bool:
-        """Валидирует state"""
-        if not state.count("-") == 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверный формат state"
-            )
-
-        nonce, signature = state.split("-", 1)
-
-        secret = app_config.secret_key.encode("utf-8")
-        signer = hmac.new(secret, digestmod=hashlib.sha256)
-        signer.update(nonce.encode("utf-8"))
-        expected_signature = signer.hexdigest()
-
-        if not hmac.compare_digest(signature, expected_signature):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверная подпись state"
-            )
-
-        return True
-
-    def get_params_social(self) -> OAuthSocialResponse:
-        state = secrets.token_urlsafe(16)
+        logger.debug(f"Сгенерирован url: {yandex_url}, state: {yandex_state}")
 
         yandex_separate_params = OAuthParams(
             client_id=app_config.yandex.client_id,
             scope=app_config.yandex.scope,
             response_type=app_config.yandex.response_type,
             authorize_url=app_config.yandex.authorize_url,
-            state=state,
-        )
-        url = (
-            "{url}?response_type={response_type}&client_id"
-            "={client_id}&scope={scope}&state={state}".format(
-                url=yandex_separate_params.authorize_url,
-                response_type=yandex_separate_params.response_type,
-                client_id=yandex_separate_params.client_id,
-                scope=yandex_separate_params.scope,
-                state=yandex_separate_params.state,
-            )
+            redirect_uri=app_config.yandex.redirect_uri,
+            state=yandex_state,
         )
 
-        yandex_params = YandexParams(params=yandex_separate_params, url_auth=url)
-
+        yandex_params = OAuthProviderParams(params=yandex_separate_params, url_auth=yandex_url)
         return OAuthSocialResponse(yandex=yandex_params)
+
+    async def fetch_user_info_from_provider(
+        self, request, provider_name: Literal["yandex"], code: str, state: str
+    ):
+
+        if provider_name not in oauth._clients:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Провайдер {provider_name} не поддерживается",
+            )
+
+        provider = getattr(oauth, provider_name)
+
+        try:
+            # делаем запрос на получение токена доступа
+            token = await provider.authorize_access_token(request, code=code, state=state)
+            logger.info(token)
+            # делаем запрос на получение информации о пользователе
+            response = await provider.get("info", token=token)
+
+            response.raise_for_status()
+            data = response.json()
+            logger.info(data)
+            return data
+        except OAuth2Error as error:
+            logger.warning(f"Ошибка авторизации через OAuth-провайдер {provider_name}: {error}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка авторизации через OAuth-провайдер {provider_name}",
+            )
 
 
 @lru_cache
@@ -429,4 +421,8 @@ def get_oauth_social_service(
     repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
 ) -> OAuthSocialService:
-    return OAuthSocialService(repository=repository, session=session, session_maker=session_maker)
+    return OAuthSocialService(
+        repository=repository,
+        session=session,
+        session_maker=session_maker,
+    )

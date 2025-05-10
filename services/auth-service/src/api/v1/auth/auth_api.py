@@ -5,6 +5,7 @@ from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
     MessageResponse,
+    OAuthRequest,
     OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
@@ -135,16 +136,14 @@ async def entry_history(
 @router.get(
     path="/auth/social",
     summary="OAuth параметры",
-    description="Возвращет параметры и ссылками на все поддерживаемые сервисы авторизации",
+    description="Возвращет параметры и ссылки на все поддерживаемые сервисы авторизации",
     response_model=OAuthSocialResponse,
 )
 async def get_social_params(
-    request: Request,
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> OAuthSocialResponse:
-    data = oauth_service.get_params_social()
-    request.session["state"] = data.yandex.params.state
-    return data
+
+    return await oauth_service.get_params_social()
 
 
 @router.post(
@@ -152,5 +151,12 @@ async def get_social_params(
     summary="Авторизация через Yandex сервис",
     description="Авторизует пользователя в системе через сервис Yandex",
 )
-async def login_yandex(request: Request, request_body):
-    pass
+async def login_yandex(
+    request: Request,
+    request_body: Annotated[OAuthRequest, Body()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+):
+    data = await oauth_service.fetch_user_info_from_provider(
+        request, provider_name="yandex", code=request_body.code, state=request_body.state
+    )
+    logger.info(data)
