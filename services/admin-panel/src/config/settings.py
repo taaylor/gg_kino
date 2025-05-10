@@ -8,7 +8,13 @@ SECRET_KEY = "django-insecure-4xs+p-8*ah7zj8oazo1g-8mzq8)8e&3sf5d7o6-gdmf=vl=woq
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "127.0.0.1:8002",
+    "127.0.0.1:8000",
+    "localhost",
+    "0.0.0.0",
+]
 
 INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
@@ -86,9 +92,11 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
-    "accounts.auth.CustomBackend",
-    # 'django.contrib.auth.backends.ModelBackend',
+    "accounts.auth.EmailAuthBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
+
+AUTH_API_LOGIN_URL = "/auth/api/v1/sessions/login"
 
 LANGUAGE_CODE = "ru-RU"
 
@@ -103,3 +111,41 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# settings.py
+
+LOGGING = {
+    "version": 1,
+    # не трогаем логгеры Django/сторонних библиотек
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",  # или "verbose" если нужен таймстамп и имя логгера
+        },
+    },
+    "loggers": {
+        # Ваше приложение
+        "accounts": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Django core (по умолчанию WARN+)
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}

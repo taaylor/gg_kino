@@ -24,6 +24,7 @@ redis = "^5.2.1"
 psycopg2 = "^2.9.10"
 async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
 gunicorn = "^23.0.0"
+debugpy = "^1.8.13"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

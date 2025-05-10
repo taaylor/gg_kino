@@ -14,8 +14,12 @@ python = "^3.12"
 redis = "^5.0.4"
 pydantic-settings = "^2.8.1"
 django = "5.1"
+requests = "^2.32.3"
+passlib = "^1.7.4"
+argon2-cffi = "^23.1.0"
 gunicorn = "^23.0.0"
 psycopg2 = "^2.9.10"
+debugpy = "^1.8.13"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

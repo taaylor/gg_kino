@@ -187,6 +187,7 @@ services:
     depends_on:
       - async-api
       - auth-api
+      - admin-panel
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
     restart: always
