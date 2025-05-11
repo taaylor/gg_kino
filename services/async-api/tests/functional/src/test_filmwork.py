@@ -58,7 +58,7 @@ class TestFilmsSearch:
         create_user,
     ):
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         _, status = await make_get_request("/films/search", params=query_data, headers=headers)
         assert status == HTTPStatus.BAD_REQUEST, expected_answer["err_msg"]
 
@@ -93,7 +93,7 @@ class TestFilmsSearch:
         create_user,
     ):
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         await self.prepare_films_data(es_write_data, count=101)
         body, status = await make_get_request("/films/search", params=query_data, headers=headers)
         assert status == HTTPStatus.OK
@@ -142,7 +142,7 @@ class TestFilmsSearch:
         create_user,
     ):
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
         await self.prepare_films_data(es_write_data, count=101)
 
@@ -233,7 +233,7 @@ class TestFilmsList:
         create_user,
     ):
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         _, status = await make_get_request("/films", params=query_data, headers=headers)
         assert status == HTTPStatus.BAD_REQUEST, expected_answer["err_msg"]
 
@@ -277,7 +277,7 @@ class TestFilmsList:
         """Проверка вывода всех фильмов"""
         await self.prepare_films_data(es_write_data, count=10)
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
         body, status = await make_get_request("/films", params=query_data, headers=headers)
 
@@ -327,7 +327,7 @@ class TestFilmsList:
     ):
         await self.prepare_films_data(es_write_data, count=10)
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
         body, status = await make_get_request("/films", params=query_data, headers=headers)
 
@@ -393,7 +393,7 @@ class TestFilmsList:
     ):
         await self.prepare_films_data(es_write_data, count=10)
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_get_request("/films", params=query_data, headers=headers)
 
         cache = await redis_test(
@@ -496,7 +496,7 @@ class TestFilmsDetail:
         ]
         await es_write_data(es_data, test_conf.elastic.index_films, Mapping.films)
         tokens_auth = await create_user(superuser_flag=True)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_get_request(f"/films/{url_path['UUID']}", headers=headers)
 
         if expected_answer.get("invalid_uuid"):

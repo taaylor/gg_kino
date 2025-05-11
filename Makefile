@@ -8,7 +8,7 @@ srv ?=
 
 # Запуск контейнеров в фоновом режиме
 up:
-	docker-compose -f $(COMPOSE_FILE) up -d $(srv)
+	docker-compose -f $(COMPOSE_FILE) up -d --build $(srv)
 
 # Остановка контейнеров
 down:

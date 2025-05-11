@@ -9,7 +9,7 @@ ENV_FILE = dotenv.find_dotenv()
 
 
 class LoggerSettings(BaseSettings):
-    log_level: str = "ERROR"
+    log_level: str = "DEBUG"
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     log_default_handlers: list[str] = [
         "console",

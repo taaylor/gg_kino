@@ -61,7 +61,7 @@ class TestSessions:
 
     async def test_refresh(self, make_post_request, create_user):
         tokens_auth = await create_user(superuser_flag=False)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("refresh_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("refresh_token")}'}
 
         body, status = await make_post_request(uri="/sessions/refresh", headers=headers)
 
@@ -76,7 +76,7 @@ class TestSessions:
         pg_session: AsyncSession,
     ):
         tokens_auth = await create_user(superuser_flag=False)
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
         body, status = await make_post_request(uri="/sessions/logout", headers=headers)
 
@@ -98,7 +98,7 @@ class TestSessions:
         current, _ = await make_post_request(
             uri="/sessions/login", data=request_login.model_dump(mode="json")
         )
-        headers = {"Authorization": f"Bearer {current.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {current.get("access_token")}'}
 
         _, status = await make_post_request(uri="/sessions/logout-all", headers=headers)
 
@@ -118,7 +118,7 @@ class TestSessions:
         # cсоздаем множество сессий пользователя
         await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
         await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
         body, status = await make_get_request(uri="/sessions/entry-history", headers=headers)
 
