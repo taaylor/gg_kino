@@ -12,6 +12,7 @@ pre-commit = "^4.1.0"
 isort = "^6.0.0"
 black = "^25.1.0"
 flake8 = "^7.1.2"
+flake8-pyproject = "^1.2.3"
 debugpy = "^1.8.13"
 ipython = "^9.1.0"
 
@@ -45,4 +46,13 @@ line_length = 100
 
 [tool.flake8]
 max-line-length = 100
-exclude = [".git", "__pycache__", "venv", ".venv"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "migration",
+    "migrations",
+    "services/auth-service/src/migration",
+    "services/auth-service/src/migrations"
+]
