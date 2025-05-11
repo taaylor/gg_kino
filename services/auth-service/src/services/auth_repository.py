@@ -3,7 +3,15 @@ from functools import lru_cache
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from models.models import DictRoles, RolesPermissions, User, UserCred, UserSession, UserSessionsHist
+from models.models import (
+    DictRoles,
+    RolesPermissions,
+    SocialAccount,
+    User,
+    UserCred,
+    UserSession,
+    UserSessionsHist,
+)
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -127,6 +135,20 @@ class AuthRepository:
         data = result.all()
 
         return data
+
+    async def check_user_social(
+        self, session: AsyncSession, social_id: str, social_name: str
+    ) -> SocialAccount:
+        """Проверяет существование соц сети пользователя"""
+        stmt = select(SocialAccount).where(
+            SocialAccount.social_id == social_id, SocialAccount.social_name == social_name
+        )
+        result = await session.execute(stmt)
+        social_account = result.scalars().first()
+        return social_account
+
+    async def add_social_account(self, session: AsyncSession, social_account: SocialAccount):
+        session.add(social_account)
 
 
 @lru_cache()

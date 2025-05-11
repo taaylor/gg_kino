@@ -142,21 +142,23 @@ async def entry_history(
 async def get_social_params(
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> OAuthSocialResponse:
-
-    return await oauth_service.get_params_social()
+    data = oauth_service.get_params_social()
+    return data
 
 
 @router.post(
     path="/login/yandex",
     summary="Авторизация через Yandex сервис",
     description="Авторизует пользователя в системе через сервис Yandex",
+    response_model=LoginResponse,
 )
 async def login_yandex(
     request: Request,
-    request_body: Annotated[OAuthRequest, Body()],
+    params_request: Annotated[OAuthRequest, Query()],
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ):
-    data = await oauth_service.fetch_user_info_from_provider(
-        request, provider_name="yandex", code=request_body.code, state=request_body.state
+    user_agent = request.headers.get("user-agent")
+    data = await oauth_service.authorize_user(
+        provider_name="yandex", params_request=params_request, user_agent=user_agent
     )
-    logger.info(data)
+    return data

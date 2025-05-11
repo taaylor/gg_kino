@@ -1,9 +1,7 @@
 import logging
 import os
-import secrets
 
 import dotenv
-from authlib.integrations.starlette_client import OAuth
 from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -60,20 +58,8 @@ class JWTSettings(BaseModel):
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
 
-class OAuthYandex(BaseModel):
-    client_id: str = "a5edb4f3318349eb83de2836e52cbb1c"
-    client_secret: str = "02159f323b474c19af7047b1478e515c"
-    authorize_url: str = "https://oauth.yandex.ru/authorize"
-    scope: str = "login:info login:email"
-    response_type: str = "code"
-    authorize_url: str = "https://oauth.yandex.ru/authorize"
-    redirect_uri: str = "http://127.0.0.1/auth/openapi"
-    access_token_url: str = "https://oauth.yandex.ru/token"
-    api_base_url: str = "https://login.yandex.ru/"
-
-
 class AppConfig(BaseSettings):
-    secret_key: str = secrets.token_urlsafe(32)
+    auth_secret_key: str
     project_name: str = "auth"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/openapi"
@@ -85,7 +71,6 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     server: Server = Server()
     jwt: JWTSettings = JWTSettings()
-    yandex: OAuthYandex = OAuthYandex()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -105,23 +90,3 @@ def _get_config() -> AppConfig:
 
 
 app_config = _get_config()
-
-
-def _get_oauth_provider() -> OAuth:
-    oauth = OAuth()
-    oauth.register(
-        name="yandex",
-        client_id=app_config.yandex.client_id,
-        client_secret=app_config.yandex.client_secret,
-        authorize_url=app_config.yandex.authorize_url,
-        access_token_url=app_config.yandex.access_token_url,
-        api_base_url=app_config.yandex.api_base_url,
-        client_kwargs={
-            "scope": app_config.yandex.scope,
-            "token_endpoint_auth_method": "client_secret_post",
-        },
-    )
-    return oauth
-
-
-oauth = _get_oauth_provider()

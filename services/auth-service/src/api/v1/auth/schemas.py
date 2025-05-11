@@ -91,9 +91,6 @@ class OAuthParams(BaseModel):
     state: str = Field(description="Уникальная строка. Подписывается сервером.")
     response_type: str = Field(description="Тип ответа от OAuth-провайдера")
     authorize_url: str = Field(description="URL эндпоинта авторизации")
-    redirect_uri: str = Field(
-        description="URL, на который OAuth-провайдер перенаправит пользователя после авторизации"
-    )
 
 
 class OAuthProviderParams(BaseModel):

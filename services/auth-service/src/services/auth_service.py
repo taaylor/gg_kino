@@ -1,32 +1,39 @@
 import logging
+import random
+import string
 import uuid
 from functools import lru_cache
 from typing import Any, Literal
 
+import aiohttp
 from api.v1.auth.schemas import (
     EntryPoint,
     LoginRequest,
     LoginResponse,
     OAuthParams,
     OAuthProviderParams,
+    OAuthRequest,
     OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
     SessionsHistory,
 )
-from authlib.oauth2 import OAuth2Error
-from core.config import app_config, oauth
+from core.config import app_config
+from core.oauth_conf import providers_conf
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
-from models.logic_models import SessionUserData
-from models.models import User, UserCred
+from models.logic_models import OAuthUserInfo, SessionUserData
+from models.models import SocialAccount, User, UserCred
 from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.key_manager import pwd_context
+from utils.state_manager import SignedStateManager, get_signed_state_manager
+
+from .oauth.oauth_providers import active_providers
 
 logger = logging.getLogger(__name__)
 
@@ -319,56 +326,174 @@ class SessionService(MixinAuthRepository):
 
 class OAuthSocialService(BaseAuthService):
 
-    async def get_params_social(self) -> OAuthSocialResponse:
+    def __init__(
+        self,
+        repository: AuthRepository,
+        session: AsyncSession,
+        session_maker: SessionMaker,
+        state_manager: SignedStateManager,
+    ):
+        super().__init__(repository, session, session_maker)
+        self.state_manager = state_manager
+
+    def get_params_social(self) -> OAuthSocialResponse:
         """Получение параметров и url OAuth-провайдеров"""
 
-        yandex_url, yandex_state = await oauth.yandex.create_authorization_url(
-            redirect_uri=app_config.yandex.redirect_uri,
-        )
-
-        logger.debug(f"Сгенерирован url: {yandex_url}, state: {yandex_state}")
+        state = self.state_manager.generate_state()
 
         yandex_separate_params = OAuthParams(
-            client_id=app_config.yandex.client_id,
-            scope=app_config.yandex.scope,
-            response_type=app_config.yandex.response_type,
-            authorize_url=app_config.yandex.authorize_url,
-            redirect_uri=app_config.yandex.redirect_uri,
-            state=yandex_state,
+            client_id=providers_conf.yandex.client_id,
+            scope=providers_conf.yandex.scope,
+            response_type=providers_conf.yandex.response_type,
+            authorize_url=providers_conf.yandex.authorize_url,
+            state=state,
+        )
+
+        yandex_url = yandex_url = (
+            "{url}?response_type={response_type}&client_id"
+            "={client_id}&scope={scope}&state={state}".format(
+                url=yandex_separate_params.authorize_url,
+                response_type=yandex_separate_params.response_type,
+                client_id=yandex_separate_params.client_id,
+                scope=yandex_separate_params.scope,
+                state=yandex_separate_params.state,
+            )
         )
 
         yandex_params = OAuthProviderParams(params=yandex_separate_params, url_auth=yandex_url)
         return OAuthSocialResponse(yandex=yandex_params)
 
-    async def fetch_user_info_from_provider(
-        self, request, provider_name: Literal["yandex"], code: str, state: str
-    ):
+    async def _fetch_user_info_from_provider(self, provider_name: str, code: str) -> OAuthUserInfo:
 
-        if provider_name not in oauth._clients:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Провайдер {provider_name} не поддерживается",
-            )
+        provider = active_providers.get(provider_name)
 
-        provider = getattr(oauth, provider_name)
+        async with aiohttp.ClientSession() as session:
+            user_data = await provider.get_user_info(session=session, code=code)
+            return user_data
 
-        try:
-            # делаем запрос на получение токена доступа
-            token = await provider.authorize_access_token(request, code=code, state=state)
-            logger.info(token)
-            # делаем запрос на получение информации о пользователе
-            response = await provider.get("info", token=token)
+    async def authorize_user(
+        self, provider_name: Literal["yandex"], params_request: OAuthRequest, user_agent: str
+    ) -> LoginResponse:
+        # валидируем пришедший State
+        self.state_manager.validate_state(state=params_request.state)
 
-            response.raise_for_status()
-            data = response.json()
-            logger.info(data)
-            return data
-        except OAuth2Error as error:
-            logger.warning(f"Ошибка авторизации через OAuth-провайдер {provider_name}: {error}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Ошибка авторизации через OAuth-провайдер {provider_name}",
-            )
+        # получаем данные о пользователе от провайдера
+        user_data = await self._fetch_user_info_from_provider(
+            provider_name, code=params_request.code
+        )
+
+        # делаем проверку, существует ли уже такой пользователь пришедший от провайдера
+        if user_social := await self.repository.check_user_social(
+            session=self.session, social_id=user_data.social_id, social_name=user_data.social_name
+        ):
+
+            return await self._login_user(user_social, user_agent)
+        else:
+            return await self._register_user(user_data, user_agent)
+
+    async def _login_user(self, user_social: SocialAccount, user_agent: str):
+        user = await self.repository.fetch_user_by_id(
+            session=self.session, user_id=user_social.user_id
+        )
+
+        user_permissions = await self.repository.fetch_permissions_for_role(
+            session=self.session, role_code=user.role_code
+        )
+
+        session_user_data = SessionUserData(
+            user_id=user.id,
+            username=user.username,
+            user_agent=user_agent,
+            role_code=user.role_code,
+            permissions=user_permissions,
+        )
+
+        # Создание экземпляра сессии и токенов
+        user_tokens, user_session, user_session_hist = await self.session_maker.create_session(
+            user_data=session_user_data
+        )
+
+        await self.repository.create_session_in_repository(
+            session=self.session,
+            user_session=user_session,
+            user_session_hist=user_session_hist,
+        )
+
+        logger.info(
+            f"Пользователь {user.username}, вошел в аккаунт через {user_social.social_name}. \
+                Cоздана новая сессия: {user_session.session_id=}"
+        )
+
+        return LoginResponse(
+            access_token=user_tokens.access_token,
+            refresh_token=user_tokens.refresh_token,
+            expires_at=user_session.expires_at,
+        )
+
+    async def _register_user(self, user_data: OAuthUserInfo, user_agent: str) -> LoginResponse:
+        user_id = uuid.uuid4()
+        username = "user_" + str(user_id)
+        password = "".join(random.choice(string.ascii_letters) for _ in range(12))
+        email = str(user_id) + "@mail.ru"
+        hashed_password = pwd_context.hash(password)
+
+        user = User(
+            id=user_id,
+            username=username,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            gender=user_data.gender,
+            role_code=DEFAULT_ROLE,
+        )
+
+        user_cred = UserCred(
+            user_id=user_id, email=email, password=hashed_password, is_fictional_email=True
+        )
+
+        user_permissions = await self.repository.fetch_permissions_for_role(
+            session=self.session, role_code=user.role_code
+        )
+
+        session_user_data = SessionUserData(
+            user_id=user.id,
+            username=user.username,
+            user_agent=user_agent,
+            role_code=user.role_code,
+            permissions=user_permissions,
+        )
+
+        # Создание экземпляра сессии и токенов
+        user_tokens, user_session, user_session_hist = await self.session_maker.create_session(
+            user_data=session_user_data
+        )
+
+        # Запись всех данных для нового пользователя в БД
+        await self.repository.create_user_in_repository(
+            session=self.session,
+            user=user,
+            user_cred=user_cred,
+            user_session=user_session,
+            user_session_hist=user_session_hist,
+        )
+
+        social_account = SocialAccount(
+            user_id=user_id, social_id=user_data.social_id, social_name=user_data.social_name
+        )
+
+        await self.repository.add_social_account(
+            session=self.session, social_account=social_account
+        )
+
+        logger.info(
+            f"Пользователь {username=} зарегестрирован через стороний сервис\
+                  {user_data.social_name}"
+        )
+
+        return LoginResponse(
+            access_token=user_tokens.access_token,
+            refresh_token=user_tokens.refresh_token,
+            expires_at=user_session.expires_at,
+        )
 
 
 @lru_cache
@@ -420,9 +545,11 @@ def get_oauth_social_service(
     session: AsyncSession = Depends(get_session),
     repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
+    state_manager: SignedStateManager = Depends(get_signed_state_manager),
 ) -> OAuthSocialService:
     return OAuthSocialService(
         repository=repository,
         session=session,
         session_maker=session_maker,
+        state_manager=state_manager,
     )
