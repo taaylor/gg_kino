@@ -18,23 +18,22 @@ down:
 down-v:
 	docker-compose -f $(COMPOSE_FILE) down -v $(srv)
 
+# Запустить проект и посмотреть логи опредёлнного сервиса
 up-logs:
 	docker-compose -f $(COMPOSE_FILE) up -d --build && docker-compose -f $(COMPOSE_FILE) logs -f $(srv)
-
-# Сборка образов
-build:
-	docker-compose -f $(COMPOSE_FILE) build
 
 # Просмотр логов
 logs:
 	docker-compose -f $(COMPOSE_FILE) logs -f $(srv)
 
-# Выполнение миграций (для Django, например)
-migrate:
-	docker-compose -f $(COMPOSE_FILE) exec web python manage.py migrate
+# Запуск тестов async-api
+test-async-api:
+	docker-compose -f $(COMPOSE_FILE_TEST) --profile async-api-test up --build -d
+	docker-compose -f $(COMPOSE_FILE_TEST) logs -f tests-async-api
+	docker-compose -f $(COMPOSE_FILE_TEST) --profile async-api-test down -v
 
-# Очистка (остановка и удаление томов)
-clean:
-	docker-compose -f $(COMPOSE_FILE) down -v
-
-.PHONY: up down build logs migrate clean
+# Запуск тестов auth-api
+test-auth-api:
+	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test up --build -d
+	docker-compose -f $(COMPOSE_FILE_TEST) logs -f tests-auth-api
+	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
