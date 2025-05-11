@@ -69,7 +69,8 @@ class UserCred(Base):
 class SocialAccount(Base):
     __tablename__ = "social_account"
     __table_args__ = (
-        UniqueConstraint("social_name", "social_id", name="social_pk"),
+        UniqueConstraint("social_name", "social_id", name="social_idx"),
+        UniqueConstraint("user_id", "social_name", name="user_social_idx"),
         {"schema": "profile"},
     )
 
