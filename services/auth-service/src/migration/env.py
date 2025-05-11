@@ -24,6 +24,17 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name in {
+        "user_sessions_hist_p0",
+        "user_sessions_hist_p1",
+        "user_sessions_hist_p2",
+        "user_sessions_hist_p3",
+    }:
+        return False
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -50,7 +61,12 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata, include_schemas=True)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
