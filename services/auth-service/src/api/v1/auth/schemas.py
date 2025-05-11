@@ -106,8 +106,3 @@ class OAuthSocialResponse(BaseModel):
     yandex: OAuthProviderParams = Field(
         description="Объект, содержащий параметры и URL для авторизации через Yandex."
     )
-
-
-class OAuthRequest(BaseModel):
-    state: str = Field(description="Строка, возвращённая фронтендом после авторизации")
-    code: str = Field(description="Код авторизации, полученный от OAuth-провайдера")

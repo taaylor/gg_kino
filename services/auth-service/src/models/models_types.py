@@ -11,3 +11,7 @@ class PermissionEnum(StrEnum):
     ASSIGN_ROLE = "ASSIGN_ROLE"
     FREE_FILMS = "FREE_FILMS"
     PAID_FILMS = "PAID_FILMS"
+
+
+class ProvidersEnum(StrEnum):
+    YANDEX = "yandex"

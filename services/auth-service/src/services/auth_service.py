@@ -3,16 +3,16 @@ import random
 import string
 import uuid
 from functools import lru_cache
-from typing import Any, Literal
+from typing import Any
 
 import aiohttp
 from api.v1.auth.schemas import (
     EntryPoint,
     LoginRequest,
     LoginResponse,
+    MessageResponse,
     OAuthParams,
     OAuthProviderParams,
-    OAuthRequest,
     OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
@@ -26,6 +26,7 @@ from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import OAuthUserInfo, SessionUserData
 from models.models import SocialAccount, User, UserCred
+from models.models_types import ProvidersEnum
 from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
@@ -372,21 +373,18 @@ class OAuthSocialService(BaseAuthService):
             return user_data
 
     async def authorize_user(
-        self, provider_name: Literal["yandex"], params_request: OAuthRequest, user_agent: str
+        self, provider_name: ProvidersEnum, state: str, code: str, user_agent: str
     ) -> LoginResponse:
         # валидируем пришедший State
-        self.state_manager.validate_state(state=params_request.state)
+        self.state_manager.validate_state(state=state)
 
         # получаем данные о пользователе от провайдера
-        user_data = await self._fetch_user_info_from_provider(
-            provider_name, code=params_request.code
-        )
+        user_data = await self._fetch_user_info_from_provider(provider_name, code=code)
 
         # делаем проверку, существует ли уже такой пользователь пришедший от провайдера
-        if user_social := await self.repository.check_user_social(
+        if user_social := await self.repository.check_account_social(
             session=self.session, social_id=user_data.social_id, social_name=user_data.social_name
         ):
-
             return await self._login_user(user_social, user_agent)
         else:
             return await self._register_user(user_data, user_agent)
@@ -494,6 +492,54 @@ class OAuthSocialService(BaseAuthService):
             refresh_token=user_tokens.refresh_token,
             expires_at=user_session.expires_at,
         )
+
+    async def connect_provider(
+        self, access_data: dict[str, Any], provider_name: ProvidersEnum, state: str, code: str
+    ) -> MessageResponse:
+        user_session = SessionUserData.model_validate(access_data)
+        self.state_manager.validate_state(state)
+
+        user_data = await self._fetch_user_info_from_provider(provider_name, code=code)
+
+        if await self.repository.check_account_social(
+            session=self.session, social_id=user_data.social_id, social_name=user_data.social_name
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Социальный аккаунт уже привязан"
+            )
+
+        social_account = SocialAccount(
+            user_id=user_session.user_id, social_name=provider_name, social_id=user_data.social_id
+        )
+
+        await self.repository.add_social_account(
+            session=self.session, social_account=social_account
+        )
+
+        logger.debug(f"Пользователь {user_session.username} привязал сервис {provider_name}")
+
+        return MessageResponse(message=f"Вы успешно приявязали сервис {provider_name.capitalize()}")
+
+    async def disconnect_provider(
+        self,
+        access_data: dict[str, Any],
+        provider_name: ProvidersEnum,
+    ) -> MessageResponse:
+        user_session = SessionUserData.model_validate(access_data)
+
+        result = await self.repository.drop_account_social_user(
+            session=self.session, user_id=user_session.user_id, social_name=provider_name
+        )
+
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{provider_name.capitalize()} сервис не привязан",
+            )
+
+        logger.info(f"Пользователь {user_session.username} отвязал {provider_name}")
+
+        return MessageResponse(message=f"Вы успешно отвязали {provider_name.capitalize()} сервис")
 
 
 @lru_cache

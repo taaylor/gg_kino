@@ -136,16 +136,28 @@ class AuthRepository:
 
         return data
 
-    async def check_user_social(
+    async def check_account_social(
         self, session: AsyncSession, social_id: str, social_name: str
     ) -> SocialAccount:
-        """Проверяет существование соц сети пользователя"""
+        """Проверяет существование соц сети"""
         stmt = select(SocialAccount).where(
             SocialAccount.social_id == social_id, SocialAccount.social_name == social_name
         )
         result = await session.execute(stmt)
         social_account = result.scalars().first()
         return social_account
+
+    async def drop_account_social_user(
+        self, session: AsyncSession, social_name: str, user_id: UUID
+    ):
+        stmt = (
+            delete(SocialAccount)
+            .where(SocialAccount.user_id == user_id)
+            .where(SocialAccount.social_name == social_name)
+        )
+
+        result = await session.execute(stmt)
+        return 1 if result.rowcount > 0 else 0
 
     async def add_social_account(self, session: AsyncSession, social_account: SocialAccount):
         session.add(social_account)

@@ -5,7 +5,6 @@ from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
     MessageResponse,
-    OAuthRequest,
     OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
@@ -14,6 +13,7 @@ from api.v1.auth.schemas import (
 )
 from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Query, Request
+from models.models_types import ProvidersEnum
 from services.auth_service import (
     LoginService,
     LogoutService,
@@ -154,11 +154,53 @@ async def get_social_params(
 )
 async def login_yandex(
     request: Request,
-    params_request: Annotated[OAuthRequest, Query()],
+    state: Annotated[str, Query()],
+    code: Annotated[str, Query()],
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
-):
+) -> LoginResponse:
     user_agent = request.headers.get("user-agent")
     data = await oauth_service.authorize_user(
-        provider_name="yandex", params_request=params_request, user_agent=user_agent
+        provider_name="yandex", user_agent=user_agent, state=state, code=code
     )
     return data
+
+
+@router.post(
+    path="/social/connect",
+    summary="Предоставляет функцию привязки социального сервиса",
+    description="Позволяет пользователю, привязать свой социальный аккаунт к профилю",
+    response_model=MessageResponse,
+)
+async def connect_provider(
+    provider_name: Annotated[ProvidersEnum, Query()],
+    state: Annotated[str, Query()],
+    code: Annotated[str, Query()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    result = await oauth_service.connect_provider(
+        access_data=access_data, provider_name=provider_name.value, state=state, code=code
+    )
+    return result
+
+
+@router.post(
+    path="/social/disconnect",
+    summary="Предоставляет функцию отвязки социального сервиса",
+    description="Позволяет пользователю, отвязать свой социальный аккаунт от профиля",
+    response_model=MessageResponse,
+)
+async def disconnect_provider(
+    provider_name: Annotated[ProvidersEnum, Query()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    result = await oauth_service.disconnect_provider(
+        access_data=access_data,
+        provider_name=provider_name.value,
+    )
+    return result
