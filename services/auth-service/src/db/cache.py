@@ -32,18 +32,6 @@ class Cache(ABC):
     async def background_destroy(self, key: str) -> None:
         pass
 
-    @abstractmethod
-    def pipeline(self):
-        pass
-
-    @abstractmethod
-    async def pipeline_execute(self, pipe: Pipeline) -> list:
-        pass
-
-    @abstractmethod
-    async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
-        pass
-
 
 class RedisCache(Cache):
     def __init__(self, redis: Redis):
@@ -65,27 +53,6 @@ class RedisCache(Cache):
         await self.destroy(key)  # инвалидация кеша
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
-
-    def pipeline(self):
-        """Создаёт Redis pipeline для атомарных операций."""
-        return self.redis.pipeline()
-
-    @redis_handler_exeptions
-    async def pipeline_execute(self, pipe: Pipeline) -> list | None:
-        """Выполняет команды в pipeline и возвращает результаты."""
-        result = await pipe.execute()
-        logger.info(
-            (
-                "[RedisCache] Pipeline выполнился с "
-                f"{len(result) if result else None} результатом."
-            )
-        )
-        return result
-
-    @redis_handler_exeptions
-    async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
-        """Извлекает список из Redis по ключу в диапазоне."""
-        return await self.redis.lrange(key, start, end)
 
     async def background_set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в фоновом процессе"""

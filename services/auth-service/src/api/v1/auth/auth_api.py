@@ -24,7 +24,8 @@ from services.auth_service import (
     get_register_service,
     get_session_service,
 )
-from utils.rate_limit import rate_limit, rate_limit_leaky_bucket
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
+
 
 logger = logging.getLogger(__name__)
 

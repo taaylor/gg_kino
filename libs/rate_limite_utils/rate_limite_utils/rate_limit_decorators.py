@@ -4,10 +4,10 @@ import time
 from functools import wraps
 from typing import Any, Callable, Coroutine
 
-from context import current_request
-from db.cache import get_cache
+from .context import current_request
+from .cache import get_cache
 from fastapi import HTTPException, status
-from utils.decoders import decode_jwt_payload
+from auth_utils import auth_dep
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,8 @@ async def get_identifier() -> str:
     # Проверяем JWT
     if request.headers.get("authorization"):
         jwt_token = request.headers.get("authorization", "").split(" ")[-1]
-        payload = decode_jwt_payload(jwt_token)
+        payload = await auth_dep().get_raw_jwt(jwt_token)
+        logger.info(f"Key limiter - {payload}")
         if user_id := payload.get("user_id"):
             return f"user_id:{user_id}"
 

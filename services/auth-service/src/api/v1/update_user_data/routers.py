@@ -15,7 +15,8 @@ from models.models import DictRoles, User, UserCred
 from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
-from utils.rate_limit import rate_limit, rate_limit_leaky_bucket
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
+
 
 router = APIRouter()
 

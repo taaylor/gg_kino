@@ -1,4 +1,4 @@
-from context import current_request
+from .context import current_request
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
