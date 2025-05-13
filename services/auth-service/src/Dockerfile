@@ -22,6 +22,9 @@ RUN cd /opt/app/libs/auth_utils && poetry build && cd /opt/app && poetry add lib
 COPY libs/tracer_utils /opt/app/libs/tracer_utils
 RUN cd /opt/app/libs/tracer_utils && poetry build && cd /opt/app && poetry add libs/tracer_utils
 
+COPY libs/rate_limite_utils /opt/app/libs/rate_limite_utils
+RUN cd /opt/app/libs/rate_limite_utils && poetry build && cd /opt/app && poetry add libs/rate_limite_utils
+
 RUN poetry install --only main
 
 COPY services/auth-service/src/ .

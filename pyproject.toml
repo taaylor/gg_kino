@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Common development tools"
 requires-python = ">=3.12,<4.0"
 dynamic = ["dependencies"]
+dependencies = ["pre-commit (>=4.2.0,<5.0.0)"]
 
 [project.optional-dependencies]
 dev = [
@@ -22,6 +23,7 @@ package-mode = false
 python = ">=3.12,<4.0"
 elasticsearch = { extras = ["async"], version = ">=8.13.2,<9.0.0" }
 backoff = "2.2.1"
+rate-limite-utils = { path = "libs/rate_limite_utils" }
 auth-utils = { path = "libs/auth_utils" }
 tracer = { path = "libs/tracer_utils" }
 
