@@ -126,8 +126,8 @@ class TestRoles:
         await self._create_role_in_db(pg_session=pg_session, role_detail=role_detail)
 
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
-        uri = f"/roles/{query_data.get("path_uuid")}"
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
+        uri = f'/roles/{query_data.get("path_uuid")}'
         body, status = await make_get_request(uri=uri, headers=headers)
         cache_data = await redis_test(
             key=f"role:{role_detail.role}", cached_data=query_data.get("cached_data")
@@ -230,7 +230,7 @@ class TestRoles:
             )
 
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_get_request(uri="/roles", headers=headers)
         cache_data = await redis_test(key="role:all", cached_data=query_data.get("cached_data"))
 
@@ -280,7 +280,7 @@ class TestRoles:
         role_dict = role_request.model_dump(mode="json")
 
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_post_request(uri="/roles", data=role_dict, headers=headers)
         await asyncio.sleep(0.3)  # делаем паузу чтобы кеш успел положится в redis
         cache_data = await redis_test(
@@ -339,7 +339,7 @@ class TestRoles:
         ).model_dump(mode="json")
 
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_put_request(
             uri=f"/roles/{role_detail.role}", data=role_update_request, headers=headers
         )
@@ -393,7 +393,7 @@ class TestRoles:
         await self._create_role_in_db(pg_session=pg_session, role_detail=role_detail)
 
         tokens_auth = await create_user(superuser_flag=query_data.get("superuser"))
-        headers = {"Authorization": f"Bearer {tokens_auth.get("access_token")}"}
+        headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         body, status = await make_delete_request(uri=f"/roles/{role_detail.role}", headers=headers)
         cache_data = await redis_test(key=f"role:{role_detail.role}", cached_data=False)
 

@@ -1,11 +1,11 @@
-from models.models_types import PermissionEnum
+from auth_utils import Permissions
 from pydantic import BaseModel, Field
 
 
 class Permission(BaseModel):
     """Модель представления права доступа в системе"""
 
-    permission: PermissionEnum = Field(
+    permission: Permissions = Field(
         ..., description="Тип права доступа из предопределенного перечня", example="FREE_FILMS"
     )
     descriptions: str | None = Field(

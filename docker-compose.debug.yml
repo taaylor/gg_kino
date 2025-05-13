@@ -22,6 +22,24 @@ services:
       timeout: 5s
       retries: 5
 
+  jaeger:
+    image: jaegertracing/all-in-one:1.68.0
+    container_name: jaeger-container
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "6831:6831/udp"   # принимает трейсы в формате jaeger.thrift по compact thrift protocol
+      - "6832:6832/udp"   # принимает трейсы в формате jaeger.thrift по binary thrift protocol
+      - "5778:5778"       # порт для конфигурации сэмплирования
+      - "16686:16686"     # порт веб-интерфейса
+      - "4317:4317"       # порт OTLP gRPC
+      - "4318:4318"       # порт OTLP HTTP
+      - "14250:14250"     # принимает трейсы в модели данных jaeger.proto
+      - "14268:14268"     # принимает трейсы напрямую от клиентов в формате jaeger.thrift
+      - "9411:9411"       # порт совместимости с Zipkin
+    restart: always
+
   kibana:
     image: kibana:8.16.5
     container_name: kibana-container
@@ -134,6 +152,23 @@ services:
     ports:
       - "8001:8001"
 
+  admin-panel:
+    build:
+      context: .
+      dockerfile: ./services/admin-panel/src/Dockerfile.debug
+    env_file:
+      - ./.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+      - "5678:5678"
+
   postgres:
     image: postgres:17-alpine
     container_name: postgres-container
@@ -170,18 +205,18 @@ services:
       auth-api:
         condition: service_healthy
 
-  # nginx:
-  #   image: nginx:1.27-alpine
-  #   env_file: .env
-  #   volumes:
-  #     - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./infra/nginx/configs:/etc/nginx/conf.d:ro
-  #   depends_on:
-  #     - async-api
-  #     - auth-api
-  #   ports:
-  #     - "${NGINX_PORT}:${NGINX_PORT}"
-  #   restart: always
+  nginx:
+    image: nginx:1.27-alpine
+    env_file: .env
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+    depends_on:
+      - async-api
+      - auth-api
+    ports:
+      - "${NGINX_PORT}:${NGINX_PORT}"
+    restart: always
 
 volumes:
   redis_data:

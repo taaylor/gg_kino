@@ -3,13 +3,9 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from core.config import app_config
-from fastapi import HTTPException, status
 from sqlalchemy import create_engine, func
-from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-
-# from utils.decorators import backoff
 
 logger = logging.getLogger(__name__)
 
@@ -46,31 +42,8 @@ sync_session_maker = sessionmaker(
 )
 
 
-# @backoff()
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     if sessionmaker is None:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")
     async with async_session_maker() as session:
-        try:
-            yield session
-            await session.commit()
-        except IntegrityError as e:
-            await session.rollback()
-            logger.error(f"Нарушение целостности данных: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Нарушение уникальности",
-            )
-
-        except NoResultFound as e:
-            await session.rollback()
-            logger.warning(f"Запись не найдена: {e}")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Запись не найдена")
-
-        except MultipleResultsFound as e:
-            await session.rollback()
-            logger.error(f"Найдено несколько записей: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Ошибка: найдено несколько записей",
-            )
+        yield session

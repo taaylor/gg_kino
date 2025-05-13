@@ -52,4 +52,13 @@ line_length = 100
 
 [tool.flake8]
 max-line-length = 100
-exclude = [".git", "__pycache__", "venv", ".venv"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "migration",
+    "migrations",
+    "services/auth-service/src/migration",
+    "services/auth-service/src/migrations"
+]

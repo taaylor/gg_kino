@@ -5,6 +5,7 @@ from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
     MessageResponse,
+    OAuthSocialResponse,
     RefreshResponse,
     RegisterRequest,
     RegisterResponse,
@@ -12,15 +13,18 @@ from api.v1.auth.schemas import (
 )
 from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Query, Request
+from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
     LoginService,
     LogoutService,
+    OAuthSocialService,
     RefreshService,
     RegisterService,
     SessionService,
     get_login_service,
     get_logout_service,
+    get_oauth_social_service,
     get_refresh_service,
     get_register_service,
     get_session_service,
@@ -134,3 +138,76 @@ async def entry_history(
     access_data = await authorize.get_raw_jwt()
     history = await sessions_service.get_history_session(access_data, page_size, page_number)
     return history
+
+
+@router.get(
+    path="/auth/social",
+    summary="OAuth параметры",
+    description="Возвращет параметры и ссылки на все поддерживаемые сервисы авторизации",
+    response_model=OAuthSocialResponse,
+)
+async def get_social_params(
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+) -> OAuthSocialResponse:
+    data = oauth_service.get_params_social()
+    return data
+
+
+@router.post(
+    path="/login/yandex",
+    summary="Авторизация через Yandex сервис",
+    description="Авторизует пользователя в системе через сервис Yandex",
+    response_model=LoginResponse,
+)
+async def login_yandex(
+    request: Request,
+    state: Annotated[str, Query()],
+    code: Annotated[str, Query()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+) -> LoginResponse:
+    user_agent = request.headers.get("user-agent")
+    data = await oauth_service.authorize_user(
+        provider_name="yandex", user_agent=user_agent, state=state, code=code
+    )
+    return data
+
+
+@router.post(
+    path="/social/connect",
+    summary="Предоставляет функцию привязки социального сервиса",
+    description="Позволяет пользователю, привязать свой социальный аккаунт к профилю",
+    response_model=MessageResponse,
+)
+async def connect_provider(
+    provider_name: Annotated[ProvidersEnum, Query()],
+    state: Annotated[str, Query()],
+    code: Annotated[str, Query()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    result = await oauth_service.connect_provider(
+        access_data=access_data, provider_name=provider_name.value, state=state, code=code
+    )
+    return result
+
+
+@router.post(
+    path="/social/disconnect",
+    summary="Предоставляет функцию отвязки социального сервиса",
+    description="Позволяет пользователю, отвязать свой социальный аккаунт от профиля",
+    response_model=MessageResponse,
+)
+async def disconnect_provider(
+    provider_name: Annotated[ProvidersEnum, Query()],
+    oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+) -> MessageResponse:
+    await authorize.jwt_required()
+    access_data = await authorize.get_raw_jwt()
+    result = await oauth_service.disconnect_provider(
+        access_data=access_data,
+        provider_name=provider_name.value,
+    )
+    return result

@@ -59,6 +59,7 @@ class JWTSettings(BaseModel):
 
 
 class AppConfig(BaseSettings):
+    auth_secret_key: str
     project_name: str = "auth-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/openapi"

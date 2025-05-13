@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from core.config import app_config
 from db.postgres import Base
-from models.models import User, UserCred  # noqa: F401
+from models import models
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -22,6 +22,17 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name in {
+        "user_sessions_hist_p0",
+        "user_sessions_hist_p1",
+        "user_sessions_hist_p2",
+        "user_sessions_hist_p3",
+    }:
+        return False
+    return True
 
 
 def run_migrations_offline() -> None:
@@ -50,7 +61,12 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata, include_schemas=True)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
