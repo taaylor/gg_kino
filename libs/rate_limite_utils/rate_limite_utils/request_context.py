@@ -1,6 +1,7 @@
-from .context import current_request
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from .context import current_request
 
 
 # middleware, который кладёт Request в ContextVar

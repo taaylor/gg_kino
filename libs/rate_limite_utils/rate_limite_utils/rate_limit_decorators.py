@@ -4,10 +4,11 @@ import time
 from functools import wraps
 from typing import Any, Callable, Coroutine
 
-from .context import current_request
-from .cache import get_cache
-from fastapi import HTTPException, status
 from auth_utils import auth_dep
+from fastapi import HTTPException, status
+
+from .cache import get_cache
+from .context import current_request
 
 logger = logging.getLogger(__name__)
 

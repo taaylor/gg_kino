@@ -3,7 +3,6 @@ import logging
 from abc import ABC, abstractmethod
 
 from redis.asyncio import Redis
-from redis.asyncio.client import Pipeline
 from utils.decorators import redis_handler_exeptions
 
 logger = logging.getLogger(__name__)

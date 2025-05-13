@@ -1,10 +1,10 @@
-import asyncio
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Coroutine
 
 from redis.asyncio import Redis, RedisError
 from redis.asyncio.client import Pipeline
+
 from .rate_limite_utils_config import rate_limite_utils_conf
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,7 @@ def redis_handler_exeptions[**P, R](
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
         except RedisError as error:
-            logger.error(
-                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
 
     return wrapper
 

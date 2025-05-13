@@ -12,6 +12,7 @@ from api.v1.auth.schemas import (
 )
 from auth_utils import LibAuthJWT, auth_dep
 from fastapi import APIRouter, Body, Depends, Query, Request
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
     LoginService,
     LogoutService,
@@ -24,8 +25,6 @@ from services.auth_service import (
     get_register_service,
     get_session_service,
 )
-from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
-
 
 logger = logging.getLogger(__name__)
 
