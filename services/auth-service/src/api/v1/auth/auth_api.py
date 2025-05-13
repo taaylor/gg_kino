@@ -41,7 +41,7 @@ router = APIRouter()
     summary="Регистрация нового пользователя",
     description="Создает нового пользователя в системе на основе предоставленных данных.",
 )
-@rate_limit_leaky_bucket()
+@rate_limit()
 async def register(
     request: Request,
     request_body: Annotated[RegisterRequest, Body()],
@@ -57,7 +57,7 @@ async def register(
     summary="Авторизация пользователя",
     description="Авторизует пользователя в системе и возвращает access и refresh токены.",
 )
-@rate_limit_leaky_bucket()
+@rate_limit()
 async def login(
     request: Request,
     request_body: Annotated[LoginRequest, Body()],
@@ -73,7 +73,7 @@ async def login(
     summary="Обновить сессию с помощью refresh токена",
     description="Обновляет сессию пользователя, используя предоставленный refresh токен.",
 )
-@rate_limit_leaky_bucket()
+@rate_limit()
 async def refresh(
     request: Request,
     refresh_service: Annotated[RefreshService, Depends(get_refresh_service)],
