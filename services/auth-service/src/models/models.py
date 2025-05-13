@@ -4,7 +4,7 @@ from datetime import datetime
 
 from db.postgres import Base
 from models.models_types import GenderEnum
-from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class UserCred(Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str] = mapped_column(String(255))
-    is_fictional_email: Mapped[bool] = mapped_column(default=False)
+    is_fictional_email: Mapped[bool] = mapped_column(default=False, server_default=text("'false'"))
 
     # обратная orm связь с user (one-to-one)
     user: Mapped["User"] = relationship("User", back_populates="user_cred", uselist=False)

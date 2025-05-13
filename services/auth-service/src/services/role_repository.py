@@ -7,12 +7,14 @@ from models.models import DictRoles, RolesPermissions
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from utils.decorators import sqlalchemy_universal_decorator
 
 logger = logging.getLogger(__name__)
 
 
 class RoleRepository:
 
+    @sqlalchemy_universal_decorator
     async def fetch_role_by_pk(self, session: AsyncSession, pk: str) -> DictRoles | None:
         """Возвращает модель DictRoles по pk"""
         stmt = (
@@ -22,12 +24,14 @@ class RoleRepository:
         role = result.unique().scalar_one_or_none()
         return role
 
+    @sqlalchemy_universal_decorator
     async def fetch_list_roles(self, session: AsyncSession) -> list[DictRoles]:
         stmt = select(DictRoles.role, DictRoles.descriptions).order_by(DictRoles.role)
         result = await session.execute(stmt)
         roles = result.all()
         return roles
 
+    @sqlalchemy_universal_decorator
     async def create_role(self, session: AsyncSession, request_body: RoleDetailRequest):
         role = DictRoles(role=request_body.role, descriptions=request_body.descriptions)
         session.add(role)
@@ -47,6 +51,7 @@ class RoleRepository:
         await session.commit()
         logger.info(f"Создана роль {role.role}")
 
+    @sqlalchemy_universal_decorator
     async def update_role(
         self, session: AsyncSession, request_body: RoleDetailUpdateRequest, pk: str
     ):
@@ -69,6 +74,7 @@ class RoleRepository:
         await session.commit()
         logger.info(f"Роль {pk} обновила данные")
 
+    @sqlalchemy_universal_decorator
     async def destroy_role_by_pk(self, session: AsyncSession, pk: str):
         stmt = delete(DictRoles).where(DictRoles.role == pk)
         await session.execute(stmt)

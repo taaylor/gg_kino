@@ -64,7 +64,6 @@ async def get_role(
     description="Создание новой роли в системе киносервиса",
     response_description="Объект созданной роли с полными данными и присвоенным идентификатором",
 )
-@rate_limit()
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def create_role(
     service: Annotated[RoleService, Depends(get_role_service)],
@@ -105,7 +104,6 @@ async def update_role(
     response_description="Статус операции удаления с сообщением о результате",
     response_model=MessageResponse,
 )
-@rate_limit()
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],

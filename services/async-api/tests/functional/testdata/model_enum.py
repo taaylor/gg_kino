@@ -8,6 +8,7 @@ class GenderEnum(StrEnum):
 
 class PermissionEnum(StrEnum):
     CRUD_ROLE = "CRUD_ROLE"
-    ASSIGN_ROLE = "ASSIGN_ROLE"
+    CRUD_FILMS = "CRUD_FILMS"
     FREE_FILMS = "FREE_FILMS"
     PAID_FILMS = "PAID_FILMS"
+    ASSIGN_ROLE = "ASSIGN_ROLE"

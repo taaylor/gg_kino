@@ -1,8 +1,8 @@
-"""init table social_account
+"""init_table_social_account
 
-Revision ID: 8f4b350a117c
+Revision ID: 68abe7b09fbe
 Revises: 715c40ff5e28
-Create Date: 2025-05-11 20:36:49.759912
+Create Date: 2025-05-14 00:21:53.874507
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "8f4b350a117c"
+revision: str = "68abe7b09fbe"
 down_revision: Union[str, None] = "715c40ff5e28"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -46,7 +46,11 @@ def upgrade() -> None:
         schema="profile",
     )
     op.add_column(
-        "user_cred", sa.Column("is_fictional_email", sa.Boolean(), nullable=False), schema="profile"
+        "user_cred",
+        sa.Column(
+            "is_fictional_email", sa.Boolean(), server_default=sa.text("'false'"), nullable=False
+        ),
+        schema="profile",
     )
     # ### end Alembic commands ###
 
