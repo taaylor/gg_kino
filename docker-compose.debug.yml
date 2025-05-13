@@ -111,7 +111,7 @@ services:
   auth-api:
     build:
       context: .
-      dockerfile: ./services/auth-service/src/Dockerfile
+      dockerfile: ./services/auth-service/src/Dockerfile.debug
     env_file:
       - ./.env
     cpus: "1"
@@ -133,6 +133,7 @@ services:
       start_period: 30s
     ports:
       - "8000:8000"
+      - "5679:5679"
 
   async-api:
     build:
@@ -150,6 +151,23 @@ services:
     restart: always
     ports:
       - "8001:8001"
+
+  admin-panel:
+    build:
+      context: .
+      dockerfile: ./services/admin-panel/src/Dockerfile.debug
+    env_file:
+      - ./.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+      - "5678:5678"
 
   postgres:
     image: postgres:17-alpine
@@ -186,18 +204,6 @@ services:
       auth-api:
         condition: service_healthy
 
-  nginx:
-    image: nginx:1.27-alpine
-    env_file: .env
-    volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
-    depends_on:
-      - async-api
-      - auth-api
-    ports:
-      - "${NGINX_PORT}:${NGINX_PORT}"
-    restart: always
 
 volumes:
   redis_data:

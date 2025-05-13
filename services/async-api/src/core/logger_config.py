@@ -65,6 +65,21 @@ class LoggerSettings(BaseSettings):
                     "level": self.log_level,
                     "propagate": False,
                 },
+                "sqlalchemy.engine": {
+                    "handlers": self.log_default_handlers,
+                    "level": self.log_level,
+                    "propagate": False,
+                },
+                "sqlalchemy.pool": {
+                    "handlers": self.log_default_handlers,
+                    "level": self.log_level,
+                    "propagate": False,
+                },
+                "alembic": {
+                    "handlers": self.log_default_handlers,
+                    "level": self.log_level,
+                    "propagate": False,
+                },
             },
             "root": {
                 "level": self.log_level,

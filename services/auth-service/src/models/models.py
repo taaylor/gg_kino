@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime
 
@@ -5,6 +6,8 @@ from db.postgres import Base
 from models.models_types import GenderEnum
 from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+logger = logging.getLogger(__name__)
 
 
 class User(Base):
@@ -129,7 +132,7 @@ class RolesPermissions(Base):
         return f"<{self.__class__.__name__}(permission={self.permission})>"
 
     def __str__(self):
-        return f"Модель: {self.__class__.__name__}(permission={self.permission})"
+        return f"Модель: {self.__class__.__name__}(permission={self.permission})>"
 
 
 class UserSession(Base):
@@ -155,13 +158,18 @@ class UserSession(Base):
 
 class UserSessionsHist(Base):
     __tablename__ = "user_sessions_hist"
-    __table_args__ = {"schema": "session"}
+    __table_args__ = (
+        {
+            "schema": "session",
+            "postgresql_partition_by": "HASH (user_id)",
+        },
+    )
 
     session_id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True, comment="Уникальный идентификатор сессии"
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        nullable=False, comment="Уникальный идентификатор пользователя"
+        nullable=False, primary_key=True, comment="Уникальный идентификатор пользователя"
     )
     user_agent: Mapped[str | None] = mapped_column(
         String(255), comment="Клиентское устройство пользователя"

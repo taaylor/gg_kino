@@ -6,12 +6,5 @@ class GenderEnum(StrEnum):
     FEMALE = "FEMALE"
 
 
-class PermissionEnum(StrEnum):
-    CRUD_ROLE = "CRUD_ROLE"
-    ASSIGN_ROLE = "ASSIGN_ROLE"
-    FREE_FILMS = "FREE_FILMS"
-    PAID_FILMS = "PAID_FILMS"
-
-
 class ProvidersEnum(StrEnum):
     YANDEX = "yandex"
