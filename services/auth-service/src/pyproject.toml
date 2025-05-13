@@ -30,28 +30,6 @@ test = [
 [tool.poetry]
 package-mode = false
 
-<<<<<<< HEAD
-
-[tool.poetry.dependencies]
-fastapi = {extras = ["all"], version = "^0.115.12"}
-sqlalchemy = "^2.0.40"
-alembic = "^1.15.2"
-uvicorn = "^0.34.1"
-asyncpg = "^0.30.0"
-python-dotenv = "^1.1.0"
-pydantic-settings = "^2.8.1"
-greenlet = "^3.2.0"
-passlib = "^1.7.4"
-typer = "^0.15.2"
-argon2-cffi = "^23.1.0"
-redis = "^5.2.1"
-psycopg2 = "^2.9.10"
-async-fastapi-jwt-auth = {extras = ["asymmetric"], version = "^0.6.6"}
-gunicorn = "^23.0.0"
-debugpy = "^1.8.13"
-
-=======
->>>>>>> main
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

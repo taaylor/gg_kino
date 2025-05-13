@@ -8,11 +8,8 @@ requires-python = ">=3.12,<4.0"
 package-mode = false
 
 [tool.poetry.dependencies]
-asyncpg = "^0.30.0"
 python-dotenv = "^1.1.0"
 python = "^3.12"
-redis = "^5.0.4"
-pydantic-settings = "^2.8.1"
 django = "5.1"
 requests = "^2.32.3"
 passlib = "^1.7.4"

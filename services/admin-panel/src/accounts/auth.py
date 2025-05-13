@@ -22,7 +22,6 @@ class Roles(StrEnum):
 
 class EmailAuthBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
-        logger.debug(f"Лог - email: {username} password: {password}")
         payload = {"email": username, "password": password}
         try:
             response = requests.post(settings.LOGIN_URL, json=payload, timeout=5)
