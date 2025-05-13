@@ -24,6 +24,7 @@ from services.auth_service import (
     get_register_service,
     get_session_service,
 )
+from utils.rate_limit import rate_limit, rate_limit_leaky_bucket
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ router = APIRouter()
     summary="Регистрация нового пользователя",
     description="Создает нового пользователя в системе на основе предоставленных данных.",
 )
+@rate_limit_leaky_bucket()
 async def register(
     request: Request,
     request_body: Annotated[RegisterRequest, Body()],
@@ -51,6 +53,7 @@ async def register(
     summary="Авторизация пользователя",
     description="Авторизует пользователя в системе и возвращает access и refresh токены.",
 )
+@rate_limit_leaky_bucket()
 async def login(
     request: Request,
     request_body: Annotated[LoginRequest, Body()],
@@ -66,6 +69,7 @@ async def login(
     summary="Обновить сессию с помощью refresh токена",
     description="Обновляет сессию пользователя, используя предоставленный refresh токен.",
 )
+@rate_limit_leaky_bucket()
 async def refresh(
     request: Request,
     refresh_service: Annotated[RefreshService, Depends(get_refresh_service)],
@@ -84,6 +88,7 @@ async def refresh(
     description="Закрывает текущую сессию пользователя",
     response_model=MessageResponse,
 )
+@rate_limit()
 async def logout(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
@@ -100,6 +105,7 @@ async def logout(
     description="Закрывает все активные сессии пользователя, кроме текущей",
     response_model=MessageResponse,
 )
+@rate_limit()
 async def logout_all(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     logout_service: Annotated[LogoutService, Depends(get_logout_service)],
@@ -115,6 +121,7 @@ async def logout_all(
     summary="Последние действия в аккаунте",
     description="Отдает информацию о последних действиях в аккаунте пользователя",
 )
+@rate_limit_leaky_bucket()
 async def entry_history(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sessions_service: Annotated[SessionService, Depends(get_session_service)],

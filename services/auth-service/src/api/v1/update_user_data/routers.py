@@ -15,6 +15,7 @@ from models.models import DictRoles, User, UserCred
 from services.user_service import RoleService, UserCredService, UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from utils.rate_limit import rate_limit, rate_limit_leaky_bucket
 
 router = APIRouter()
 
@@ -27,6 +28,7 @@ REQUIRED_PERMISSIONS = {Permissions.ASSIGN_ROLE.value}
     summary="Изменение имени пользователя (RPC-стиль)",
     response_description="Успешное изменение имени пользователя",
 )
+@rate_limit_leaky_bucket()
 async def change_username(
     request_body: Annotated[ChangeUsernameRequest, Body(description="Данные для изменения имени")],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -52,6 +54,7 @@ async def change_username(
     summary="Изменение пароля пользователя (RPC-стиль)",
     response_description="Успешное изменение пароля пользователя",
 )
+@rate_limit_leaky_bucket()
 async def change_password(
     request_body: Annotated[ChangePasswordRequest, Body(description="Данные для изменения пароля")],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -84,6 +87,7 @@ async def change_password(
     summary=f"Назначение роли пользователю (REST-стиль). Необходимые разрешения:{REQUIRED_PERMISSIONS}",  # noqa: E501
     response_description="Роль успешно назначена пользователю",
 )
+@rate_limit()
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def assign_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
@@ -114,6 +118,7 @@ async def assign_role(
     summary=f"Удаление роли пользователя (REST-стиль). Необходимые разрешения:{REQUIRED_PERMISSIONS}",  # noqa: E501
     response_description="Роль пользователя успешно удалена и установлена как ANONYMOUS",
 )
+@rate_limit()
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def revoke_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],

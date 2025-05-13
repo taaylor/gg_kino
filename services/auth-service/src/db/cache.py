@@ -40,6 +40,10 @@ class Cache(ABC):
     async def pipeline_execute(self, pipe: Pipeline) -> list:
         pass
 
+    @abstractmethod
+    async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
+        pass
+
 
 class RedisCache(Cache):
     def __init__(self, redis: Redis):
@@ -77,6 +81,11 @@ class RedisCache(Cache):
             )
         )
         return result
+
+    @redis_handler_exeptions
+    async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
+        """Извлекает список из Redis по ключу в диапазоне."""
+        return await self.redis.lrange(key, start, end)
 
     async def background_set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в фоновом процессе"""
