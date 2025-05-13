@@ -12,6 +12,7 @@ from api.v1.role.schemas import (
 from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from services.role_service import RoleService, get_role_service
+from utils.rate_limit import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ REQUIRED_PERMISSIONS = {Permissions.CRUD_ROLE.value}
     description="Получение списка всех пользовательских ролей киносервиса",
     response_description="Успешное получение списка ролей в формате массива объектов",
 )
+@rate_limit()
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def get_roles(
     service: Annotated[RoleService, Depends(get_role_service)],

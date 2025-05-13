@@ -8,7 +8,8 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from utils.decorators import backoff
+
+# from utils.decorators import backoff
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ sync_session_maker = sessionmaker(
 )
 
 
-@backoff()
+# @backoff()
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     if sessionmaker is None:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")

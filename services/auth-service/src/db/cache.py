@@ -3,6 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from redis.asyncio import Redis
+from redis.asyncio.client import Pipeline
 from utils.decorators import redis_handler_exeptions
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,14 @@ class Cache(ABC):
     async def background_destroy(self, key: str) -> None:
         pass
 
+    @abstractmethod
+    def pipeline(self):
+        pass
+
+    @abstractmethod
+    async def pipeline_execute(self, pipe: Pipeline) -> list:
+        pass
+
 
 class RedisCache(Cache):
     def __init__(self, redis: Redis):
@@ -52,6 +61,22 @@ class RedisCache(Cache):
         await self.destroy(key)  # инвалидация кеша
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
+
+    def pipeline(self):
+        """Создаёт Redis pipeline для атомарных операций."""
+        return self.redis.pipeline()
+
+    @redis_handler_exeptions
+    async def pipeline_execute(self, pipe: Pipeline) -> list | None:
+        """Выполняет команды в pipeline и возвращает результаты."""
+        result = await pipe.execute()
+        logger.info(
+            (
+                "[RedisCache] Pipeline выполнился с "
+                f"{len(result) if result else None} результатом."
+            )
+        )
+        return result
 
     async def background_set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в фоновом процессе"""
