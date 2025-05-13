@@ -14,6 +14,7 @@ from models.models import (
 )
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from tracer_utils import traced
 from utils.decorators import sqlalchemy_universal_decorator
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ class AuthRepository:
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
+    @traced()
     @sqlalchemy_universal_decorator
     async def create_user_in_repository(
         self,
@@ -70,6 +72,7 @@ class AuthRepository:
     ):
         session.add_all([user, user_cred, user_session, user_session_hist])
 
+    @traced()
     @sqlalchemy_universal_decorator
     async def create_session_in_repository(
         self,
@@ -79,6 +82,7 @@ class AuthRepository:
     ):
         session.add_all([user_session, user_session_hist])
 
+    @traced()
     @sqlalchemy_universal_decorator
     async def update_session_in_repository(self, session: AsyncSession, user_session: UserSession):
         stmt = (
@@ -122,6 +126,7 @@ class AuthRepository:
         delete_sessions = result.scalars().all()
         return delete_sessions
 
+    @traced()
     @sqlalchemy_universal_decorator
     async def fetch_history_sessions(
         self,

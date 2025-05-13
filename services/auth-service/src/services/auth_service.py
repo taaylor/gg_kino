@@ -31,6 +31,7 @@ from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
 from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
+from tracer_utils import traced
 from utils.key_manager import pwd_context
 from utils.state_manager import SignedStateManager, get_signed_state_manager
 
@@ -45,6 +46,7 @@ CACHE_KEY_DROP_SESSION = app_config.jwt.cache_key_drop_session
 
 class RegisterService(BaseAuthService):
 
+    @traced("create_user_process")
     async def create_user(self, user_data: RegisterRequest, user_agent: str) -> RegisterResponse:
         logger.debug(
             f"Обработка запроса на создание пользователя {user_data.username=}, {user_agent=}"
@@ -127,6 +129,7 @@ class RegisterService(BaseAuthService):
 
 class LoginService(BaseAuthService):
 
+    @traced("user_login_service_process")
     async def login_user(self, user_data: LoginRequest, user_agent: str) -> LoginResponse:
         logger.info(f"Запрошена аутентификация для пользователя с email: {user_data.email}")
 
@@ -187,6 +190,8 @@ class LoginService(BaseAuthService):
 
 
 class RefreshService(BaseAuthService):
+
+    @traced("refresh_session_process")
     async def refresh_session(self, session_id: uuid.UUID, user_agent: str) -> RefreshResponse:
         logger.info(f"Запрошен рефреш сессии для {session_id=}")
 
@@ -288,6 +293,7 @@ class LogoutService(MixinAuthRepository):
 
 class SessionService(MixinAuthRepository):
 
+    @traced("get_history_session_process")
     async def get_history_session(
         self, access_data: dict[str, Any], page_size: int, page_number: int
     ) -> SessionsHistory:

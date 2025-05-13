@@ -60,12 +60,13 @@ class JWTSettings(BaseModel):
 
 class AppConfig(BaseSettings):
     auth_secret_key: str
-    project_name: str = "auth"
+    project_name: str = "auth-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/openapi"
     openapi_url: str = "/auth/openapi.json"
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_role: str = "UNSUB_USER"
+    tracing: bool = False  # включение/выключение трассировки
 
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
@@ -85,7 +86,7 @@ def _get_config() -> AppConfig:
     log.apply()
 
     app_config = AppConfig()
-    logger.info(f"app_config.initialized: {app_config.model_dump_json()}")
+    logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")
     return app_config
 
 
