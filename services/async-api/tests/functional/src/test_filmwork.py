@@ -346,7 +346,7 @@ class TestFilmsList:
                     "cached_data": False,
                     "cach_key": (
                         "films:-imdb_rating:page1:size10:"
-                        "genres526769d7-df18-4661-9aa6-49ed24e9dds3:FREE-PAID"
+                        "genres526769d7-df18-4661-9aa6-49ed24e9dds3:ARCHIVED-FREE-PAID"
                     ),
                 },
             ),
@@ -356,7 +356,7 @@ class TestFilmsList:
                     "cached_data": True,
                     "cach_key": (
                         "films:-imdb_rating:page1:size10:"
-                        "genres526769d7-df18-4661-9aa6-49ed24e9dfd8:FREE-PAID"
+                        "genres526769d7-df18-4661-9aa6-49ed24e9dfd8:ARCHIVED-FREE-PAID"
                     ),
                 },
             ),
@@ -371,7 +371,7 @@ class TestFilmsList:
                     "cach_key": (
                         "films:-imdb_rating:page1:size10:"
                         "genres6a0a479b-cfec-41ac-b520-41b2b007b611-"
-                        "7f6a9006-dba4-4b63-ac34-b56c3e8a7e8f:FREE-PAID"
+                        "7f6a9006-dba4-4b63-ac34-b56c3e8a7e8f:ARCHIVED-FREE-PAID"
                     ),
                 },
             ),

@@ -39,7 +39,7 @@ class YandexOAuthProvider(OAuthBaseService):
 
             logger.debug(f"Получены данные авторизации через Yandex: {token_data}")
 
-            if token_response.status != 200:
+            if token_response.status != status.HTTP_200_OK:
                 error_desc = token_data.get("error_description", "Описание ошибки отсутствует")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -54,7 +54,7 @@ class YandexOAuthProvider(OAuthBaseService):
             user_data = await info_user.json()
             logger.debug(f"Получены данные о пользователе через Yandex: {user_data}")
 
-            if token_response.status != 200:
+            if token_response.status != status.HTTP_200_OK:
                 error_desc = token_data.get("error_description", "Описание ошибки отсутствует")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
