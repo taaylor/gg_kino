@@ -13,9 +13,9 @@ from redis.asyncio import ConnectionError, RedisError, TimeoutError
 logger = logging.getLogger(__name__)
 
 
-def elastic_handler_exeptions[
-    **P, R
-](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R | None]]:
+def elastic_handler_exeptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
         try:
@@ -39,9 +39,9 @@ def elastic_handler_exeptions[
     return wrapper
 
 
-def redis_handler_exeptions[
-    **P, R
-](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R | None]]:
+def redis_handler_exeptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
         try:
             return await func(*args, **kwargs)
@@ -64,9 +64,9 @@ def backoff(
     max_attempts: int = 5,
 ):
 
-    def func_wrapper[
-        **P, R
-    ](func: Callable[P, Coroutine[Any, Any, R]],) -> Callable[P, Coroutine[Any, Any, R]]:
+    def func_wrapper[**P, R](
+        func: Callable[P, Coroutine[Any, Any, R]],
+    ) -> Callable[P, Coroutine[Any, Any, R]]:
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
             time = start_sleep_time

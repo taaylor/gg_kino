@@ -12,7 +12,7 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Query, Request, Path
+from fastapi import APIRouter, Body, Depends, Path, Query, Request
 from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
