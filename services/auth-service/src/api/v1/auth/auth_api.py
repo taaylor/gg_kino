@@ -146,7 +146,7 @@ async def entry_history(
     description="Возвращет параметры и ссылки на все поддерживаемые сервисы авторизации",
     response_model=OAuthSocialResponse,
 )
-async def get_social_params(
+def get_social_params(
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> OAuthSocialResponse:
     data = oauth_service.get_params_social()
@@ -154,20 +154,21 @@ async def get_social_params(
 
 
 @router.post(
-    path="/login/yandex",
-    summary="Авторизация через Yandex сервис",
-    description="Авторизует пользователя в системе через сервис Yandex",
+    path="/login/oauth-provider",
+    summary="Авторизация через OAuth-провайдер",
+    description="Авторизует пользователя в системе через сервис OAuth-провайдера",
     response_model=LoginResponse,
 )
-async def login_yandex(
+async def login_oauth_provider(
     request: Request,
+    provider_name: Annotated[ProvidersEnum, Query()],
     state: Annotated[str, Query()],
     code: Annotated[str, Query()],
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> LoginResponse:
     user_agent = request.headers.get("user-agent")
     data = await oauth_service.authorize_user(
-        provider_name="yandex", user_agent=user_agent, state=state, code=code
+        provider_name=provider_name.value, user_agent=user_agent, state=state, code=code
     )
     return data
 

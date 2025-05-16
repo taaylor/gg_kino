@@ -5,6 +5,7 @@ import aiohttp
 from core.oauth_conf import providers_conf
 from fastapi import HTTPException, status
 from models.logic_models import OAuthUserInfo
+from models.models_types import ProvidersEnum
 
 from .oauth_abc import OAuthBaseService
 
@@ -32,7 +33,6 @@ class YandexOAuthProvider(OAuthBaseService):
 
     async def get_user_info(self, session: aiohttp.ClientSession, code: str) -> OAuthUserInfo:
         url, data, headers = self.create_token_request(code=code)
-        token_data = None
 
         async with session.post(url, data=data, headers=headers) as token_response:
             token_data = await token_response.json()
@@ -54,7 +54,7 @@ class YandexOAuthProvider(OAuthBaseService):
             user_data = await info_user.json()
             logger.debug(f"Получены данные о пользователе через Yandex: {user_data}")
 
-            if token_response.status != status.HTTP_200_OK:
+            if info_user.status != status.HTTP_200_OK:
                 error_desc = token_data.get("error_description", "Описание ошибки отсутствует")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -62,7 +62,7 @@ class YandexOAuthProvider(OAuthBaseService):
                 )
 
             return OAuthUserInfo(
-                social_name="yandex",
+                social_name=ProvidersEnum.YANDEX.value,
                 social_id=user_data.get("id"),
                 first_name=user_data.get("first_name"),
                 last_name=user_data.get("last_name"),
@@ -70,4 +70,4 @@ class YandexOAuthProvider(OAuthBaseService):
             )
 
 
-active_providers = {"yandex": YandexOAuthProvider()}
+active_providers = {ProvidersEnum.YANDEX.value: YandexOAuthProvider()}
