@@ -12,7 +12,7 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Path, Query, Request
+from fastapi import APIRouter, Body, Depends, Query, Request
 from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
@@ -154,14 +154,14 @@ def get_social_params(
 
 
 @router.post(
-    path="/login/{provider_name}",
-    summary="Авторизация через Yandex сервис",
-    description="Авторизует пользователя в системе через сервис Yandex",
+    path="/login/oauth-provider",
+    summary="Авторизация через OAuth-провайдер",
+    description="Авторизует пользователя в системе через сервис OAuth-провайдера",
     response_model=LoginResponse,
 )
-async def login_yandex(
+async def login_oauth_provider(
     request: Request,
-    provider_name: Annotated[ProvidersEnum, Path()],
+    provider_name: Annotated[ProvidersEnum, Query()],
     state: Annotated[str, Query()],
     code: Annotated[str, Query()],
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
