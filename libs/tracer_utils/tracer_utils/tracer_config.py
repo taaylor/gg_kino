@@ -13,7 +13,7 @@ logger.info(f"ENV АВТОРИЗАЦИЯ: {ENV_FILE}")
 
 class Jaeger(BaseModel):
     host: str = "localhost"
-    port: int = "4317"
+    port: int = 4317
 
     @property
     def jaeger_url(self):
