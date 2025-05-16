@@ -12,7 +12,7 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Query, Request
+from fastapi import APIRouter, Body, Depends, Query, Request, Path
 from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
@@ -146,7 +146,7 @@ async def entry_history(
     description="Возвращет параметры и ссылки на все поддерживаемые сервисы авторизации",
     response_model=OAuthSocialResponse,
 )
-async def get_social_params(
+def get_social_params(
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> OAuthSocialResponse:
     data = oauth_service.get_params_social()
@@ -154,20 +154,21 @@ async def get_social_params(
 
 
 @router.post(
-    path="/login/yandex",
+    path="/login/{provider_name}",
     summary="Авторизация через Yandex сервис",
     description="Авторизует пользователя в системе через сервис Yandex",
     response_model=LoginResponse,
 )
 async def login_yandex(
     request: Request,
+    provider_name: Annotated[ProvidersEnum, Path()],
     state: Annotated[str, Query()],
     code: Annotated[str, Query()],
     oauth_service: Annotated[OAuthSocialService, Depends(get_oauth_social_service)],
 ) -> LoginResponse:
     user_agent = request.headers.get("user-agent")
     data = await oauth_service.authorize_user(
-        provider_name="yandex", user_agent=user_agent, state=state, code=code
+        provider_name=provider_name.value, user_agent=user_agent, state=state, code=code
     )
     return data
 

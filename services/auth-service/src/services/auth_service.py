@@ -356,7 +356,7 @@ class OAuthSocialService(BaseAuthService):
             state=state,
         )
 
-        yandex_url = yandex_url = (
+        yandex_url = (
             "{url}?response_type={response_type}&client_id"
             "={client_id}&scope={scope}&state={state}".format(
                 url=yandex_separate_params.authorize_url,
