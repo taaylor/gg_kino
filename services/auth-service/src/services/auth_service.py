@@ -343,6 +343,7 @@ class OAuthSocialService(BaseAuthService):
         super().__init__(repository, session, session_maker)
         self.state_manager = state_manager
 
+    @traced("get_params_social")
     def get_params_social(self) -> OAuthSocialResponse:
         """Получение параметров и url OAuth-провайдеров"""
 
