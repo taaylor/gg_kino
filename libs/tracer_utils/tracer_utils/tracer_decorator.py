@@ -28,21 +28,21 @@ def traced(name: str = None) -> Callable:
         tracer = trace.get_tracer(__name__)
         span_name = name or func.__name__
         current_context = context.get_current()
+
         if asyncio.iscoroutinefunction(func):
 
             @wraps(func)
-            async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
+            async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
                 with tracer.start_as_current_span(span_name, current_context):
                     return await func(*args, **kwargs)
 
-            return async_wrapper
         else:
 
             @wraps(func)
-            def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
+            def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
                 with tracer.start_as_current_span(span_name, current_context):
                     return func(*args, **kwargs)
 
-            return sync_wrapper
+        return wrapper
 
     return decorator
