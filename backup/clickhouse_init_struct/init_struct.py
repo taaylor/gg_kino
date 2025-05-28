@@ -18,6 +18,7 @@ def get_logger(name: str) -> logging.Logger:
         logger.addHandler(console_handler)
     return logger
 
+
 logger = get_logger(__name__)
 
 
@@ -38,7 +39,9 @@ def main():
         """
         CREATE DATABASE IF NOT EXISTS {DB_NAME}
         ON CLUSTER {CLUSTER_NAME}
-    """.format(DB_NAME=DB_NAME, CLUSTER_NAME=CLUSTER_NAME)
+    """.format(
+            DB_NAME=DB_NAME, CLUSTER_NAME=CLUSTER_NAME
+        )
     )
 
     # Создание локальной таблицы с репликацией
@@ -64,12 +67,12 @@ def main():
         PARTITION BY toYYYYMMDD(event_timestamp)
         ORDER BY (event_timestamp, id)
     """.format(
-        DB_NAME=DB_NAME,
-        TABLE_NAME=TABLE_NAME,
-        CLUSTER_NAME=CLUSTER_NAME,
-        cluster="{cluster}",
-        shard="{shard}",
-        replica="{replica}"
+            DB_NAME=DB_NAME,
+            TABLE_NAME=TABLE_NAME,
+            CLUSTER_NAME=CLUSTER_NAME,
+            cluster="{cluster}",
+            shard="{shard}",
+            replica="{replica}",
         )
     )
 
@@ -95,8 +98,12 @@ def main():
             '{TABLE_NAME}',
             rand()
         )
-    """.format(DB_NAME=DB_NAME, TABLE_NAME_DIST=TABLE_NAME_DIST,
-               CLUSTER_NAME=CLUSTER_NAME, TABLE_NAME=TABLE_NAME)
+    """.format(
+            DB_NAME=DB_NAME,
+            TABLE_NAME_DIST=TABLE_NAME_DIST,
+            CLUSTER_NAME=CLUSTER_NAME,
+            TABLE_NAME=TABLE_NAME,
+        )
     )
 
 
