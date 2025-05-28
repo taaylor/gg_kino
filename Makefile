@@ -1,6 +1,7 @@
 COMPOSE_FILE = docker-compose.yml
 COMPOSE_FILE_DEBUG = docker-compose.debug.yml
 COMPOSE_FILE_TEST = docker-compose-tests.yml
+COMPOSE_METRIC = docker-compose-metrics.yml
 
 # Можно указать конкретный серви или не указывать и команда будет выполнена для всех сервисов
 # Например: make up-logs srv=auth-api
@@ -37,3 +38,11 @@ test-auth-api:
 	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test up --build -d
 	docker-compose -f $(COMPOSE_FILE_TEST) logs -f tests-auth-api
 	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
+# Запуск сервиса метрики
+metrics:
+	docker-compose -f $(COMPOSE_METRIC) up -d --build $(srv)
+# Дроп сервиса метрики
+metrics-down:
+	docker-compose -f $(COMPOSE_METRIC) down $(srv)
+metrics-down-v:
+	docker-compose -f $(COMPOSE_METRIC) down -v $(srv)
