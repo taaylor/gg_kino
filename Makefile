@@ -43,4 +43,6 @@ metrics:
 	docker-compose -f $(COMPOSE_METRIC) up -d --build $(srv)
 # Дроп сервиса метрики
 metrics-down:
+	docker-compose -f $(COMPOSE_METRIC) down $(srv)
+metrics-down-v:
 	docker-compose -f $(COMPOSE_METRIC) down -v $(srv)

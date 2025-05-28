@@ -18,13 +18,16 @@ def get_logger(name: str) -> logging.Logger:
         logger.addHandler(console_handler)
     return logger
 
-
 logger = get_logger(__name__)
 
 
 load_dotenv(find_dotenv())
 
 CLICKHOUSE_HOST = os.getenv("CLICKHOUSE_HOST")
+TABLE_NAME = "metrics"
+TABLE_NAME_DIST = "metrics_distributed"
+DB_NAME = "kinoservice"
+CLUSTER_NAME = "kinoservice_cluster"
 
 
 def main():
@@ -33,16 +36,16 @@ def main():
     # Создание базы данных
     client.execute(
         """
-        CREATE DATABASE IF NOT EXISTS kinoservice
-        ON CLUSTER kinoservice_cluster
-    """
+        CREATE DATABASE IF NOT EXISTS {DB_NAME}
+        ON CLUSTER {CLUSTER_NAME}
+    """.format(DB_NAME=DB_NAME, CLUSTER_NAME=CLUSTER_NAME)
     )
 
     # Создание локальной таблицы с репликацией
     client.execute(
         """
-        CREATE TABLE IF NOT EXISTS kinoservice.metrics
-        ON CLUSTER kinoservice_cluster
+        CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME}
+        ON CLUSTER {CLUSTER_NAME}
         (
             id Int64,
             user_uuid Nullable(UUID),
@@ -55,19 +58,26 @@ def main():
             user_timestamp DateTime
         )
         ENGINE = ReplicatedMergeTree(
-            '/clickhouse/tables/{cluster}/{shard}/metrics',
+            '/clickhouse/tables/{cluster}/{shard}/{TABLE_NAME}',
             '{replica}'
         )
         PARTITION BY toYYYYMMDD(event_timestamp)
         ORDER BY (event_timestamp, id)
-    """
+    """.format(
+        DB_NAME=DB_NAME,
+        TABLE_NAME=TABLE_NAME,
+        CLUSTER_NAME=CLUSTER_NAME,
+        cluster="{cluster}",
+        shard="{shard}",
+        replica="{replica}"
+        )
     )
 
     # Создание дистрибутивной таблицы
     client.execute(
         """
-        CREATE TABLE IF NOT EXISTS kinoservice.metrics_distributed
-        ON CLUSTER kinoservice_cluster
+        CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME_DIST}
+        ON CLUSTER {CLUSTER_NAME}
         (
             id Int64,
             user_uuid Nullable(UUID),
@@ -80,12 +90,13 @@ def main():
             user_timestamp DateTime
         )
         ENGINE = Distributed(
-            'kinoservice_cluster',
-            'kinoservice',
-            'metrics',
+            '{CLUSTER_NAME}',
+            '{DB_NAME}',
+            '{TABLE_NAME}',
             rand()
         )
-    """
+    """.format(DB_NAME=DB_NAME, TABLE_NAME_DIST=TABLE_NAME_DIST,
+               CLUSTER_NAME=CLUSTER_NAME, TABLE_NAME=TABLE_NAME)
     )
 
 
