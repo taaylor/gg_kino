@@ -5,7 +5,7 @@ services:
     hostname: zookeeper
 
   clickhouse-node1:
-    image: clickhouse/clickhouse-server:23
+    image: clickhouse/clickhouse-server:24
     environment:
       - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
       - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
@@ -22,7 +22,7 @@ services:
       retries: 10
 
   clickhouse-node2:
-    image: clickhouse/clickhouse-server:23
+    image: clickhouse/clickhouse-server:24
     environment:
       - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
       - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
@@ -39,7 +39,7 @@ services:
       retries: 10
 
   clickhouse-node3:
-    image: clickhouse/clickhouse-server:23
+    image: clickhouse/clickhouse-server:24
     environment:
       - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
       - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
@@ -56,7 +56,7 @@ services:
       retries: 10
 
   clickhouse-node4:
-    image: clickhouse/clickhouse-server:23
+    image: clickhouse/clickhouse-server:24
     environment:
       - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
       - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
