@@ -31,8 +31,7 @@ repos:
                 build/.*|
                 dist/.*|
                 migrations/.*|
-                migration/.*|
-                backup/.*
+                migration/.*
             )$
 
   - repo: https://github.com/pycqa/flake8
