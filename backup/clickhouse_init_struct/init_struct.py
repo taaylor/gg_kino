@@ -50,11 +50,12 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64,
+            id Int64 DEFAULT generateUUIDv4(),
+            user_session Nullable(UUID),
             user_uuid Nullable(UUID),
-            film_uuid Nullable(UUID),
-            film_title Nullable(String),
             ip_address Nullable(String),
+            film_uuid Nullable(UUID),
+            event_params Map(String, String),
             event_type String,
             message_event String,
             event_timestamp DateTime,
@@ -65,7 +66,9 @@ def main():
             '{replica}'
         )
         PARTITION BY toYYYYMMDD(event_timestamp)
-        ORDER BY (event_timestamp, id)
+        ORDER BY (event_timestamp, id, event_type)
+        TTL event_timestamp + INTERVAL 360 DAY
+        SETTINGS index_granularity = 8192
     """.format(
             DB_NAME=DB_NAME,
             TABLE_NAME=TABLE_NAME,
@@ -82,11 +85,12 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME_DIST}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64,
+            id Int64 DEFAULT generateUUIDv4(),
+            user_session Nullable(UUID),
             user_uuid Nullable(UUID),
-            film_uuid Nullable(UUID),
-            film_title Nullable(String),
             ip_address Nullable(String),
+            film_uuid Nullable(UUID),
+            event_params Map(String, String),
             event_type String,
             message_event String,
             event_timestamp DateTime,
