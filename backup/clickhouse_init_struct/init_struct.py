@@ -34,12 +34,6 @@ CLUSTER_NAME = "kinoservice_cluster"
 def main():
     client = Client(CLICKHOUSE_HOST)
 
-    client.execute(
-        """
-        SET allow_experimental_json_type = 1
-    """
-    )
-
     # Создание базы данных
     client.execute(
         """
@@ -61,8 +55,7 @@ def main():
             user_uuid Nullable(UUID),
             ip_address Nullable(String),
             film_uuid Nullable(UUID),
-            person_uuid Nullable(UUID),
-            event_params JSON,
+            event_params Map(String, String),
             event_type String,
             message_event String,
             event_timestamp DateTime,
@@ -97,8 +90,7 @@ def main():
             user_uuid Nullable(UUID),
             ip_address Nullable(String),
             film_uuid Nullable(UUID),
-            person_uuid Nullable(UUID),
-            event_params JSON,
+            event_params Map(String, String),
             event_type String,
             message_event String,
             event_timestamp DateTime,
