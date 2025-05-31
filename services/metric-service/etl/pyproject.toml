@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "metric-service-etl microservice"
 requires-python = ">=3.12,<4.0"
 dependencies = [
+    "six>=1.17.0,<2.0.0",
     "clickhouse-driver>=0.2.9,<0.3",
     "kafka-python>=2.2.10,<2.3",
     "python-dotenv>=1.1.0,<2.0.0",

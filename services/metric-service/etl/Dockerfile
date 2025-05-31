@@ -15,15 +15,8 @@ ENV PATH="/root/.local/bin:${PATH}"
 
 COPY services/metric-service/etl/pyproject.toml services/metric-service/etl/poetry.lock ./
 
+RUN poetry install --only main
 
-
-COPY requirements.txt requirements.txt
-COPY .env .env
-
-RUN  pip install --no-cache-dir --upgrade pip \
-     && pip install -r requirements.txt
-
-COPY ./etl .
-
+COPY services/metric-service/etl/ .
 
 CMD [ "python", "main.py" ]
