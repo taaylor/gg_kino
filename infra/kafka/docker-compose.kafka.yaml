@@ -76,6 +76,8 @@ services:
 
   kafka-init:
     image: bitnami/kafka:3.4
+    env_file:
+      - ../../.env
     depends_on:
       kafka-0:
         condition: service_healthy
@@ -86,11 +88,11 @@ services:
     command: >
       bash -c "
         until /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka-0:9092 --list; do sleep 5; done &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic user_metric_like_event --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic user_metric_comment_event --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic user_metric_watch_progress_event --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic user_metric_add_to_watch_list_event --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic user_metric_other_event --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$LIKE_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$COMMENT_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$WATCH_PROGRESS_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$WATCH_LIST_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$OTHER_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000
       "
 
 
