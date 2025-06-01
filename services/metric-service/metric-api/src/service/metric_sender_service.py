@@ -56,7 +56,7 @@ class MetricProcessor:
 
     def _get_session_data(self, headers: dict) -> dict[str, str | None]:
         token_payload = {}
-        jwt_token = self._get_header_case_insensitive(headers, "authorization")
+        jwt_token = self._get_header_case_insensitive(headers, "X-Authorization")
 
         if jwt_token:
             _, token = jwt_token.split()
