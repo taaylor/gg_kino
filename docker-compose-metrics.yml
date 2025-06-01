@@ -1,0 +1,89 @@
+services:
+  zookeeper:
+    image: zookeeper:3.8
+    container_name: zookeeper
+    hostname: zookeeper
+
+  clickhouse-node1:
+    image: clickhouse/clickhouse-server:24
+    environment:
+      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
+      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+    container_name: clickhouse-node1
+    hostname: clickhouse-node1
+    volumes:
+      - ./infra/clickhouse/data/node1:/etc/clickhouse-server
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://clickhouse-node1:8123/ping || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  clickhouse-node2:
+    image: clickhouse/clickhouse-server:24
+    environment:
+      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
+      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+    container_name: clickhouse-node2
+    hostname: clickhouse-node2
+    volumes:
+      - ./infra/clickhouse/data/node2:/etc/clickhouse-server
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://clickhouse-node1:8123/ping || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  clickhouse-node3:
+    image: clickhouse/clickhouse-server:24
+    environment:
+      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
+      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+    container_name: clickhouse-node3
+    hostname: clickhouse-node3
+    volumes:
+      - ./infra/clickhouse/data/node3:/etc/clickhouse-server
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://clickhouse-node3:8123/ping || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  clickhouse-node4:
+    image: clickhouse/clickhouse-server:24
+    environment:
+      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
+      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+    container_name: clickhouse-node4
+    hostname: clickhouse-node4
+    volumes:
+      - ./infra/clickhouse/data/node4:/etc/clickhouse-server
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://clickhouse-node4:8123/ping || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  init_clickhouse:
+    build:
+      context: .
+      dockerfile: ./backup/clickhouse_init_struct/Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      clickhouse-node1:
+        condition: service_healthy
+      clickhouse-node2:
+        condition: service_healthy
+      clickhouse-node3:
+        condition: service_healthy
+      clickhouse-node4:
+        condition: service_healthy
