@@ -21,13 +21,47 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
+class Kafka(BaseModel):
+    host_1: str = "localhost"
+    port_1: int = 9094
+    host_2: str = "localhost"
+    port_2: int = 9095
+    host_3: str = "localhost"
+    port_3: int = 9096
+
+    acks: int | str = 1  # 0, 1, 'all'
+    retries: int = 3
+    retry_backoff_ms: int = 100
+    request_timeout_ms: int = 5000
+    batch_size: int = 16384  # 16KB
+    linger_ms: int = 5  # Ждать до 5ms для батчинга
+    buffer_memory: int = 33554432  # 32MB
+
+    security_protocol: str = "PLAINTEXT"  # PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
+
+    @property
+    def get_servers(self) -> list[str]:
+        return [
+            f"{self.host_1}:{self.port_1}",
+            f"{self.host_2}:{self.port_2}",
+            f"{self.host_3}:{self.port_3}",
+        ]
+
+    like_topic: str = "user_metric_like_event"
+    comment_topic: str = "user_metric_comment_event"
+    watch_progress_topic: str = "user_metric_watch_progress_event"
+    watch_list_topic: str = "user_metric_add_to_watch_list_event"
+    other_topic: str = "user_metric_other_event"
+
+
 class AppConfig(BaseSettings):
     project_name: str = "metric-api"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_url: str = "/auth/openapi"
-    openapi_url: str = "/auth/openapi.json"
+    docs_url: str = "/metric/openapi"
+    openapi_url: str = "/metric/openapi.json"
 
     server: Server = Server()
+    kafka: Kafka = Kafka()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
