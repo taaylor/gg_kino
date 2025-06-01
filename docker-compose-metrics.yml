@@ -15,6 +15,7 @@ services:
     volumes:
       - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
       - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_1:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -34,6 +35,7 @@ services:
     volumes:
       - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
       - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_2:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -53,6 +55,7 @@ services:
     volumes:
       - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
       - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - clickhouse_data_node_3:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -72,6 +75,7 @@ services:
     volumes:
       - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
       - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_4:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -96,3 +100,9 @@ services:
         condition: service_healthy
       clickhouse-node4:
         condition: service_healthy
+
+volumes:
+  clickhouse_data_node_1:
+  clickhouse_data_node_2:
+  clickhouse_data_node_3:
+  clickhouse_data_node_4:
