@@ -1,5 +1,5 @@
 include:
-    - ./infra/kafka/docker-compose.kafka.yaml
+  - ./infra/kafka/docker-compose.kafka.yaml
 
 services:
 
@@ -95,6 +95,7 @@ services:
     environment:
       - CLK_HOST=${CLK_HOST}
       - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_USER=${CLK_USER}
     depends_on:
       clickhouse-node1:
         condition: service_healthy
