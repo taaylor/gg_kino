@@ -1,4 +1,8 @@
+include:
+    - ./infra/kafka/docker-compose.kafka.yaml
+
 services:
+
   zookeeper:
     image: zookeeper:3.8
     container_name: zookeeper
