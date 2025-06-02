@@ -1,9 +1,7 @@
 import logging
 
 import dotenv
-
-# from pydantic import BaseModel
-from pydantic_settings import BaseSettings  # , SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 ENV_FILE = dotenv.find_dotenv()
 
@@ -15,6 +13,24 @@ class KafkaConfig(BaseSettings):
     host_1: str = "kafka-1"
     host_2: str = "kafka-2"
     port: int = 9092
+    batch_size: int = 1000
+    timeout_ms: int = 1000
+    group_id: str = "metrics-etl-group"
+    like_topic: str = "user_metric_like_event"  # LIKE_TOPIC
+    comment_topic: str = "user_metric_comment_event"  # COMMENT_TOPIC
+    watch_progress_topic: str = "user_metric_watch_progress_event"  # WATCH_PROGRESS_TOPIC
+    watch_list_topic: str = "user_metric_add_to_watch_list_event"  # WATCH_LIST_TOPIC
+    other_topic: str = "user_metric_other_event"  # OTHER_TOPIC
+
+    @property
+    def topics(self):
+        return [
+            self.like_topic,
+            self.comment_topic,
+            self.watch_progress_topic,
+            self.watch_list_topic,
+            self.other_topic,
+        ]
 
     @property
     def bootstrap_servers(self):
@@ -28,6 +44,8 @@ class KafkaConfig(BaseSettings):
 class ClickHouseConfig(BaseSettings):
     host: str = "localhost"
     port: int = 9000
+    db_name: str = "kinoservice"
+    table_name_dist: str = "metrics_distributed"
 
 
 kafka_config = KafkaConfig()

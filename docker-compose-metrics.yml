@@ -87,3 +87,22 @@ services:
         condition: service_healthy
       clickhouse-node4:
         condition: service_healthy
+
+  etl:
+    build:
+      context: .
+      dockerfile: ./services/metric-service/etl/Dockerfile
+    env_file:
+      - ./.env
+    # cpus: "1"
+    # mem_limit: 256M
+    depends_on:
+      clickhouse-node1:
+        condition: service_healthy
+      clickhouse-node2:
+        condition: service_healthy
+      clickhouse-node3:
+        condition: service_healthy
+      clickhouse-node4:
+        condition: service_healthy
+    restart: always
