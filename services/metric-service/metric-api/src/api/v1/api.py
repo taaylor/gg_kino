@@ -5,6 +5,7 @@ from apiflask import APIBlueprint, HTTPError
 from flask import request
 from models.logic_models import EntryEvent
 from service.metric_sender_service import get_metric_processor
+from utils.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ metric_bp = APIBlueprint("metric", __name__, tag="external-metrics-api")
 
 
 @metric_bp.post("/metric/")
+@limiter.limit("1000 per minute")
 @metric_bp.input(EventRequest)
 @metric_bp.output({}, status_code=204)
 @metric_bp.doc(
