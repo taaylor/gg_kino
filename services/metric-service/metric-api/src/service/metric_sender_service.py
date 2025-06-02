@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import jwt
 from core.config import app_config
+from models.enums import EventTypes
 from models.logic_models import EntryEvent, MetricEvent
 from utils.kafka_connector import KafkaConnector, get_broker_connector
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class MetricProcessor:
+    __slots__ = ["broker"]
+
     def __init__(self, broker: KafkaConnector) -> None:
         self.broker = broker
 
@@ -19,13 +22,13 @@ class MetricProcessor:
         target_topic = None
         session_data = self._get_session_data(headers=headers)
 
-        if event.event_type == "like":
+        if event.event_type == EventTypes.LIKE:
             target_topic = app_config.kafka.like_topic
-        elif event.event_type == "comment":
+        elif event.event_type == EventTypes.COMMENT:
             target_topic = app_config.kafka.comment_topic
-        elif event.event_type == "watch_progress":
+        elif event.event_type == EventTypes.WATCH_PROGRESS:
             target_topic = app_config.kafka.watch_progress_topic
-        elif event.event_type == "watch_list":
+        elif event.event_type == EventTypes.WATCH_LIST:
             target_topic = app_config.kafka.watch_list_topic
         else:
             target_topic = app_config.kafka.other_topic
@@ -35,6 +38,7 @@ class MetricProcessor:
             user_session=session_data.get("user_session"),
             user_uuid=session_data.get("user_uuid"),
             ip_address=session_data.get("ip_address"),
+            user_agent=session_data.get("user_agent"),
             film_uuid=str(getattr(event, "film_uuid", None)),
             event_type=getattr(event, "event_type", "other"),
             message_event=getattr(event, "message_event", None),
@@ -56,7 +60,7 @@ class MetricProcessor:
 
     def _get_session_data(self, headers: dict) -> dict[str, str | None]:
         token_payload = {}
-        jwt_token = self._get_header_case_insensitive(headers, "X-Authorization")
+        jwt_token = self._get_header_case_insensitive(headers, "Authorization")
 
         if jwt_token:
             _, token = jwt_token.split()

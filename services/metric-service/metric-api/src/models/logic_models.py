@@ -28,6 +28,7 @@ class MetricEvent(BaseModel):
     ip_address: str | None = Field(None, description="IP адрес пользователя")
     film_uuid: str | None = Field(None, description="Идентификатор фильма")
     event_type: str = Field(description="Тип события")
+    user_agent: str | None = Field(None, description="Клиентское устройство пользователя")
     message_event: str | None = Field(None, description="Сообщение события")
     event_timestamp: datetime = Field(description="Время события на сервере")
     user_timestamp: datetime | None = Field(None, description="Время события на клиенте")

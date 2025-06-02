@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 class KafkaConnector:
     """Класс для управления подключениями к Kafka"""
 
+    __slots__ = ["config", "_producer"]
+
     def __init__(self) -> None:
         self.config = self._get_config()
         self._producer: KafkaProducer | None = None

@@ -10,6 +10,15 @@ app = APIFlask(
     spec_path=app_config.openapi_url,
     docs_path=app_config.docs_url,
 )
+app.security_schemes = {
+    "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Опциональное указание токена авторизации",
+    }
+}
+
 
 app.register_blueprint(metric_bp, url_prefix="/metrics/v1")
 
