@@ -6,9 +6,11 @@ from core.config import app_config
 from utils.kafka_connector import shutdown_broker
 
 app = APIFlask(
-    app_config.project_name, spec_path=app_config.openapi_url, docs_path=app_config.docs_url
+    app_config.project_name,
+    spec_path=app_config.openapi_url,
+    docs_path=app_config.docs_url,
 )
 
-app.register_blueprint(metric_bp)
+app.register_blueprint(metric_bp, url_prefix="/metrics/v1")
 
 atexit.register(shutdown_broker)

@@ -18,16 +18,16 @@ class Server(BaseModel):
     backlog: int = 512
     max_requests: int = 1000
     max_requests_jitter: int = 50
-    worker_class: str = "uvicorn.workers.UvicornWorker"
+    worker_class: str = "gevent"
 
 
 class Kafka(BaseModel):
-    host_1: str = "localhost"
-    port_1: int = 9094
-    host_2: str = "localhost"
-    port_2: int = 9095
-    host_3: str = "localhost"
-    port_3: int = 9096
+    host1: str = "localhost"
+    port1: int = 9094
+    host2: str = "localhost"
+    port2: int = 9095
+    host3: str = "localhost"
+    port3: int = 9096
 
     acks: int | str = 1  # 0, 1, 'all'
     retries: int = 3
@@ -42,9 +42,9 @@ class Kafka(BaseModel):
     @property
     def get_servers(self) -> list[str]:
         return [
-            f"{self.host_1}:{self.port_1}",
-            f"{self.host_2}:{self.port_2}",
-            f"{self.host_3}:{self.port_3}",
+            f"{self.host1}:{self.port1}",
+            f"{self.host2}:{self.port2}",
+            f"{self.host3}:{self.port3}",
         ]
 
     like_topic: str = "user_metric_like_event"
@@ -57,8 +57,8 @@ class Kafka(BaseModel):
 class AppConfig(BaseSettings):
     project_name: str = "metric-api"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_url: str = "/metric/openapi"
-    openapi_url: str = "/metric/openapi.json"
+    docs_url: str = "/metrics/openapi"
+    openapi_url: str = "/metrics/openapi.json"
 
     server: Server = Server()
     kafka: Kafka = Kafka()

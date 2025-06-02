@@ -9,16 +9,16 @@ from service.metric_sender_service import get_metric_processor
 logger = logging.getLogger(__name__)
 
 
-metric_bp = APIBlueprint("metrics", __name__, tag="external-metrics-api")
+metric_bp = APIBlueprint("metric", __name__, tag="external-metrics-api")
 
 
-@metric_bp.post("/metrics/")
+@metric_bp.post("/metric/")
 @metric_bp.input(EventRequest)
 @metric_bp.input({"X-Authorization": fields.String()}, location="headers", validation=False)
 @metric_bp.output(EmptySchema, status_code=204)
 @metric_bp.doc(
-    summary="Метод принимающий метрики",
-    description="Метод принимает объект метрики и отправляет его в Kafka",
+    summary="Создание события метрики",
+    description="Принимает событие метрики пользователя и отправляет его в Kafka для дальнейшей обработки",  # noqa E501
 )
 def get_metrics(headers_data, json_data):
     try:
