@@ -30,6 +30,7 @@ repos:
                 \.venv/.*|
                 build/.*|
                 dist/.*|
+                docs/.*|
                 migrations/.*|
                 migration/.*
             )$
@@ -50,6 +51,7 @@ repos:
                 \.venv/.*|
                 build/.*|
                 dist/.*|
+                docs/.*|
                 .*/migrations/.*|
                 .*/migration/.*|
                 services/auth-service/src/migration/.*|

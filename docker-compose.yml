@@ -1,5 +1,6 @@
 include:
-  - ./docker-compose-metrics.yml
+    - ./docker-compose-metrics.yml
+    - ./services/metric-service/docker-compose.metric-services.yml
 
 services:
   elasticsearch:
@@ -209,6 +210,7 @@ services:
       - async-api
       - auth-api
       - admin-panel
+      - metric-api
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
     restart: always
