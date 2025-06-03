@@ -36,6 +36,8 @@ def main():
             batch_size=kafka_config.batch_size,
         )
 
+        logger.info(f"Прочитано сообщений: {len(messages)}")
+
         # Если сообщений нет, ждём секунду и повторяем цикл
         if not messages:
             time.sleep(15)

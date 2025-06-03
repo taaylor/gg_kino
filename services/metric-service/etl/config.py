@@ -17,7 +17,7 @@ class KafkaConfig(BaseSettings):
     port_3: int = 9092
     batch_size: int = 5000
     timeout_ms: int = 1000
-    group_id: str = "metrics-etl-group"
+    group_id: str = "metrics-etl-group"  # Вернули исходное имя группы
     like_topic: str = "user_metric_like_event"  # LIKE_TOPIC
     comment_topic: str = "user_metric_comment_event"  # COMMENT_TOPIC
     watch_progress_topic: str = "user_metric_watch_progress_event"  # WATCH_PROGRESS_TOPIC

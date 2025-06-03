@@ -20,17 +20,41 @@ def extract_from_kafka(
     :return: Список словарей с данными сообщений.
     """
     try:
+        logger.info(f"Создание KafkaConsumer для топиков: {topics}")
+        logger.info(f"Bootstrap servers: {bootstrap_servers}")
+        logger.info(f"Group ID: {group_id}")
+
         consumer = KafkaConsumer(
             *topics,
             bootstrap_servers=bootstrap_servers,
             group_id=group_id,
-            auto_offset_reset="earliest",
+            auto_offset_reset="earliest",  # Читаем с начала для обработки всех сообщений
             enable_auto_commit=True,
             value_deserializer=lambda x: x.decode("utf-8"),
+            consumer_timeout_ms=5000,  # Увеличиваем общий timeout
         )
 
+        logger.info("KafkaConsumer создан успешно")
+
+        # Дожидаемся назначения партиций (важно!)
+        logger.info("Ожидание назначения партиций...")
+        max_retries = 10
+        for i in range(max_retries):
+            if consumer.assignment():
+                logger.info(f"Партиции назначены: {consumer.assignment()}")
+                break
+            logger.info(f"Попытка {i+1}/{max_retries}: партиции еще не назначены, ждем...")
+            # Вызов poll с timeout=0 триггерит процесс назначения партиций
+            consumer.poll(timeout_ms=0)
+            import time
+
+            time.sleep(1)
+        else:
+            logger.warning("Партиции не были назначены после ожидания")
+
         # Получаем батч сообщений
-        batch = consumer.poll(timeout_ms=1000, max_records=batch_size)
+        logger.info("Запрос батча сообщений...")
+        batch = consumer.poll(timeout_ms=5000, max_records=batch_size)  # Увеличиваем timeout
 
         # Список для хранения распарсенных сообщений
         messages = []
