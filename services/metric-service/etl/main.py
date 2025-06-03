@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 from config import clickhouse_config, kafka_config
 from extract import extract_from_kafka
@@ -36,9 +37,9 @@ def main():
         )
 
         # Если сообщений нет, ждём секунду и повторяем цикл
-        # if not messages:
-        #     time.sleep(1)
-        #     continue
+        if not messages:
+            time.sleep(15)
+            continue
 
         # Преобразуем сообщения
         transformed_messages = transform_messages(messages=messages)

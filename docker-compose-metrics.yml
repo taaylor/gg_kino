@@ -113,14 +113,6 @@ services:
     env_file:
       - ./.env
     depends_on:
-      clickhouse-node1:
-        condition: service_healthy
-      clickhouse-node2:
-        condition: service_healthy
-      clickhouse-node3:
-        condition: service_healthy
-      clickhouse-node4:
-        condition: service_healthy
       init_clickhouse:
         condition: service_completed_successfully
     restart: always
