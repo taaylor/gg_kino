@@ -112,8 +112,6 @@ services:
       dockerfile: ./services/metric-service/etl/Dockerfile
     env_file:
       - ./.env
-    # cpus: "1"
-    # mem_limit: 256M
     depends_on:
       clickhouse-node1:
         condition: service_healthy
