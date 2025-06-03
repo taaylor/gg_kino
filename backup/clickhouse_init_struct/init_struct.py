@@ -24,15 +24,17 @@ logger = get_logger(__name__)
 
 load_dotenv(find_dotenv())
 
-CLICKHOUSE_HOST = os.getenv("CLICKHOUSE_HOST")
+CLICKHOUSE_HOST = os.getenv("CLK_HOST")
+PASSWORD = os.getenv("CLK_DEFAULT_PASSWORD")
+USER = os.getenv("CLK_USER")
 TABLE_NAME = "metrics"
-TABLE_NAME_DIST = "metrics_distributed"
+TABLE_NAME_DIST = "metrics_dst"
 DB_NAME = "kinoservice"
 CLUSTER_NAME = "kinoservice_cluster"
 
 
 def main():
-    client = Client(CLICKHOUSE_HOST)
+    client = Client(CLICKHOUSE_HOST, user=USER, password=PASSWORD)
 
     # Создание базы данных
     client.execute(
@@ -53,6 +55,7 @@ def main():
             id Int64 DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
+            user_agent String,
             ip_address Nullable(String),
             film_uuid Nullable(UUID),
             event_params Map(String, String),
@@ -66,7 +69,7 @@ def main():
             '{replica}'
         )
         PARTITION BY toYYYYMMDD(event_timestamp)
-        ORDER BY (event_timestamp, id, event_type)
+        ORDER BY event_timestamp
         TTL event_timestamp + INTERVAL 360 DAY
         SETTINGS index_granularity = 8192
     """.format(
@@ -88,6 +91,7 @@ def main():
             id Int64 DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
+            user_agent String,
             ip_address Nullable(String),
             film_uuid Nullable(UUID),
             event_params Map(String, String),

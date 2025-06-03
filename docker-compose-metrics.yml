@@ -1,18 +1,25 @@
+include:
+  - ./infra/kafka/docker-compose.kafka.yaml
+
 services:
+
   zookeeper:
     image: zookeeper:3.8
     container_name: zookeeper
     hostname: zookeeper
 
   clickhouse-node1:
-    image: clickhouse/clickhouse-server:24
+    image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
-      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_NODE_NAME=clickhouse-node1
+      - CLK_SHARD_NAME=1
     container_name: clickhouse-node1
     hostname: clickhouse-node1
     volumes:
-      - ./infra/clickhouse/data/node1:/etc/clickhouse-server
+      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_1:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -22,14 +29,17 @@ services:
       retries: 10
 
   clickhouse-node2:
-    image: clickhouse/clickhouse-server:24
+    image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
-      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_NODE_NAME=clickhouse-node2
+      - CLK_SHARD_NAME=1
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
-      - ./infra/clickhouse/data/node2:/etc/clickhouse-server
+      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_2:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -39,14 +49,17 @@ services:
       retries: 10
 
   clickhouse-node3:
-    image: clickhouse/clickhouse-server:24
+    image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
-      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_NODE_NAME=clickhouse-node3
+      - CLK_SHARD_NAME=2
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
-      - ./infra/clickhouse/data/node3:/etc/clickhouse-server
+      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - clickhouse_data_node_3:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -56,14 +69,17 @@ services:
       retries: 10
 
   clickhouse-node4:
-    image: clickhouse/clickhouse-server:24
+    image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_DEFAULT_PASSWORD}
-      - CLICKHOUSE_ADMIN_PASSWORD=${CLICKHOUSE_ADMIN_PASSWORD}
+      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_NODE_NAME=clickhouse-node4
+      - CLK_SHARD_NAME=2
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
-      - ./infra/clickhouse/data/node4:/etc/clickhouse-server
+      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - clickhouse_data_node_4:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
@@ -76,8 +92,10 @@ services:
     build:
       context: .
       dockerfile: ./backup/clickhouse_init_struct/Dockerfile
-    env_file:
-      - ./.env
+    environment:
+      - CLK_HOST=${CLK_HOST}
+      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      - CLK_USER=${CLK_USER}
     depends_on:
       clickhouse-node1:
         condition: service_healthy
@@ -106,3 +124,9 @@ services:
       clickhouse-node4:
         condition: service_healthy
     restart: always
+
+volumes:
+  clickhouse_data_node_1:
+  clickhouse_data_node_2:
+  clickhouse_data_node_3:
+  clickhouse_data_node_4:
