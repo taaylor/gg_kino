@@ -42,7 +42,7 @@ def extract_from_kafka(
                     # Предполагаем, что сообщение — это JSON-строка
                     message_data = json.loads(msg.value)
                     # Добавляем топик для контекста
-                    message_data["topic"] = msg.topic
+                    # message_data["topic"] = msg.topic
                     messages.append(message_data)
                 except json.JSONDecodeError as e:
                     logger.error(f"Ошибка при парсинге JSON в топике {msg.topic}: {e}")

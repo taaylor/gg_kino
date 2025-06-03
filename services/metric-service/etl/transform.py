@@ -17,13 +17,26 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
     for msg in messages:
         try:
             # Валидация через Pydantic
-            validated_msg = MessageModel(**msg)
+            validated_msg = MessageModel(
+                id=msg["id"],
+                user_session=msg["user_session"],
+                user_uuid=msg["user_uuid"],
+                ip_address=msg["ip_address"],
+                user_agent=msg["user_agent"],
+                film_uuid=msg["film_uuid"],
+                event_type=msg["event_type"],
+                message_event=msg["message_event"],
+                event_params=msg["event_params"],
+                event_timestamp=msg["event_timestamp"],
+                user_timestamp=msg["user_timestamp"],
+            )
 
             # Преобразование в кортеж для ClickHouse
             row = (
                 validated_msg.id,
                 validated_msg.user_session,
                 validated_msg.user_uuid,
+                validated_msg.user_agent,
                 validated_msg.ip_address,
                 validated_msg.film_uuid,
                 validated_msg.event_params,

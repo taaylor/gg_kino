@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class KafkaConfig(BaseSettings):
-    host_0: str = "kafka-0"
-    host_1: str = "kafka-1"
-    host_2: str = "kafka-2"
-    port: int = 9092
+    host_1: str = "kafka-0"
+    host_2: str = "kafka-1"
+    host_3: str = "kafka-2"
+    port_1: int = 9092
+    port_2: int = 9092
+    port_3: int = 9092
     batch_size: int = 5000
     timeout_ms: int = 1000
     group_id: str = "metrics-etl-group"
@@ -35,18 +37,26 @@ class KafkaConfig(BaseSettings):
     @property
     def bootstrap_servers(self):
         return [
-            f"{self.host_0}:{self.port}",
-            f"{self.host_1}:{self.port}",
-            f"{self.host_2}:{self.port}",
+            f"{self.host_1}:{self.port_1}",
+            f"{self.host_2}:{self.port_2}",
+            f"{self.host_3}:{self.port_3}",
         ]
+
+    class Config:
+        env_prefix = "KAFKA_"
 
 
 class ClickHouseConfig(BaseSettings):
     # host: str = "localhost"
     host: str = "clickhouse-node1"
     port: int = 9000
-    db_name: str = "kinoservice"
-    table_name_dist: str = "metrics_distributed"
+    database: str = "kinoservice"
+    table_name_dist: str = "metrics_dst"
+    user: str = "default"  # Значение по умолчанию
+    default_password: str = "1234"
+
+    class Config:
+        env_prefix = "CLK_"
 
 
 kafka_config = KafkaConfig()

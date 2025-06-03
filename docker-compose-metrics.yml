@@ -121,6 +121,8 @@ services:
         condition: service_healthy
       clickhouse-node4:
         condition: service_healthy
+      init_clickhouse:
+        condition: service_completed_successfully
     restart: always
 
 volumes:

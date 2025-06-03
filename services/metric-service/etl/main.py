@@ -1,12 +1,33 @@
+import logging
+import sys
+
 from config import clickhouse_config, kafka_config
 from extract import extract_from_kafka
 from load import load_to_clickhouse
 from transform import transform_messages
 
 
+def get_logger(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    if not logger.hasHandlers():
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+    return logger
+
+
+logger = get_logger(__name__)
+
+
 def main():
+    logger.info("Запуск функции ETL (Kafka > ETL > ClickHouse)")
     while True:
         # Извлекаем батч сообщений из Kafka (до 1000 записей)
+        logger.info("Получаем сообщения")
         messages = extract_from_kafka(
             topics=kafka_config.topics,
             bootstrap_servers=kafka_config.bootstrap_servers,
@@ -27,10 +48,13 @@ def main():
             data=transformed_messages,
             host=clickhouse_config.host,
             port=clickhouse_config.port,
-            db_name=clickhouse_config.db_name,
+            user=clickhouse_config.user,
+            password=clickhouse_config.default_password,
+            database=clickhouse_config.database,
             table_name_dist=clickhouse_config.table_name_dist,
         )
 
 
 if __name__ == "__main__":
+    logger.info("Запуск ETL (Kafka > ETL > ClickHouse)")
     main()
