@@ -1,0 +1,20 @@
+
+services:
+  metric-api:
+    build:
+      context: .
+      dockerfile: ./metric-api/src/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka-0
+      - kafka-1
+      - kafka-2
+    healthcheck:
+      test: ["CMD", "curl", "http://0.0.0.0:8000/metric/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
