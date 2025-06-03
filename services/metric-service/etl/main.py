@@ -20,11 +20,11 @@ def main():
         #     continue
 
         # Преобразуем сообщения
-        transformed_data = transform_messages(messages=messages)
+        transformed_messages = transform_messages(messages=messages)
 
         # Загружаем в ClickHouse
         load_to_clickhouse(
-            data=transformed_data,
+            data=transformed_messages,
             host=clickhouse_config.host,
             port=clickhouse_config.port,
             db_name=clickhouse_config.db_name,

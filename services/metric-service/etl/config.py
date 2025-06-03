@@ -13,7 +13,7 @@ class KafkaConfig(BaseSettings):
     host_1: str = "kafka-1"
     host_2: str = "kafka-2"
     port: int = 9092
-    batch_size: int = 1000
+    batch_size: int = 5000
     timeout_ms: int = 1000
     group_id: str = "metrics-etl-group"
     like_topic: str = "user_metric_like_event"  # LIKE_TOPIC
@@ -42,7 +42,8 @@ class KafkaConfig(BaseSettings):
 
 
 class ClickHouseConfig(BaseSettings):
-    host: str = "localhost"
+    # host: str = "localhost"
+    host: str = "clickhouse-node1"
     port: int = 9000
     db_name: str = "kinoservice"
     table_name_dist: str = "metrics_distributed"
