@@ -1,8 +1,7 @@
-import logging
-
 from clickhouse_driver import Client
+from custom_logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def load_to_clickhouse(
@@ -34,7 +33,6 @@ def load_to_clickhouse(
             """
             INSERT INTO {database}.{table_name_dist}
             (
-                id,
                 user_session,
                 user_uuid,
                 user_agent,

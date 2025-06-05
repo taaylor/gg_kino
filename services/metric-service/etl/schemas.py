@@ -4,10 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class MessageModel(BaseModel):
-    id: UUID = Field(
-        ...,
-        description="UUID события",
-    )
     user_session: UUID | None = Field(
         None,
         description="session_id",

@@ -1,25 +1,11 @@
-import logging
-import sys
 import time
 
 from config import clickhouse_config, kafka_config
+from custom_logging import get_logger
 from extract import extract_from_kafka
+from kafka_connector import KafkaConsumerSingleton
 from load import load_to_clickhouse
 from transform import transform_messages
-
-
-def get_logger(name: str) -> logging.Logger:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-
-    if not logger.hasHandlers():
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
-    return logger
-
 
 logger = get_logger(__name__)
 
@@ -27,8 +13,18 @@ logger = get_logger(__name__)
 def main():
     logger.info("Запуск функции ETL (Kafka > ETL > ClickHouse)")
     while True:
+        KafkaConsumerSingleton(
+            *kafka_config.topics,
+            bootstrap_servers=kafka_config.bootstrap_servers,
+            group_id=kafka_config.group_id,
+            auto_offset_reset="earliest",
+            enable_auto_commit=True,
+            value_deserializer=lambda x: x.decode("utf-8"),
+            consumer_timeout_ms=5000,
+        )
         # Извлекаем батч сообщений из Kafka (до 1000 записей)
         logger.info("Получаем сообщения")
+        # messages = extract_from_kafka(batch_size=kafka_config.batch_size)
         messages = extract_from_kafka(
             topics=kafka_config.topics,
             bootstrap_servers=kafka_config.bootstrap_servers,

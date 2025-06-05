@@ -1,8 +1,7 @@
-import logging
-
+from custom_logging import get_logger
 from schemas import MessageModel
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def transform_messages(messages: list[dict]) -> list[tuple]:
@@ -18,7 +17,6 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
         try:
             # Валидация через Pydantic
             validated_msg = MessageModel(
-                id=msg["id"],
                 user_session=msg["user_session"],
                 user_uuid=msg["user_uuid"],
                 ip_address=msg["ip_address"],
@@ -33,7 +31,6 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
 
             # Преобразование в кортеж для ClickHouse
             row = (
-                validated_msg.id,
                 validated_msg.user_session,
                 validated_msg.user_uuid,
                 validated_msg.user_agent,

@@ -1,10 +1,9 @@
 import json
-import logging
 
-from kafka import KafkaConsumer
+from custom_logging import get_logger
+from kafka_connector import KafkaConsumerSingleton
 
-# Настройка логирования
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def extract_from_kafka(
@@ -23,16 +22,16 @@ def extract_from_kafka(
         logger.info(f"Создание KafkaConsumer для топиков: {topics}")
         logger.info(f"Bootstrap servers: {bootstrap_servers}")
         logger.info(f"Group ID: {group_id}")
-
-        consumer = KafkaConsumer(
-            *topics,
-            bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
-            auto_offset_reset="earliest",  # Читаем с начала для обработки всех сообщений
-            enable_auto_commit=True,
-            value_deserializer=lambda x: x.decode("utf-8"),
-            consumer_timeout_ms=5000,  # Увеличиваем общий timeout
-        )
+        consumer = KafkaConsumerSingleton().consumer
+        # consumer = KafkaConsumer(
+        #     *topics,
+        #     bootstrap_servers=bootstrap_servers,
+        #     group_id=group_id,
+        #     auto_offset_reset="earliest",  # Читаем с начала для обработки всех сообщений
+        #     enable_auto_commit=True,
+        #     value_deserializer=lambda x: x.decode("utf-8"),
+        #     consumer_timeout_ms=5000,  # Увеличиваем общий timeout
+        # )
 
         logger.info("KafkaConsumer создан успешно")
 
