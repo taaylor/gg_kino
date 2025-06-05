@@ -1,9 +1,12 @@
 from clickhouse_driver import Client
-from custom_logging import get_logger
+from clickhouse_driver.dbapi import DatabaseError
+from core.logger_config import get_logger
+from utils.decorators import backoff
 
 logger = get_logger(__name__)
 
 
+@backoff(exception=(DatabaseError,))
 def load_to_clickhouse(
     data: list[tuple],
     client: Client,

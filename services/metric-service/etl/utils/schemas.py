@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -36,11 +37,11 @@ class MessageModel(BaseModel):
         default_factory=dict,
         description="Параметры события",
     )
-    event_timestamp: str = Field(
+    event_timestamp: datetime = Field(
         ...,
         description="Время события",
     )
-    user_timestamp: str = Field(
+    user_timestamp: datetime = Field(
         ...,
         description="Время события в часовом поясе клиента",
     )

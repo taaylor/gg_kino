@@ -1,12 +1,12 @@
 import time
 
 from clickhouse_driver import Client
-from config import clickhouse_config, kafka_config
-from custom_logging import get_logger
-from extract import extract_from_kafka
-from kafka_connector import KafkaConsumerSingleton
-from load import load_to_clickhouse
-from transform import transform_messages
+from core.config import clickhouse_config, kafka_config
+from core.logger_config import get_logger
+from pipeline.extract import extract_from_kafka
+from pipeline.load import load_to_clickhouse
+from pipeline.transform import transform_messages
+from utils.kafka_connector import KafkaConsumerSingleton
 
 logger = get_logger(__name__)
 

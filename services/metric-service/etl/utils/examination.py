@@ -3,8 +3,15 @@ import random
 import uuid
 from copy import deepcopy
 
-from config import kafka_config
 from kafka import KafkaProducer
+
+TOPICS = [
+    "user_metric_like_event",
+    "user_metric_comment_event",
+    "user_metric_watch_progress_event",
+    "user_metric_add_to_watch_list_event",
+    "user_metric_other_event",
+]
 
 template_payload = {
     "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -23,7 +30,7 @@ template_payload = {
 producer = KafkaProducer(bootstrap_servers=["localhost:9094"])
 
 for i in range(10000):
-    topic = random.choice(kafka_config.topics)
+    topic = random.choice(TOPICS)
     message = deepcopy(template_payload)
     message["id"] = str(uuid.uuid4())
     message["user_session"] = str(uuid.uuid4())

@@ -1,5 +1,5 @@
 import dotenv
-from custom_logging import get_logger
+from core.logger_config import get_logger
 from pydantic_settings import BaseSettings
 
 ENV_FILE = dotenv.find_dotenv()

@@ -1,7 +1,5 @@
-from datetime import datetime
-
-from custom_logging import get_logger
-from schemas import MessageModel
+from core.logger_config import get_logger
+from utils.schemas import MessageModel
 
 logger = get_logger(__name__)
 
@@ -41,8 +39,8 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
                 validated_msg.event_params,
                 validated_msg.event_type,
                 validated_msg.message_event,
-                datetime.fromisoformat(validated_msg.event_timestamp),
-                datetime.fromisoformat(validated_msg.user_timestamp),
+                validated_msg.event_timestamp,
+                validated_msg.user_timestamp,
             )
 
             transformed_messages[idx] = row

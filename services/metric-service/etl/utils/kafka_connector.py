@@ -1,4 +1,4 @@
-from custom_logging import get_logger
+from core.logger_config import get_logger
 from kafka import KafkaConsumer
 
 logger = get_logger(__name__)
