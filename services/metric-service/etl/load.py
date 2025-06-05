@@ -6,10 +6,7 @@ logger = get_logger(__name__)
 
 def load_to_clickhouse(
     data: list[tuple],
-    host: str,
-    port: str,
-    user: str,
-    password: str,
+    client: Client,
     database: str,
     table_name_dist: str,
 ):
@@ -21,15 +18,7 @@ def load_to_clickhouse(
     :param table_name_dist: Имя таблицы в ClickHouse.
     """
     try:
-        client = Client(
-            host=host,
-            port=port,
-            database=database,
-            user=user,
-            password=password,
-        )
         client.execute(
-            # kinoservice.metrics_distributed
             """
             INSERT INTO {database}.{table_name_dist}
             (
@@ -54,5 +43,3 @@ def load_to_clickhouse(
         logger.info(f"Загружено {len(data)} записей в таблицу {database}.{table_name_dist}")
     except Exception as e:
         logger.error(f"Ошибка при загрузке в ClickHouse: {e}")
-    finally:
-        client.disconnect()

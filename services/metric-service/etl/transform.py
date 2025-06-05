@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from custom_logging import get_logger
 from schemas import MessageModel
 
@@ -11,9 +13,9 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
     :param messages: Список словарей с данными сообщений.
     :return: Список кортежей для вставки в ClickHouse.
     """
-    transformed_messages = []
+    transformed_messages = [None] * len(messages)
 
-    for msg in messages:
+    for idx, msg in enumerate(messages, start=0):
         try:
             # Валидация через Pydantic
             validated_msg = MessageModel(
@@ -39,10 +41,12 @@ def transform_messages(messages: list[dict]) -> list[tuple]:
                 validated_msg.event_params,
                 validated_msg.event_type,
                 validated_msg.message_event,
-                validated_msg.event_timestamp,
-                validated_msg.user_timestamp,
+                datetime.fromisoformat(validated_msg.event_timestamp),
+                datetime.fromisoformat(validated_msg.user_timestamp),
             )
-            transformed_messages.append(row)
+
+            transformed_messages[idx] = row
+
         except Exception as e:
             logger.error(f"Ошибка при валидации/преобразовании сообщения: {e}")
             continue

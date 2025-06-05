@@ -17,12 +17,12 @@ class KafkaConfig(BaseSettings):
     port_3: int = 9092
     batch_size: int = 5000
     timeout_ms: int = 1000
-    group_id: str = "metrics-etl-group"  # Вернули исходное имя группы
-    like_topic: str = "user_metric_like_event"  # LIKE_TOPIC
-    comment_topic: str = "user_metric_comment_event"  # COMMENT_TOPIC
-    watch_progress_topic: str = "user_metric_watch_progress_event"  # WATCH_PROGRESS_TOPIC
-    watch_list_topic: str = "user_metric_add_to_watch_list_event"  # WATCH_LIST_TOPIC
-    other_topic: str = "user_metric_other_event"  # OTHER_TOPIC
+    group_id: str = "metrics-etl-group"
+    like_topic: str = "user_metric_like_event"
+    comment_topic: str = "user_metric_comment_event"
+    watch_progress_topic: str = "user_metric_watch_progress_event"
+    watch_list_topic: str = "user_metric_add_to_watch_list_event"
+    other_topic: str = "user_metric_other_event"
 
     @property
     def topics(self):
@@ -47,12 +47,11 @@ class KafkaConfig(BaseSettings):
 
 
 class ClickHouseConfig(BaseSettings):
-    # host: str = "localhost"
     host: str = "clickhouse-node1"
     port: int = 9000
     database: str = "kinoservice"
     table_name_dist: str = "metrics_dst"
-    user: str = "default"  # Значение по умолчанию
+    user: str = "default"
     default_password: str = "1234"
 
     class Config:

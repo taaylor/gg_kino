@@ -1,5 +1,6 @@
 include:
-    - ./docker-compose-metrics.yml
+    - ./infra/kafka/docker-compose.kafka.yaml
+    - ./infra/clickhouse/docker-compose.clickhouse.yml
     - ./services/metric-service/docker-compose.metric-services.yml
 
 services:

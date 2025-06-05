@@ -34,7 +34,7 @@ CLUSTER_NAME = "kinoservice_cluster"
 
 
 def main():
-    client = Client(CLICKHOUSE_HOST, user=USER, password=PASSWORD)
+    client = Client(CLICKHOUSE_HOST)
 
     # Создание базы данных
     client.execute(
@@ -52,7 +52,7 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64 DEFAULT generateUUIDv4(),
+            id UUID DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
             user_agent String,
@@ -88,7 +88,7 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME_DIST}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64 DEFAULT generateUUIDv4(),
+            id UUID DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
             user_agent String,

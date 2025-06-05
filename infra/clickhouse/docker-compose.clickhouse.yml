@@ -1,8 +1,4 @@
-include:
-  - ./infra/kafka/docker-compose.kafka.yaml
-
 services:
-
   zookeeper:
     image: zookeeper:3.8
     container_name: zookeeper
@@ -11,17 +7,19 @@ services:
   clickhouse-node1:
     image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      # - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
       - CLK_NODE_NAME=clickhouse-node1
       - CLK_SHARD_NAME=1
     container_name: clickhouse-node1
     hostname: clickhouse-node1
     volumes:
-      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
-      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      # - ./users.xml:/etc/clickhouse-server/users.d/users.xml:ro
       - clickhouse_data_node_1:/var/lib/clickhouse
     depends_on:
       - zookeeper
+    ports:
+      - "8123:8123"
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://clickhouse-node1:8123/ping || exit 1
       interval: 5s
@@ -31,19 +29,19 @@ services:
   clickhouse-node2:
     image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      # - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
       - CLK_NODE_NAME=clickhouse-node2
       - CLK_SHARD_NAME=1
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
-      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
-      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      # - ./users.xml:/etc/clickhouse-server/users.d/users.xml:ro
       - clickhouse_data_node_2:/var/lib/clickhouse
     depends_on:
       - zookeeper
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://clickhouse-node1:8123/ping || exit 1
+      test: wget --no-verbose --tries=1 --spider http://clickhouse-node2:8123/ping || exit 1
       interval: 5s
       timeout: 10s
       retries: 10
@@ -51,14 +49,14 @@ services:
   clickhouse-node3:
     image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      # - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
       - CLK_NODE_NAME=clickhouse-node3
       - CLK_SHARD_NAME=2
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
-      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
-      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      # - ./users.xml:/etc/clickhouse-server/users.d/users.xml:ro
       - clickhouse_data_node_3:/var/lib/clickhouse
     depends_on:
       - zookeeper
@@ -71,14 +69,14 @@ services:
   clickhouse-node4:
     image: clickhouse/clickhouse-server:25.5
     environment:
-      - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
+      # - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
       - CLK_NODE_NAME=clickhouse-node4
       - CLK_SHARD_NAME=2
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
-      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
-      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      # - ./users.xml:/etc/clickhouse-server/users.d/users.xml:ro
       - clickhouse_data_node_4:/var/lib/clickhouse
     depends_on:
       - zookeeper
@@ -90,8 +88,8 @@ services:
 
   init_clickhouse:
     build:
-      context: .
-      dockerfile: ./backup/clickhouse_init_struct/Dockerfile
+      context: ../../backup/clickhouse_init_struct
+      dockerfile: Dockerfile
     environment:
       - CLK_HOST=${CLK_HOST}
       - CLK_DEFAULT_PASSWORD=${CLK_DEFAULT_PASSWORD}
@@ -105,17 +103,6 @@ services:
         condition: service_healthy
       clickhouse-node4:
         condition: service_healthy
-
-  etl:
-    build:
-      context: .
-      dockerfile: ./services/metric-service/etl/Dockerfile
-    env_file:
-      - ./.env
-    depends_on:
-      init_clickhouse:
-        condition: service_completed_successfully
-    restart: always
 
 volumes:
   clickhouse_data_node_1:

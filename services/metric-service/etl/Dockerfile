@@ -13,10 +13,10 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY services/metric-service/etl/pyproject.toml services/metric-service/etl/poetry.lock ./
+COPY ./etl/pyproject.toml ./etl/poetry.lock ./
 
 RUN poetry install --only main
 
-COPY services/metric-service/etl/ .
+COPY ./etl .
 
 CMD [ "python", "main.py" ]

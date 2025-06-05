@@ -1,5 +1,6 @@
 import time
 
+from clickhouse_driver import Client
 from config import clickhouse_config, kafka_config
 from custom_logging import get_logger
 from extract import extract_from_kafka
@@ -11,47 +12,45 @@ logger = get_logger(__name__)
 
 
 def main():
-    logger.info("Запуск функции ETL (Kafka > ETL > ClickHouse)")
-    while True:
-        KafkaConsumerSingleton(
-            *kafka_config.topics,
-            bootstrap_servers=kafka_config.bootstrap_servers,
-            group_id=kafka_config.group_id,
-            auto_offset_reset="earliest",
-            enable_auto_commit=True,
-            value_deserializer=lambda x: x.decode("utf-8"),
-            consumer_timeout_ms=5000,
-        )
-        # Извлекаем батч сообщений из Kafka (до 1000 записей)
-        logger.info("Получаем сообщения")
-        # messages = extract_from_kafka(batch_size=kafka_config.batch_size)
-        messages = extract_from_kafka(
-            topics=kafka_config.topics,
-            bootstrap_servers=kafka_config.bootstrap_servers,
-            group_id=kafka_config.group_id,
-            batch_size=kafka_config.batch_size,
-        )
+    kafka_consumer = KafkaConsumerSingleton(
+        *kafka_config.topics,
+        bootstrap_servers=kafka_config.bootstrap_servers,
+        group_id=kafka_config.group_id,
+        auto_offset_reset="earliest",
+        enable_auto_commit=True,
+        value_deserializer=lambda x: x.decode("utf-8"),
+        consumer_timeout_ms=5000,
+        enable_auto_commit=False,
+    )
+    client_clickhouse = Client(
+        host=clickhouse_config.host,
+        port=clickhouse_config.port,
+    )
+    try:
+        while True:
+            logger.info("Получаем сообщения...")
 
-        logger.info(f"Прочитано сообщений: {len(messages)}")
+            messages = extract_from_kafka(
+                consumer=kafka_consumer, batch_size=kafka_config.batch_size
+            )
 
-        # Если сообщений нет, ждём секунду и повторяем цикл
-        if not messages:
-            time.sleep(15)
-            continue
+            logger.info(f"Прочитано сообщений: {len(messages)}")
 
-        # Преобразуем сообщения
-        transformed_messages = transform_messages(messages=messages)
-
-        # Загружаем в ClickHouse
-        load_to_clickhouse(
-            data=transformed_messages,
-            host=clickhouse_config.host,
-            port=clickhouse_config.port,
-            user=clickhouse_config.user,
-            password=clickhouse_config.default_password,
-            database=clickhouse_config.database,
-            table_name_dist=clickhouse_config.table_name_dist,
-        )
+            if not messages:
+                time.sleep(30)
+            else:
+                transformed_messages = transform_messages(messages=messages)
+                load_to_clickhouse(
+                    client=client_clickhouse,
+                    data=transformed_messages,
+                    database=clickhouse_config.database,
+                    table_name_dist=clickhouse_config.table_name_dist,
+                )
+                kafka_consumer.commit()
+    except Exception as error:
+        logger.error(f"Возникло исключение: {error}")
+        kafka_consumer.close()
+        client_clickhouse.disconnect()
 
 
 if __name__ == "__main__":
