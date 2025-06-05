@@ -1,11 +1,10 @@
-import logging
-
 import dotenv
+from custom_logging import get_logger
 from pydantic_settings import BaseSettings
 
 ENV_FILE = dotenv.find_dotenv()
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class KafkaConfig(BaseSettings):
@@ -55,8 +54,20 @@ class ClickHouseConfig(BaseSettings):
     default_password: str = "1234"
 
     class Config:
-        env_prefix = "CLK_"
+        env_prefix = "CLICKHOUSE_"
 
 
-kafka_config = KafkaConfig()
-clickhouse_config = ClickHouseConfig()
+def _get_kafka_config():
+    kafka_config = KafkaConfig()
+    logger.info(f"Конфигурация Kafka: {kafka_config.model_dump_json()}")
+    return kafka_config
+
+
+def _get_clickhouse_config():
+    clickhouse_config = ClickHouseConfig()
+    logger.info(f"Конфигурация ClickHouse: {clickhouse_config.model_dump_json()}")
+    return clickhouse_config
+
+
+clickhouse_config = _get_clickhouse_config()
+kafka_config = _get_kafka_config()

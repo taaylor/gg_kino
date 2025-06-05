@@ -17,7 +17,6 @@ def main():
         bootstrap_servers=kafka_config.bootstrap_servers,
         group_id=kafka_config.group_id,
         auto_offset_reset="earliest",
-        enable_auto_commit=True,
         value_deserializer=lambda x: x.decode("utf-8"),
         consumer_timeout_ms=5000,
         enable_auto_commit=False,
@@ -25,6 +24,8 @@ def main():
     client_clickhouse = Client(
         host=clickhouse_config.host,
         port=clickhouse_config.port,
+        user=clickhouse_config.user,
+        password=clickhouse_config.default_password,
     )
     try:
         while True:

@@ -24,9 +24,9 @@ logger = get_logger(__name__)
 
 load_dotenv(find_dotenv())
 
-CLICKHOUSE_HOST = os.getenv("CLK_HOST")
-PASSWORD = os.getenv("CLK_DEFAULT_PASSWORD")
-USER = os.getenv("CLK_USER")
+CLICKHOUSE_HOST = os.getenv("CLICKHOUSE_HOST")
+PASSWORD = os.getenv("CLICKHOUSE_PASSWORD")
+USER = os.getenv("CLICKHOUSE_USER")
 TABLE_NAME = "metrics"
 TABLE_NAME_DIST = "metrics_dst"
 DB_NAME = "kinoservice"
@@ -34,7 +34,7 @@ CLUSTER_NAME = "kinoservice_cluster"
 
 
 def main():
-    client = Client(CLICKHOUSE_HOST)
+    client = Client(CLICKHOUSE_HOST, user=USER, password=PASSWORD)
 
     # Создание базы данных
     client.execute(
