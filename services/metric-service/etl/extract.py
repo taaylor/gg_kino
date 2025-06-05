@@ -14,13 +14,11 @@ def extract_from_kafka(consumer: KafkaConsumer, batch_size: int = 1000) -> list[
     :param batch_size: Размер батча (по умолчанию 1000).
     :return: Список словарей с данными сообщений.
     """
+    messages = []
     try:
         logger.info("Запрос батча сообщений...")
         batch = consumer.poll(timeout_ms=5000, max_records=batch_size)
-
-        messages = []
         logger.info(batch)
-
         for _, raw_messages in batch.items():
             for msg in raw_messages:
                 try:
