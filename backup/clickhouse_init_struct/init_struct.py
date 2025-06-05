@@ -24,9 +24,9 @@ logger = get_logger(__name__)
 
 load_dotenv(find_dotenv())
 
-CLICKHOUSE_HOST = os.getenv("CLK_HOST")
-PASSWORD = os.getenv("CLK_DEFAULT_PASSWORD")
-USER = os.getenv("CLK_USER")
+CLICKHOUSE_HOST = os.getenv("CLICKHOUSE_HOST")
+PASSWORD = os.getenv("CLICKHOUSE_PASSWORD")
+USER = os.getenv("CLICKHOUSE_USER")
 TABLE_NAME = "metrics"
 TABLE_NAME_DIST = "metrics_dst"
 DB_NAME = "kinoservice"
@@ -52,7 +52,7 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64 DEFAULT generateUUIDv4(),
+            id UUID DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
             user_agent String,
@@ -88,7 +88,7 @@ def main():
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME_DIST}
         ON CLUSTER {CLUSTER_NAME}
         (
-            id Int64 DEFAULT generateUUIDv4(),
+            id UUID DEFAULT generateUUIDv4(),
             user_session Nullable(UUID),
             user_uuid Nullable(UUID),
             user_agent String,

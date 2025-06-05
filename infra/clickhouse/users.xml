@@ -2,7 +2,7 @@
 <clickhouse>
     <users>
         <default>
-            <password from_env="CLK_DEFAULT_PASSWORD"/>
+            <password from_env="CLK_PASSWORD"/>
             <profile>default</profile>
             <networks>
                 <ip>::/0</ip>

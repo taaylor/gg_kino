@@ -47,11 +47,15 @@
                     <default_database>kinoservice</default_database>
                     <host>clickhouse-node1</host>
                     <port>9000</port>
+                    <user>default</user>
+                    <password from_env="CLK_PASSWORD"/>
                 </replica>
                 <replica>
                     <default_database>kinoservice</default_database>
                     <host>clickhouse-node2</host>
                     <port>9000</port>
+                    <user>default</user>
+                    <password from_env="CLK_PASSWORD"/>
                 </replica>
             </shard>
             <shard>
@@ -59,11 +63,15 @@
                     <default_database>kinoservice</default_database>
                     <host>clickhouse-node3</host>
                     <port>9000</port>
+                    <user>default</user>
+                    <password from_env="CLK_PASSWORD"/>
                 </replica>
                 <replica>
                     <default_database>kinoservice</default_database>
                     <host>clickhouse-node4</host>
                     <port>9000</port>
+                    <user>default</user>
+                    <password from_env="CLK_PASSWORD"/>
                 </replica>
             </shard>
         </kinoservice_cluster>
