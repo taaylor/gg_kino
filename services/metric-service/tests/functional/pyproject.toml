@@ -1,0 +1,20 @@
+[project]
+name = "metrics-services-tests"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "pytest (==8.4.0)",
+    "pytest-asyncio (==1.0.0)",
+    "pydantic (==2.11.5)",
+    "pydantic-settings (==2.9.1)",
+    "python-dotenv (==1.1.0)",
+    "clickhouse-driver (==0.2.9)",
+    "requests (==2.32.3)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
