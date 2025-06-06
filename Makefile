@@ -38,11 +38,8 @@ test-auth-api:
 	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test up --build -d
 	docker-compose -f $(COMPOSE_FILE_TEST) logs -f tests-auth-api
 	docker-compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
-# Запуск сервиса метрики
-metrics:
-	docker-compose -f $(COMPOSE_METRIC) up -d --build $(srv)
-# Дроп сервиса метрики
-metrics-down:
-	docker-compose -f $(COMPOSE_METRIC) down $(srv)
-metrics-down-v:
-	docker-compose -f $(COMPOSE_METRIC) down -v $(srv)
+
+test-metrics-service:
+	docker-compose -f $(COMPOSE_FILE_TEST) up --build -d
+	docker-compose -f $(COMPOSE_FILE_TEST) logs -f tests-metrics-api
+	docker-compose -f $(COMPOSE_FILE_TEST) down -v

@@ -1,0 +1,28 @@
+[project]
+name = "metrics-services-tests"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "pytest (==8.4.0)",
+    "pytest-asyncio (==1.0.0)",
+    "pydantic (==2.11.5)",
+    "pydantic-settings (==2.9.1)",
+    "python-dotenv (==1.1.0)",
+    "clickhouse-driver (==0.2.9)",
+    "requests (==2.32.3)",
+    "faker (>=37.3.0,<38.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--asyncio-mode=auto -W ignore::DeprecationWarning"

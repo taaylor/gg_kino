@@ -1,3 +1,8 @@
+include:
+  - ./infra/kafka/docker-compose.kafka.yaml
+  - ./infra/clickhouse/docker-compose.clickhouse.yml
+  - ./services/metric-service/docker-compose.metric-services.yml
+
 services:
   elasticsearch:
     image: elasticsearch:8.16.5
@@ -143,6 +148,17 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+
+  tests-metrics-api:
+    build:
+      context: .
+      dockerfile: ./services/metric-service/tests/functional/Dockerfile
+    container_name: tests-metrics-api-container
+    env_file:
+      - ./.env
+    depends_on:
+      metric-api:
         condition: service_healthy
 
   jaeger:
