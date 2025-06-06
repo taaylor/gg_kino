@@ -41,13 +41,19 @@ def main():
                 time.sleep(15)
             else:
                 transformed_messages = transform_messages(messages=messages)
-                load_to_clickhouse(
-                    client=client_clickhouse,
-                    data=transformed_messages,
-                    database=clickhouse_config.database,
-                    table_name_dist=clickhouse_config.table_name_dist,
-                )
-                kafka_consumer.commit()
+
+                try:
+                    load_to_clickhouse(
+                        client=client_clickhouse,
+                        data=transformed_messages,
+                        database=clickhouse_config.database,
+                        table_name_dist=clickhouse_config.table_name_dist,
+                    )
+                    kafka_consumer.commit()
+                except Exception as error:
+                    logger.error(f"Ошибка записи в ClickHouse: {error}")
+                    continue
+
     except Exception as error:
         logger.error(f"Возникло исключение: {error}")
         kafka_consumer.close()

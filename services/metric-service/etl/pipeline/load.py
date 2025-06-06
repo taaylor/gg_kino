@@ -20,29 +20,26 @@ def load_to_clickhouse(
     :param database: Имя базы данных.
     :param table_name_dist: Имя таблицы в ClickHouse.
     """
-    try:
-        client.execute(
-            """
-            INSERT INTO {database}.{table_name_dist}
-            (
-                user_session,
-                user_uuid,
-                user_agent,
-                ip_address,
-                film_uuid,
-                event_params,
-                event_type,
-                message_event,
-                event_timestamp,
-                user_timestamp
-            )
-            VALUES
-            """.format(
-                database=database,
-                table_name_dist=table_name_dist,
-            ),
-            data,
+    client.execute(
+        """
+        INSERT INTO {database}.{table_name_dist}
+        (
+            user_session,
+            user_uuid,
+            user_agent,
+            ip_address,
+            film_uuid,
+            event_params,
+            event_type,
+            message_event,
+            event_timestamp,
+            user_timestamp
         )
-        logger.info(f"Загружено {len(data)} записей в таблицу {database}.{table_name_dist}")
-    except Exception as e:
-        logger.error(f"Ошибка при загрузке в ClickHouse: {e}")
+        VALUES
+        """.format(
+            database=database,
+            table_name_dist=table_name_dist,
+        ),
+        data,
+    )
+    logger.info(f"Загружено {len(data)} записей в таблицу {database}.{table_name_dist}")
