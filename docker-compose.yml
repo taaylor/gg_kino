@@ -1,7 +1,7 @@
 include:
-    - ./infra/kafka/docker-compose.kafka.yaml
-    - ./infra/clickhouse/docker-compose.clickhouse.yml
-    - ./services/metric-service/docker-compose.metric-services.yml
+  - ./infra/kafka/docker-compose.kafka.yaml
+  - ./infra/clickhouse/docker-compose.clickhouse.yml
+  - ./services/metric-service/docker-compose.metric-services.yml
 
 services:
   elasticsearch:
