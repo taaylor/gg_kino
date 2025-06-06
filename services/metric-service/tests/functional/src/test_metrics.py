@@ -31,7 +31,7 @@ class TestMetrics:
 
         value_item = 500
         url = test_conf.metricsapi.get_url_api() + "/metric"
-        status_code = [None] * value_item
+        status_codes = [None] * value_item
         gen = self.get_data_request(value_item)
 
         for idx, data in enumerate(gen, start=0):
@@ -40,9 +40,9 @@ class TestMetrics:
             )
 
             if response.status_code == HTTPStatus.NO_CONTENT:
-                status_code[idx] = True
+                status_codes[idx] = True
             else:
-                status_code[idx] = False
+                status_codes[idx] = False
 
         time.sleep(20)  # ждем пока etl переложит данные в clickhouse
 
@@ -54,7 +54,7 @@ class TestMetrics:
         )
 
         assert result[0][0] == value_item
-        assert sum(status_code) == value_item
+        assert sum(status_codes) == value_item
 
     @pytest.mark.xfail(reason="Пока не работает ratelimiter, нужно затащить nginx =)")
     def test_ratelimiter(self):
