@@ -38,7 +38,7 @@ def main():
             logger.info(f"Прочитано сообщений: {len(messages)}")
 
             if not messages:
-                time.sleep(30)
+                time.sleep(15)
             else:
                 transformed_messages = transform_messages(messages=messages)
                 load_to_clickhouse(
