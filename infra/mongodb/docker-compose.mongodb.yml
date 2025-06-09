@@ -4,7 +4,7 @@ services:
   mongodb_sh1_rep1:
     image: mongo:8.0.10
     container_name: mongodb_sh1_rep1
-    command: mongod --shardsvr --replSet mongoshard1 --dbpath /data/db --port 27017   # переопределяет команду запуска монги
+    command: mongod --shardsvr --replSet mongoshard1 --dbpath /data/db --port 27017
     expose:
       - "27017"
     volumes:
@@ -143,20 +143,25 @@ services:
   mongodb_router:
     image: mongo:8.0.10
     container_name: mongodb_router
-    depends_on:
-      - mongodb_cfg1
-      - mongodb_cfg2
-      - mongodb_cfg3
     command: mongos --configdb mongors1conf/mongodb_cfg1:27017,mongodb_cfg2:27017,mongodb_cfg3:27017 --port 27017 --bind_ip_all
     ports:
       - 27017:27017
     expose:
       - "27017"
+    depends_on:
+      mongodb_cfg1:
+        condition: service_healthy
+      mongodb_cfg2:
+        condition: service_healthy
+      mongodb_cfg3:
+        condition: service_healthy
     volumes:
       - /etc/localtime:/etc/localtime:ro
 
   mongodb_init:
-    image: mongo:8.0.10
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: mongodb_init
     depends_on:
       mongodb_sh1_rep1:
@@ -177,36 +182,6 @@ services:
         condition: service_healthy
       mongodb_cfg3:
         condition: service_healthy
-    command: >
-      bash -c '
-        until mongosh --host mongodb_cfg1 --eval "rs.initiate({_id: \"mongors1conf\", configsvr: true, members: [{_id: 0, host: \"mongodb_cfg1:27017\"}, {_id: 1, host: \"mongodb_cfg2:27017\"}, {_id: 2, host: \"mongodb_cfg3:27017\"}]})"; do
-          echo "Ожидаем готовности конфигурации сервера..."
-          sleep 5
-        done
-
-        until mongosh --host mongodb_sh1_rep1 --eval "rs.initiate({_id: \"mongoshard1\", members: [{_id: 0, host: \"mongodb_sh1_rep1:27017\"}, {_id: 1, host: \"mongodb_sh1_rep2:27017\"}, {_id: 2, host: \"mongodb_sh1_rep3:27017\"}]})"; do
-          echo "Ожидание готовности 1 шарда..."
-          sleep 5
-        done
-
-        until mongosh --host mongodb_sh2_rep1 --eval "rs.initiate({_id: \"mongoshard2\", members: [{_id: 0, host: \"mongodb_sh2_rep1:27017\"}, {_id: 1, host: \"mongodb_sh2_rep2:27017\"}, {_id: 2, host: \"mongodb_sh2_rep3:27017\"}]})"; do
-          echo "Ожидание готовности 2 шарда..."
-          sleep 5
-        done
-
-        until mongosh --host mongodb_router --eval "sh.addShard(\"mongoshard1/mongodb_sh1_rep1\")"; do
-          echo "Ожидание добавления к 1 роутеру 1 шарда..."
-          sleep 5
-        done
-
-        until mongosh --host mongodb_router --eval "sh.addShard(\"mongoshard2/mongodb_sh2_rep1\")"; do
-          echo "Ожидание добавления к 1 роутеру 2 шарда..."
-          sleep 5
-        done
-
-        echo "Конфигурация первого роутера..."
-        mongosh --host mongodb_router --eval "print(\"Проверяем статус шардирования...\"); sh.status();"
-      '
 
 volumes:
   mongodb_data1:
