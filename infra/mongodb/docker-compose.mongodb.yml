@@ -163,6 +163,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mongodb_init
+    environment:
+      - DB_NAME=${MONGODB_NAME}
+      - LIKE_COLL=${MONGODB_LIKE_COLL}
+      - BOOKMARK_COLL=${MONGODB_BOOKMARK_COLL}
+      - REVIEWS_COLL=${MONGODB_REVIEWS_COLL}
     depends_on:
       mongodb_sh1_rep1:
         condition: service_healthy

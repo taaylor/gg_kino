@@ -27,11 +27,13 @@ done
 
 mongosh --host mongodb_router --eval "sh.status()"
 
-mongosh mongodb_router:27017/kinoservice --eval "sh.enableSharding('kinoservice')
-    && db.createCollection('likeCollection')
-    && db.createCollection('bookmarkCollection')
-    && db.createCollection('reviewsCollection')
-    && sh.shardCollection('kinoservice.likeCollection', {'film_id': 'hashed'})
-    && sh.shardCollection('kinoservice.bookmarkCollection', {'film_id': 'hashed'})
-    && sh.shardCollection('kinoservice.reviewsCollection', {'film_id': 'hashed'})
+mongosh mongodb_router:27017/${DB_NAME} --eval "sh.enableSharding('${DB_NAME}')
+    && db.createCollection('${LIKE_COLL}')
+    && db.createCollection('${BOOKMARK_COLL}')
+    && db.createCollection('${REVIEWS_COLL}')
+    && sh.shardCollection('${DB_NAME}.${LIKE_COLL}', {'film_id': 'hashed'})
+    && sh.shardCollection('${DB_NAME}.${BOOKMARK_COLL}', {'film_id': 'hashed'})
+    && sh.shardCollection('${DB_NAME}.${REVIEWS_COLL}', {'film_id': 'hashed'})
     "
+
+echo "Кластер успешно сконфигурирован"
