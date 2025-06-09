@@ -56,7 +56,7 @@ class TestMetrics:
         assert result[0][0] == value_item
         assert sum(status_codes) == value_item
 
-    @pytest.mark.xfail(reason="Пока не работает ratelimiter, нужно затащить nginx =)")
+    @pytest.mark.skip(reason="Пока не работает ratelimiter, нужно затащить nginx =)")
     def test_ratelimiter(self):
         """Лимитер ограничивает 1000 RPM по конкретному ip-адресу"""
 
