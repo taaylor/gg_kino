@@ -227,6 +227,7 @@ services:
       - async-api
       - auth-api
       - admin-panel
+      - content-actions-api
       - metric-api
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"

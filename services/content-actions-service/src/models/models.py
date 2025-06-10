@@ -1,11 +1,43 @@
 from datetime import datetime, timezone
+from typing import Annotated
 from uuid import UUID, uuid4
 
-from beanie import Document
+import pymongo
+from beanie import Document, Indexed
 from pydantic import Field
 
 
-class LikeCollection(Document):
-    id: UUID = Field(default_factory=uuid4)
-    text: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class Like(Document):
+    id: UUID = Field(default_factory=uuid4)  # Уникальный идентификатор лайка
+    user_id: Annotated[UUID, Indexed(index_type=pymongo.ASCENDING)]
+    film_id: Annotated[UUID, Indexed(index_type=pymongo.HASHED)]  # индекс для шардирования
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )  # Время создания
+
+    class Settings:
+        name = "likeCollection"
+
+
+class Review(Document):
+    id: UUID = Field(default_factory=uuid4)  # Уникальный идентификатор лайка
+    user_id: Annotated[UUID, Indexed(index_type=pymongo.ASCENDING)]
+    film_id: Annotated[UUID, Indexed(index_type=pymongo.HASHED)]  # индекс для шардирования
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )  # Время создания
+
+    class Settings:
+        name = "reviewsCollection"
+
+
+class Bookmark(Document):
+    id: UUID = Field(default_factory=uuid4)  # Уникальный идентификатор лайка
+    user_id: Annotated[UUID, Indexed(index_type=pymongo.ASCENDING)]
+    film_id: Annotated[UUID, Indexed(index_type=pymongo.HASHED)]  # индекс для шардирования
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )  # Время создания
+
+    class Settings:
+        name = "bookmarkCollection"

@@ -21,25 +21,29 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
-class Redis(BaseModel):
-    host: str = "localhost"
-    port: int = 6379
-    user: str = "redis_user"
-    password: str = "Parol123"
-    db: int = 0
+class MongoDB(BaseSettings):
+    host: str = "mongodb_router"
+    port: int = 27017
+    name: str = "kinoservice"
+
+    @property
+    def ASYNC_DATABASE_URL(self):
+        return f"mongodb://{self.host}:{self.port}"
+
+    model_config = SettingsConfigDict(
+        env_prefix="MONGODB_",
+        extra="ignore",
+    )
 
 
 class AppConfig(BaseSettings):
-    auth_secret_key: str
     project_name: str = "content-actions-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/content-actions/openapi"
     openapi_url: str = "/content-actions/openapi.json"
-    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     tracing: bool = False  # включение/выключение трассировки
 
-    # postgres: Postgres = Postgres()
-    redis: Redis = Redis()
+    mongodb: MongoDB = MongoDB()
     server: Server = Server()
 
     model_config = SettingsConfigDict(
