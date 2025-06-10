@@ -1,0 +1,200 @@
+# CLUSTER MONGO DB
+services:
+  # реплики первого шарда
+  mongodb_sh1_rep1:
+    image: mongo:8.0.10
+    container_name: mongodb_sh1_rep1
+    command: mongod --shardsvr --replSet mongoshard1 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data1:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_sh1_rep2:
+    image: mongo:8.0.10
+    container_name: mongodb_sh1_rep2
+    command: mongod --shardsvr --replSet mongoshard1 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data2:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_sh1_rep3:
+    image: mongo:8.0.10
+    container_name: mongodb_sh1_rep3
+    command: mongod --shardsvr --replSet mongoshard1 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data3:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  # реплики второго шарда
+
+  mongodb_sh2_rep1:
+    image: mongo:8.0.10
+    container_name: mongodb_sh2_rep1
+    command: mongod --shardsvr --replSet mongoshard2 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data4:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_sh2_rep2:
+    image: mongo:8.0.10
+    container_name: mongodb_sh2_rep2
+    command: mongod --shardsvr --replSet mongoshard2 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data5:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_sh2_rep3:
+    image: mongo:8.0.10
+    container_name: mongodb_sh2_rep3
+    command: mongod --shardsvr --replSet mongoshard2 --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_data6:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  # контейнеры конфигураций
+  mongodb_cfg1:
+    container_name: mongodb_cfg1
+    image: mongo:8.0.10
+    command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_config1:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_cfg2:
+    container_name: mongodb_cfg2
+    image: mongo:8.0.10
+    command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_config2:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  mongodb_cfg3:
+    container_name: mongodb_cfg3
+    image: mongo:8.0.10
+    command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongodb_config3:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  # секция роутера
+  mongodb_router:
+    image: mongo:8.0.10
+    container_name: mongodb_router
+    command: mongos --configdb mongors1conf/mongodb_cfg1:27017,mongodb_cfg2:27017,mongodb_cfg3:27017 --port 27017 --bind_ip_all
+    ports:
+      - 27017:27017
+    expose:
+      - "27017"
+    depends_on:
+      mongodb_cfg1:
+        condition: service_healthy
+      mongodb_cfg2:
+        condition: service_healthy
+      mongodb_cfg3:
+        condition: service_healthy
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  mongodb_init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mongodb_init
+    environment:
+      - DB_NAME=${MONGODB_NAME}
+      - LIKE_COLL=${MONGODB_LIKE_COLL}
+      - BOOKMARK_COLL=${MONGODB_BOOKMARK_COLL}
+      - REVIEWS_COLL=${MONGODB_REVIEWS_COLL}
+    depends_on:
+      mongodb_sh1_rep1:
+        condition: service_healthy
+      mongodb_sh1_rep2:
+        condition: service_healthy
+      mongodb_sh1_rep3:
+        condition: service_healthy
+      mongodb_sh2_rep1:
+        condition: service_healthy
+      mongodb_sh2_rep2:
+        condition: service_healthy
+      mongodb_sh2_rep3:
+        condition: service_healthy
+      mongodb_cfg1:
+        condition: service_healthy
+      mongodb_cfg2:
+        condition: service_healthy
+      mongodb_cfg3:
+        condition: service_healthy
+
+volumes:
+  mongodb_data1:
+  mongodb_data2:
+  mongodb_data3:
+  mongodb_data4:
+  mongodb_data5:
+  mongodb_data6:
+  mongodb_config1:
+  mongodb_config2:
+  mongodb_config3:
