@@ -1,9 +1,24 @@
 from contextlib import asynccontextmanager
 
+# from beanie import init_beanie
 from core.config import app_config
 from db import cache
 from fastapi import FastAPI
 from redis.asyncio import Redis
+
+"""
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    client = AsyncIOMotorClient('mongodb://user:pass@host:27017')
+    await init_beanie(database=client.db_name, document_models=[Post])
+    yield
+    client.close()
+
+"""
 
 
 @asynccontextmanager
