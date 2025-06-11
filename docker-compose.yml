@@ -1,8 +1,8 @@
 include:
-  - ./infra/mongodb/docker-compose.mongodb.yml
   - ./infra/kafka/docker-compose.kafka.yaml
   - ./infra/clickhouse/docker-compose.clickhouse.yml
   - ./services/metric-service/docker-compose.metric-services.yml
+  - ./services/content-actions-service/docker-compose.content-actions.yml
 
 services:
   elasticsearch:
@@ -149,20 +149,6 @@ services:
         condition: service_healthy
     restart: always
 
-  content-actions-api:
-    build:
-      context: .
-      dockerfile: ./services/content-actions-service/src/Dockerfile
-    env_file:
-      - ./.env
-    cpus: "1"
-    mem_limit: 256M
-    depends_on:
-      redis:
-        condition: service_healthy
-      mongodb_init:
-        condition: service_completed_successfully
-    restart: always
 
   admin-panel:
     build:
