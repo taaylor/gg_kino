@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 
 import pymongo
 from beanie import Document, Indexed
+from core.config import app_config
 from pydantic import Field
 
 
@@ -16,7 +17,8 @@ class Like(Document):
     )  # Время создания
 
     class Settings:
-        name = "likeCollection"
+        # name = "likeCollection"
+        name = app_config.mongodb.like_coll
 
 
 class Review(Document):
@@ -28,7 +30,8 @@ class Review(Document):
     )  # Время создания
 
     class Settings:
-        name = "reviewsCollection"
+        # name = "reviewsCollection"
+        name = app_config.mongodb.reviews_coll
 
 
 class Bookmark(Document):
@@ -40,4 +43,5 @@ class Bookmark(Document):
     )  # Время создания
 
     class Settings:
-        name = "bookmarkCollection"
+        # name = "bookmarkCollection"
+        name = app_config.mongodb.bookmark_coll

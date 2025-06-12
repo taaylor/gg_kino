@@ -21,26 +21,30 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
-class MongoDB(BaseSettings):
+# class MongoDB(BaseSettings):
+class MongoDB(BaseModel):
     host: str = "mongodb_router"
     port: int = 27017
     name: str = "kinoservice"
+    like_coll: str = "likeCollection"
+    bookmark_coll: str = "bookmarkCollection"
+    reviews_coll: str = "reviewsCollection"
 
     @property
     def ASYNC_DATABASE_URL(self):
         return f"mongodb://{self.host}:{self.port}"
 
-    model_config = SettingsConfigDict(
-        env_prefix="MONGODB_",
-        extra="ignore",
-    )
+    # model_config = SettingsConfigDict(
+    #     env_prefix="MONGODB_",
+    #     extra="ignore",
+    # )
 
 
 class AppConfig(BaseSettings):
     project_name: str = "content-actions-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    docs_url: str = "/content-actions/openapi"
-    openapi_url: str = "/content-actions/openapi.json"
+    docs_url: str = "/content-api/openapi"
+    openapi_url: str = "/content-api/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
 
     mongodb: MongoDB = MongoDB()

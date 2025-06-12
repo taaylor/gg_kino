@@ -20,7 +20,7 @@ app = FastAPI(
 # Подключение обработчиков
 setup_exception_handlers(app)
 
-SERVICE_PATH = "/content-actions/api/v1/"
+SERVICE_PATH = "/content-api/api/v1/"
 app.include_router(like_api.router, prefix=f"{SERVICE_PATH}likes", tags=["Лайки"])
 app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])
 app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])
