@@ -1,7 +1,10 @@
-from uuid import UUID
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LikeRequest(BaseModel):
-    film_id: UUID
+    rating: Literal[0, 10] = Field(
+        ...,
+        description="0 для дизлайка, 10 для лайка.",
+    )
