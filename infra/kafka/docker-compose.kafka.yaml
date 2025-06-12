@@ -1,6 +1,7 @@
 services:
   kafka-0:
     image: bitnami/kafka:3.4
+    profiles: ["metrics-api-test", "production"]
     ports:
       - "9094:9094"
     environment:
@@ -26,6 +27,7 @@ services:
 
   kafka-1:
     image: bitnami/kafka:3.4
+    profiles: ["metrics-api-test", "production"]
     ports:
       - "9095:9095"
     environment:
@@ -51,6 +53,7 @@ services:
 
   kafka-2:
     image: bitnami/kafka:3.4
+    profiles: ["metrics-api-test", "production"]
     ports:
       - "9096:9096"
     environment:
@@ -76,6 +79,7 @@ services:
 
   kafka-init:
     image: bitnami/kafka:3.4
+    profiles: ["metrics-api-test", "production"]
     env_file:
       - ../../.env
     depends_on:
@@ -98,6 +102,7 @@ services:
 
   ui:
     image: provectuslabs/kafka-ui:v0.7.0
+    profiles: ["metrics-api-test", "production"]
     ports:
       - "8080:8080"
     environment:

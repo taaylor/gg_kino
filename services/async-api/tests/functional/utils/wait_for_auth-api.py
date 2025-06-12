@@ -7,13 +7,24 @@ from tests.functional.utils.decorators import backoff
 logger = get_logger("wait_for_auth_api")
 
 
-@backoff(exception=(ConnectionRefusedError, socket.timeout, ValueError), start_sleep_time=2)
+@backoff(
+    exception=(
+        ConnectionRefusedError,
+        socket.timeout,
+        ValueError,
+        ConnectionResetError,
+        socket.gaierror,
+    ),
+    start_sleep_time=2,
+    max_attempts=10,
+    factor=3,
+)
 def check_api():
     host = test_conf.authapi.host
     port = test_conf.authapi.port
     path = "/auth/openapi.json"
 
-    with socket.create_connection((host, port), timeout=2) as sock:
+    with socket.create_connection((host, port), timeout=5) as sock:
         request = f"GET {path} HTTP/1.1\r\n" f"Host: {host}\r\n" f"Connection: close\r\n\r\n"
         sock.send(request.encode())
 

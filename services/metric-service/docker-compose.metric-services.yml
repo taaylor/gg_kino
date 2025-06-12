@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./metric-api/src/Dockerfile
+    profiles: ["metrics-api-test", "production"]
     env_file:
       - ../../.env
     ports:
@@ -11,6 +12,7 @@ services:
       - kafka-0
       - kafka-1
       - kafka-2
+      - kafka-init
     healthcheck:
       test: ["CMD", "curl", "http://0.0.0.0:8000/metric/openapi"]
       interval: 5s
@@ -22,11 +24,12 @@ services:
     build:
       context: .
       dockerfile: ./etl/Dockerfile
+    profiles: ["metrics-api-test", "production"]
     env_file:
       - ../../.env
     depends_on:
       init_clickhouse:
         condition: service_completed_successfully
       kafka-init:
-        condition: service_completed_successfully
+        condition: service_started
     restart: always

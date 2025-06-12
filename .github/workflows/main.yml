@@ -1,0 +1,44 @@
+name: Kinoservice Workflow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Установка docker-compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+
+    - name: Создание директории с ключами для auth-api
+      run: |
+        mkdir -p services/auth-service/src/core/keys
+        printf '%s' "$PUBLIC_KEY" > services/auth-service/src/core/keys/public.pem
+        printf '%s' "$PRIVATE_KEY" > services/auth-service/src/core/keys/private.pem
+        chmod 600 services/auth-service/src/core/keys/private.pem
+        chmod 644 services/auth-service/src/core/keys/public.pem
+
+    - name: Вывожу структуру проекта перед тестами
+      run: mv .env.example .env && tree .
+
+    - name: Прогон тестов metrics-service
+      run: make test-metrics-service-ci
+
+    - name: Прогон тестов auth-api
+      run: make test-auth-api-ci
+
+    - name: Прогон тестов async-api
+      run: make test-async-api-ci
