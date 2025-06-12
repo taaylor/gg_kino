@@ -17,7 +17,6 @@ class Like(Document):
     )  # Время создания
 
     class Settings:
-        # name = "likeCollection"
         name = app_config.mongodb.like_coll
 
 
@@ -30,7 +29,6 @@ class Review(Document):
     )  # Время создания
 
     class Settings:
-        # name = "reviewsCollection"
         name = app_config.mongodb.reviews_coll
 
 
@@ -43,5 +41,4 @@ class Bookmark(Document):
     )  # Время создания
 
     class Settings:
-        # name = "bookmarkCollection"
         name = app_config.mongodb.bookmark_coll

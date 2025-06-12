@@ -21,7 +21,6 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
-# class MongoDB(BaseSettings):
 class MongoDB(BaseModel):
     host: str = "mongodb_router"
     port: int = 27017
@@ -33,11 +32,6 @@ class MongoDB(BaseModel):
     @property
     def ASYNC_DATABASE_URL(self):
         return f"mongodb://{self.host}:{self.port}"
-
-    # model_config = SettingsConfigDict(
-    #     env_prefix="MONGODB_",
-    #     extra="ignore",
-    # )
 
 
 class AppConfig(BaseSettings):
