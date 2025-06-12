@@ -47,7 +47,7 @@ services:
       - "${TEST_REDIS__PORT}:${TEST_REDIS__PORT}"
     volumes:
       - test_redis_data:/data
-    cpus: "2"
+    cpus: "1"
     mem_limit: 512M
     command: >
       sh -c '
@@ -111,6 +111,8 @@ services:
       dockerfile: ./services/auth-service/src/Dockerfile
     profiles: ["auth-api-test", "async-api-test"]
     container_name: auth-api-container
+    cpus: "0.5"
+    mem_limit: 256M
     env_file:
       - ./.env
     ports:
@@ -121,6 +123,12 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "http://0.0.0.0:8000/auth/openapi.json"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   tests-async-api:
     build:
@@ -128,6 +136,8 @@ services:
       dockerfile: ./services/async-api/tests/functional/Dockerfile
     profiles: ["async-api-test"]
     container_name: tests-async-api-container
+    cpus: "0.5"
+    mem_limit: 256M
     env_file:
       - ./.env
     depends_on:
@@ -135,6 +145,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      async-api:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   tests-auth-api:
     build:
@@ -142,6 +160,8 @@ services:
       dockerfile: ./services/auth-service/tests/functional/Dockerfile
     profiles: ["auth-api-test"]
     container_name: tests-auth-api-container
+    cpus: "0.5"
+    mem_limit: 256M
     env_file:
       - ./.env
     depends_on:
@@ -149,17 +169,45 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
 
   tests-metrics-api:
     build:
       context: .
       dockerfile: ./services/metric-service/tests/functional/Dockerfile
     container_name: tests-metrics-api-container
+    profiles: ["metrics-api-test"]
     env_file:
       - ./.env
     depends_on:
       metric-api:
         condition: service_healthy
+      zookeeper:
+        condition: service_started
+      clickhouse-node1:
+        condition: service_healthy
+      clickhouse-node2:
+        condition: service_healthy
+      clickhouse-node3:
+        condition: service_healthy
+      clickhouse-node4:
+        condition: service_healthy
+      init_clickhouse:
+        condition: service_completed_successfully
+      kafka-0:
+        condition: service_healthy
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-init:
+        condition: service_started
+      etl:
+        condition: service_started
+
 
   jaeger:
     image: jaegertracing/all-in-one:1.68.0
