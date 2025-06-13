@@ -1745,6 +1745,25 @@ files = [
 ]
 
 [[package]]
+name = "redis"
+version = "5.3.0"
+description = "Python client for Redis database and key-value store"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "redis-5.3.0-py3-none-any.whl", hash = "sha256:f1deeca1ea2ef25c1e4e46b07f4ea1275140526b1feea4c6459c0ec27a10ef83"},
+    {file = "redis-5.3.0.tar.gz", hash = "sha256:8d69d2dde11a12dc85d0dbf5c45577a5af048e2456f7077d87ad35c1c81c310e"},
+]
+
+[package.dependencies]
+PyJWT = ">=2.9.0,<2.10.0"
+
+[package.extras]
+hiredis = ["hiredis (>=3.0.0)"]
+ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==23.2.1)", "requests (>=2.31.0)"]
+
+[[package]]
 name = "rich"
 version = "14.0.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
@@ -2322,4 +2341,4 @@ test = ["pytest", "pytest-asyncio"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "6396096e28e90df434e2b2e23715c776a1faf9a7c2b6c5522a93db539f00f5f7"
+content-hash = "1fbbe1377896e50fa690af3b54cc1355333c9d9a21b420ac6c5dafc4bf04cc90"
