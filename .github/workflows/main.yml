@@ -1,8 +1,6 @@
 name: Kinoservice Workflow
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -23,16 +21,14 @@ jobs:
         sudo chmod +x /usr/local/bin/docker-compose
         docker-compose --version
 
-    - name: Создание директории с ключами для auth-api
+    - name: Установка недостающих компонентов для тестирования
       run: |
+        mv .env.example .env
         mkdir -p services/auth-service/src/core/keys
         printf '%s' "$PUBLIC_KEY" > services/auth-service/src/core/keys/public.pem
         printf '%s' "$PRIVATE_KEY" > services/auth-service/src/core/keys/private.pem
         chmod 600 services/auth-service/src/core/keys/private.pem
         chmod 644 services/auth-service/src/core/keys/public.pem
-
-    - name: Вывожу структуру проекта перед тестами
-      run: mv .env.example .env && tree .
 
     - name: Прогон тестов metrics-service
       run: make test-metrics-service-ci
