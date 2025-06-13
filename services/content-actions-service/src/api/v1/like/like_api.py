@@ -3,9 +3,11 @@ from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.like.schemas import LikeRequest
-from fastapi import APIRouter, Body, Response, status
+from api.v1.like.schemas import LikeRequest, OutputRating
+from fastapi import APIRouter, Body, status  # ,Depends
 from models.models import Like
+from services.like_repository import RatingRepository
+from services.like_service import RatingService  # , get_rating_service
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +24,25 @@ async def delete_like(
     # представим, что у нас в эндпоинте прошла проверка авторизации,
     # и пользователь с таким UUID
     mock_user_id = UUID("d75589b0-0318-4360-b07a-88944c24bd92")
-    doc = await Like.find_one(Like.user_id == mock_user_id, Like.film_id == film_id)
-    if doc:
-        await doc.delete()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    # a = 1
+    # doc = await Like.find_one(Like.user_id == mock_user_id, Like.film_id == film_id)
+    # if doc:
+    #     await doc.delete()
+    # await RatingRepository.delete_document(Like.user_id == mock_user_id, Like.film_id == film_id)
+    # return Response(status_code=status.HTTP_204_NO_CONTENT)
+    rating_service = RatingService(RatingRepository)
+    await rating_service.delete_user_score(
+        mock_user_id,
+        film_id,
+    )
+    return None
 
 
 @router.put(
     path="/{film_id}",
     status_code=status.HTTP_200_OK,
 )
-async def set_like(
+async def set_tempr_like(
     film_id: UUID,
     request_body: Annotated[
         LikeRequest, Body(description="Данные для добавления лайка в формате JSON")
@@ -40,7 +50,7 @@ async def set_like(
 ):
     # представим, что у нас в эндпоинте прошла проверка авторизации,
     # и пользователь с таким UUID
-    mock_user_id = "d75589b0-0318-4360-b07a-88944c24bd92"
+    mock_user_id = UUID("d75589b0-0318-4360-b07a-88944c24bd92")
     mock_user_ids = [
         UUID("d75589b0-0318-4360-b07a-88944c24bd92"),
         UUID("cd4225d4-8087-4a42-aaf7-30a30e8a919d"),
@@ -69,35 +79,81 @@ async def set_like(
     return {"status": "ok", "result": result}
 
 
+@router.post(
+    path="/{film_id}/next-mock-user-id/{user_id}",
+    status_code=status.HTTP_200_OK,
+)
+async def set_score(
+    film_id: UUID,
+    user_id: UUID,
+    request_body: Annotated[
+        LikeRequest, Body(description="Данные для добавления лайка в формате JSON")
+    ],
+):
+    # result = await RatingRepository.upsert(
+    #     Like.user_id == user_id,
+    #     Like.film_id == film_id,
+    #     update_fields=["rating", "lalala"],
+    #     # update_fields=[],
+    #     user_id=user_id,
+    #     film_id=film_id,
+    #     rating=request_body.rating,
+    # )
+    rating_service = RatingService(RatingRepository)
+    result = await rating_service.set_user_score(
+        user_id=user_id,
+        film_id=film_id,
+        rating=request_body.rating,
+    )
+    return result
+
+
 @router.get(
-    path="/{film_id}",
+    path="/{film_id}/tempr",
 )
 async def get_like(
     film_id: UUID,
 ):
-    # представим, что у нас в эндпоинте прошла проверка авторизации,
-    # и пользователь с таким UUID
-    # mock_user_id = UUID("d75589b0-0318-4360-b07a-88944c24bd92")
-
-    # pipeline = [
-    #     {"$match": {"film_id": film_id}},
-    #     {"$group": {
-    #         "_id": None,
-    #         "avg_rating": {"$avg": "$rating"},
-    #         "likes": {"$sum": {"$cond": [{"$eq": ["$rating", 10]}, 1, 0]}},
-    #         "dislikes": {"$sum": {"$cond": [{"$eq": ["$rating", 0]}, 1, 0]}},
-    #         "count": {"$sum": 1}
-    #     }}
-    # ]
-    pipeline = [
-        {"$match": {"film_id": film_id}},
-        # {"$match": {"film_id": str(film_id)}},
-        {"$group": {"_id": "$film_id", "avg_rating": {"$avg": "$rating"}}},
-    ]
-    cursor = Like.aggregate(pipeline)
-    result = await cursor.to_list(length=1)
     # like = await Like.find_one(Like.user_id == mock_user_id, Like.film_id == film_id)
-
+    # a = 1
+    doc = (
+        await Like.find(Like.film_id == film_id)
+        .aggregate(
+            [
+                {
+                    "$group": {
+                        "_id": "$film_id",
+                        "avg_rating": {"$avg": "$rating"},
+                        "count_votes": {"$sum": 1},
+                    }
+                }
+            ],
+            projection_model=OutputRating,
+        )
+        .to_list()
+    )
+    if not doc:
+        return None
+    # doc = [
+    # OutputRating(id=UUID('cd4225d4-8087-4a42-aaf7-30a30e8a919d'),
+    # rating=3.0, count_votes=4)]
+    # doc = doc[0]
+    # doc.model_dump()
     return {
-        "like": result,
+        "like": doc,
     }
+
+
+# cd4225d4-8087-4a42-aaf7-30a30e8a919d
+
+
+@router.get(
+    path="/{film_id}",
+)
+async def get_avg_rating(
+    film_id: UUID,
+    # rating_service: Annotated[RatingService, Depends(get_rating_service)],
+):
+    rating_service = RatingService(RatingRepository)
+    result = await rating_service.get_average_rating(film_id)
+    return result

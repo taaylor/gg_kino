@@ -1,10 +1,22 @@
-from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
 class LikeRequest(BaseModel):
-    rating: Literal[0, 10] = Field(
+    rating: int = Field(
         ...,
-        description="0 для дизлайка, 10 для лайка.",
+        ge=1,
+        le=10,
+        description="Оценка фильма от 1 до 10.",
     )
+
+
+class ScoreResponse(BaseModel):
+    pass
+
+
+class OutputRating(BaseModel):
+    film_id: UUID = Field(..., alias="_id")
+    rating: float = Field(..., alias="avg_rating")
+    count_votes: int
