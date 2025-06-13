@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.functional.testdata.model_enum import GenderEnum, PermissionEnum
@@ -13,6 +14,7 @@ from tests.functional.testdata.model_orm import (
 from tests.functional.testdata.schemes import LoginRequest, RegisterRequest
 
 
+@pytest.mark.asyncio
 class TestSessions:
 
     async def _create_default_role(self, pg_session: AsyncSession):
