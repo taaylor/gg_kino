@@ -1,0 +1,19 @@
+include:
+  - ../../infra/mongodb/docker-compose.mongodb.yml
+
+services:
+  content-actions-api:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile.debug
+    env_file:
+      - ../../.env
+    ports:
+      - 8099:8000
+      - 5678:5678
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      mongodb_init:
+        condition: service_completed_successfully
+    restart: always
