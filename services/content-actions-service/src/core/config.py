@@ -48,6 +48,7 @@ class AppConfig(BaseSettings):
     docs_url: str = "/content-api/openapi"
     openapi_url: str = "/content-api/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
+    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
 
     redis: Redis = Redis()
     mongodb: MongoDB = MongoDB()

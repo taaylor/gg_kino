@@ -1,12 +1,13 @@
-# import json
+import json
 import logging
-
-# from functools import lru_cache
+from functools import lru_cache
 from uuid import UUID
 
-# from core.config import app_config
-# from fastapi import Depends, HTTPException, status
-from services.rating_repository import RatingRepository
+from api.v1.rating.schemas import AvgRatingResponse, ScoreResponse
+from core.config import app_config
+from db.cache import Cache, get_cache
+from fastapi import Depends
+from services.rating_repository import RatingRepository, get_rating_repository
 
 logger = logging.getLogger(__name__)
 
@@ -17,22 +18,20 @@ class RatingService:
 
     def __init__(
         self,
-        # cache: Cache,
+        cache: Cache,
         repository: RatingRepository,
     ):
-        # self.cache = cache
+        self.cache = cache
         self.repository = repository
 
-    async def get_average_rating(self, film_id: UUID):
+    async def get_average_rating(self, film_id: UUID) -> AvgRatingResponse | None:
         """Возвращает список всех ролей с базовой информацией"""
-        cache_key = f"{CACHE_KEY_AVG_RATING}:{str(film_id)}"
-        avg_rating = None  # await self.cache.get(cache_key)
+        cache_key = CACHE_KEY_AVG_RATING + str(film_id)
+        avg_rating = await self.cache.get(cache_key)
 
         if avg_rating:
             logger.debug(f"Средний арифметический рейтинг фильма получен из кеша: {avg_rating}")
-            cache_key
-            # return [RoleResponse.model_validate(r) for r in json.loads(role_cache)]
-            return "something"
+            return AvgRatingResponse.model_validate(json.loads(avg_rating))
 
         avg_rating = await self.repository.calculate_average_rating(
             self.repository.collection.film_id == film_id
@@ -41,49 +40,38 @@ class RatingService:
         if not avg_rating:
             return None
         result = avg_rating[0].model_dump()
-        # await self.cache.background_set(
-        #     key=cache_key, value=result, expire=app_config.cache_expire_in_seconds
-        # )
-        return result
+        await self.cache.background_set(
+            key=cache_key, value=result, expire=app_config.cache_expire_in_seconds
+        )
+        return AvgRatingResponse(**result)
 
-    async def set_user_score(self, user_id: UUID, film_id: UUID, score: int):
-        result = await self.repository.upsert(
+    async def set_user_score(self, user_id: UUID, film_id: UUID, score: int) -> ScoreResponse:
+        document = await self.repository.upsert(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
-            update_fields=[
-                "score",
-            ],
-            # update_fields=["score", "lalala"],
-            # update_fields=[],
             user_id=user_id,
             film_id=film_id,
             score=score,
         )
-        """
-        {
-            "_id": "4cf5009a-c832-4e0e-b334-cd6109754921",
-            "user_id": "5580dfe4-9803-4291-8e6b-6e7df27d7032",
-            "film_id": "cd4225d4-8087-4a42-aaf7-30a30e8a919d",
-            "created_at": "2025-06-13T18:35:41.593461Z",
-            "updated_at": "2025-06-13T18:35:41.593464Z",
-            "rating": 6
-        }
-        """
+        result = ScoreResponse(
+            user_id=document.user_id,
+            film_id=document.film_id,
+            created_at=document.created_at,
+            updated_at=document.updated_at,
+            score=document.score,
+        )
         return result
 
-    async def delete_user_score(self, user_id: UUID, film_id: UUID):
+    async def delete_user_score(self, user_id: UUID, film_id: UUID) -> None:
         await self.repository.delete_document(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
         )
 
 
-# @lru_cache()
-# def get_rating_service(
-#     # cache: Cache = Depends(get_cache),
-#     repository: RatingRepository = RatingRepository,
-# ) -> RatingService:
-#     return RatingService(
-#         # cache,
-#         repository
-#     )
+@lru_cache()
+def get_rating_service(
+    cache: Cache = Depends(get_cache),
+    repository: RatingRepository = Depends(get_rating_repository),
+) -> RatingService:
+    return RatingService(cache, repository)
