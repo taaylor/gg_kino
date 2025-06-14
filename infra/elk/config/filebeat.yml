@@ -18,6 +18,7 @@ filebeat.inputs:
     log_type: docker
     environment: ${ENVIRONMENT:dev}
   fields_under_root: false
+  encoding: utf-8
 
 processors:
   - add_docker_metadata:
