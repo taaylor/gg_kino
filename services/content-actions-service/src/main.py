@@ -1,5 +1,5 @@
 from api.v1.bookmark import bookmark_api
-from api.v1.like import like_api
+from api.v1.rating import rating_api
 from api.v1.review import review_api
 from core.config import app_config
 from fastapi import FastAPI
@@ -31,6 +31,6 @@ app.include_router(bookmark_api.router, prefix=films_prefix, tags=["Заклад
 app.include_router(review_api.router, prefix=films_prefix, tags=["Рецензии"])
 """
 SERVICE_PATH = "/content-api/api/v1/"
-app.include_router(like_api.router, prefix=f"{SERVICE_PATH}likes", tags=["Лайки"])
+app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}rating", tags=["Рейтинг"])
 app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])
 app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])

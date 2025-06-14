@@ -3,8 +3,8 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class LikeRequest(BaseModel):
-    rating: int = Field(
+class ScoreRequest(BaseModel):
+    score: int = Field(
         ...,
         ge=1,
         le=10,

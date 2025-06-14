@@ -6,7 +6,7 @@ from uuid import UUID
 
 # from core.config import app_config
 # from fastapi import Depends, HTTPException, status
-from services.like_repository import RatingRepository
+from services.rating_repository import RatingRepository
 
 logger = logging.getLogger(__name__)
 
@@ -46,18 +46,18 @@ class RatingService:
         # )
         return result
 
-    async def set_user_score(self, user_id: UUID, film_id: UUID, rating: int):
+    async def set_user_score(self, user_id: UUID, film_id: UUID, score: int):
         result = await self.repository.upsert(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
             update_fields=[
-                "rating",
+                "score",
             ],
-            # update_fields=["rating", "lalala"],
+            # update_fields=["score", "lalala"],
             # update_fields=[],
             user_id=user_id,
             film_id=film_id,
-            rating=rating,
+            score=score,
         )
         """
         {

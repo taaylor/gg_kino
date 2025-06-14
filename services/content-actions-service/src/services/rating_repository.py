@@ -1,10 +1,10 @@
 # from datetime import datetime, timezone
 import logging
 
-from api.v1.like.schemas import OutputRating
+from api.v1.rating.schemas import OutputRating
 
 # from fastapi import HTTPException, status
-from models.models import Like
+from models.models import Rating
 from services.base_repository import BaseRepository
 
 # from functools import lru_cache
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class RatingRepository(BaseRepository):
 
-    collection = Like
+    collection = Rating
 
     @classmethod
     async def calculate_average_rating(cls, *filters):
@@ -28,7 +28,7 @@ class RatingRepository(BaseRepository):
                     {
                         "$group": {
                             "_id": "$film_id",
-                            "avg_rating": {"$avg": "$rating"},
+                            "avg_rating": {"$avg": "$score"},
                             "count_votes": {"$sum": 1},
                         }
                     }

@@ -5,7 +5,7 @@ services:
   content-actions-api:
     build:
       context: .
-      dockerfile: ./src/Dockerfile
+      dockerfile: ./src/Dockerfile.spare
     env_file:
       - ../../.env
     ports:
