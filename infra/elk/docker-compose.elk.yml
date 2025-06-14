@@ -11,8 +11,6 @@ services:
         condition: service_healthy
     environment:
       ES_HOST: "${ELASTIC_LOGS_HOST}:${ELASTIC_PORT}"
-    ports:
-      - "5044:5044"
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "5044"]
       interval: 10s
@@ -36,8 +34,6 @@ services:
     mem_limit: 1024M
     command: bin/elasticsearch
     expose:
-      - "${ELASTIC_LOGS_EXTERNAL_PORT}:${ELASTIC_LOGS_PORT}"
-    ports:
       - "${ELASTIC_LOGS_EXTERNAL_PORT}:${ELASTIC_LOGS_PORT}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
