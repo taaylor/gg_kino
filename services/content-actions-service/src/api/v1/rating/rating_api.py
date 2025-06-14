@@ -1,11 +1,10 @@
 import logging
-from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
 from api.v1.rating.schemas import AvgRatingResponse, ScoreRequest, ScoreResponse
-from fastapi import APIRouter, Body, Depends, status
-from models.models import Rating
+from auth_utils import LibAuthJWT, auth_dep
+from fastapi import APIRouter, Body, Depends, Path, status
 from services.rating_service import RatingService, get_rating_service
 
 logger = logging.getLogger(__name__)
@@ -13,97 +12,46 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# ! актуальный эндпоинт
 @router.delete(
     path="/{film_id}",
+    summary="Отзывает оценку поставленную авторизованным пользователем",
+    description="Отзыв оценки фильма пользователем",
+    response_description="Статус операции удаления с сообщением о результате",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_score(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],
-    film_id: UUID,
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
 ):
-    # представим, что у нас в эндпоинте прошла проверка авторизации,
-    # и пользователь с таким UUID
-    mock_user_id = UUID("d75589b0-0318-4360-b07a-88944c24bd92")
-    # a = 1
-    # doc = await Rating.find_one(Rating.user_id == mock_user_id, Rating.film_id == film_id)
-    # if doc:
-    #     await doc.delete()
-    # await RatingRepository.delete_document(
-    #     Rating.user_id == mock_user_id,
-    #     Rating.film_id == film_id
-    #     )
-    # return Response(status_code=status.HTTP_204_NO_CONTENT)
-    # rating_service = RatingService(RatingRepository)
+    await authorize.jwt_optional()
+    decrypted_token = await authorize.get_raw_jwt()
+    user_id = UUID(decrypted_token.get("user_id"))
     await rating_service.delete_user_score(
-        mock_user_id,
-        film_id,
+        user_id=user_id,
+        film_id=film_id,
     )
     return None
 
 
-@router.put(
-    path="/{film_id}",
-    status_code=status.HTTP_200_OK,
-)
-async def set_tempr_like(
-    film_id: UUID,
-    request_body: Annotated[
-        ScoreRequest, Body(description="Данные для добавления лайка в формате JSON")
-    ],
-):
-    # представим, что у нас в эндпоинте прошла проверка авторизации,
-    # и пользователь с таким UUID
-    mock_user_id = UUID("d75589b0-0318-4360-b07a-88944c24bd92")
-    mock_user_ids = [
-        UUID("d75589b0-0318-4360-b07a-88944c24bd92"),
-        UUID("cd4225d4-8087-4a42-aaf7-30a30e8a919d"),
-        UUID("5580dfe4-9803-4291-8e6b-6e7df27d7032"),
-        UUID("8c5d61fa-bcfc-4b91-9ced-5e16da90f4e7"),
-    ]
-    score_exist = await Rating.find_one(Rating.user_id == mock_user_id, Rating.film_id == film_id)
-    if score_exist:
-        score_exist.score = request_body.score
-        score_exist.updated_at = datetime.now(timezone.utc)
-        result = await score_exist.save()
-    else:
-        # result = await Rating(
-        #     user_id=UUID("d75589b0-0318-4360-b07a-88944c24bd92"),
-        #     film_id=film_id,
-        #     rating=request_body.rating,
-        # ).insert()
-        # ! -=-=-=-=-=-=-=- временный вариант -=-=-=-=-=-=-=-
-        for user_id in mock_user_ids:
-            result = await Rating(
-                user_id=user_id,
-                film_id=film_id,
-                score=request_body.score,
-            ).insert()
-        # ! -=-=-=-=-=-=-=- временный вариант -=-=-=-=-=-=-=-
-    return {"status": "ok", "result": result}
-
-
-# ! актуальный эндпоинт
 @router.post(
-    path="/{film_id}/next-mock-user-id/{user_id}",
-    status_code=status.HTTP_200_OK,
+    path="/{film_id}",
+    summary="Ставит/обновляет оценку поставленную авторизованным пользователем",
+    description="Создание оценки фильма пользователем",
+    response_description="Статус операции создания/обновления с сообщением о результате",
+    status_code=status.HTTP_201_CREATED,
 )
 async def set_score(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],
-    film_id: UUID,
-    user_id: UUID,
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
     request_body: Annotated[
         ScoreRequest, Body(description="Данные для добавления лайка в формате JSON")
     ],
 ) -> ScoreResponse:
-    # result = await RatingRepository.upsert(
-    #     Rating.user_id == user_id,
-    #     Rating.film_id == film_id,
-    #     update_fields=["rating", "lalala"],
-    #     user_id=user_id,
-    #     film_id=film_id,
-    #     rating=request_body.rating,
-    # )
+    await authorize.jwt_optional()
+    decrypted_token = await authorize.get_raw_jwt()
+    user_id = UUID(decrypted_token.get("user_id"))
     result = await rating_service.set_user_score(
         user_id=user_id,
         film_id=film_id,
@@ -112,16 +60,36 @@ async def set_score(
     return result
 
 
-# cd4225d4-8087-4a42-aaf7-30a30e8a919d
-
-
-# ! актуальный эндпоинт
 @router.get(
-    path="/{film_id}",
+    path="/{film_id}/rating",
+    summary="Показывает рейтинг фильма (сумма оценок / кол-во оценок)",
+    description="Рейтинг фильма",
+    response_description="Статус операции показа рейтинга фильма с сообщением о результате",
+    status_code=status.HTTP_200_OK,
 )
 async def get_avg_rating(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],
-    film_id: UUID,
+    film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
 ) -> AvgRatingResponse | None:
     result = await rating_service.get_average_rating(film_id)
+    return result
+
+
+@router.post(
+    path="/test-directory/{film_id}/{user_id}",
+    status_code=status.HTTP_200_OK,
+)
+async def set_score_test(
+    rating_service: Annotated[RatingService, Depends(get_rating_service)],
+    film_id: UUID,
+    user_id: UUID,
+    request_body: Annotated[
+        ScoreRequest, Body(description="Данные для добавления лайка в формате JSON")
+    ],
+) -> ScoreResponse:
+    result = await rating_service.set_user_score(
+        user_id=user_id,
+        film_id=film_id,
+        score=request_body.score,
+    )
     return result

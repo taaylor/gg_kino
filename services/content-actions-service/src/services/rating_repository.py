@@ -10,8 +10,19 @@ logger = logging.getLogger(__name__)
 
 
 class RatingRepository(BaseRepository):
+    """Репозиторий для работы с рейтингами (модель Rating)."""
 
     async def calculate_average_rating(self, *filters: Any) -> AvgRatingSchema | None:
+        """
+        Вычисляет среднюю оценку и количество голосов по указанным фильтрам.
+
+        :param filters: Условия фильтрации, например Rating.film_id == film_id.
+        :return: Список объектов `AvgRatingSchema`, каждый содержащий:
+                 - film_id (_id из агрегации)
+                 - avg_rating (среднее арифметическое)
+                 - count_votes (число голосов);
+                 или None, если по фильтрам нет документов.
+        """
         document = (
             await self.collection.find(*filters)
             .aggregate(
@@ -29,7 +40,9 @@ class RatingRepository(BaseRepository):
             .to_list()
         )
         if not document:
+            logger.debug(f"Документ по фильтрам {filters} не найден")
             return None
+        logger.debug(f"Документ по фильтрам {filters} найден")
         return document
 
 

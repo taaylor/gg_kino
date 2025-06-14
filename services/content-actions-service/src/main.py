@@ -31,6 +31,6 @@ app.include_router(bookmark_api.router, prefix=films_prefix, tags=["Заклад
 app.include_router(review_api.router, prefix=films_prefix, tags=["Рецензии"])
 """
 SERVICE_PATH = "/content-api/api/v1/"
-app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}rating", tags=["Рейтинг"])
+app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}films-rating", tags=["Рейтинг"])
 app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])
 app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])
