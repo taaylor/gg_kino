@@ -1,20 +1,53 @@
 filebeat.inputs:
 - type: filestream
-  id: filestream-containers
-
+  id: docker-container-logs
   paths:
     - '/var/lib/docker/containers/*/*.log'
   parsers:
     - container:
-        stream: all        # или stdout / stderr
-        format: auto       # определяет подходящий формат (docker или cri)
+        stream: all
+        format: auto
+    - multiline:
+        type: pattern
+        pattern: '^\d{4}-\d{2}-\d{2}|^\{|^Traceback|^ERROR|^WARN|^INFO|^DEBUG'
+        negate: true
+        match: after
+        max_lines: 500
+        timeout: 5s
+  fields:
+    log_type: docker
+    environment: ${ENVIRONMENT:dev}
+  fields_under_root: false
 
 processors:
   - add_docker_metadata:
-      host: "unix:///var/run/docker.sock"  # Добавляет метаданные Docker
+      host: "unix:///var/run/docker.sock"
+      match_fields: ["container.id"]
+      labels.dedot: true
+      env.dedot: true
 
+  - drop_fields:
+      fields: ["agent", "ecs", "host.name", "host.id", "host.architecture", "host.os"]
+      ignore_missing: true
+
+# Настройки логирования (можно снизить level до info в продакшене)
+logging.level: debug
+logging.selectors: ["harvester", "input", "filestream"]
+logging.to_files: false
+
+# Настройки производительности
+queue.mem:
+  events: 3200
+  flush.min_events: 1600
+  flush.timeout: 10s
+
+# Вывод в Logstash
 output.logstash:
-  hosts: ["localhost:5044"] # Отправляет логи в Logstash
+  hosts: ["${LOGSTASH_HOST}:${LOGSTASH_PORT}"]
+  compression_level: 3
+  bulk_max_size: 1024
+  template.enabled: false
 
-# output.console:
-#   pretty: true
+# # Мониторинг (отключен для упрощения отладки)
+# monitoring:
+#   enabled: false
