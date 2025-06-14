@@ -3,9 +3,10 @@ from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.like.schemas import LikeRequest
 from fastapi import APIRouter, Body, Response, status
 from models.models import Like
+
+from api.v1.like.schemas import LikeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,8 @@ async def delete_like(
 async def set_like(
     film_id: UUID,
     request_body: Annotated[
-        LikeRequest, Body(description="Данные для добавления лайка в формате JSON")
+        LikeRequest,
+        Body(description="Данные для добавления лайка в формате JSON"),
     ],
 ):
     # представим, что у нас в эндпоинте прошла проверка авторизации,
@@ -47,7 +49,10 @@ async def set_like(
         UUID("5580dfe4-9803-4291-8e6b-6e7df27d7032"),
         UUID("8c5d61fa-bcfc-4b91-9ced-5e16da90f4e7"),
     ]
-    like_exist = await Like.find_one(Like.user_id == mock_user_id, Like.film_id == film_id)
+    like_exist = await Like.find_one(
+        Like.user_id == mock_user_id,
+        Like.film_id == film_id,
+    )
     if like_exist:
         like_exist.rating = request_body.rating
         like_exist.updated_at = datetime.now(timezone.utc)

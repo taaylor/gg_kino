@@ -35,7 +35,9 @@ class TracerUtilsConfig(BaseSettings):
 
 def _get_config() -> TracerUtilsConfig:
     app_config = TracerUtilsConfig()
-    logger.info(f"tracer_utils_conf.initialized: {app_config.model_dump_json(indent=4)}")
+    logger.info(
+        f"tracer_utils_conf.initialized: {app_config.model_dump_json(indent=4)}",
+    )
     return app_config
 
 

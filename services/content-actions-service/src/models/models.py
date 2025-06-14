@@ -48,12 +48,10 @@ class Like(BaseDocument):
 
 
 class Review(BaseDocument):
-
     class Settings:
         name = app_config.mongodb.reviews_coll
 
 
 class Bookmark(BaseDocument):
-
     class Settings:
         name = app_config.mongodb.bookmark_coll

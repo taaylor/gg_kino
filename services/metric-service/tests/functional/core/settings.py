@@ -1,6 +1,7 @@
 from dotenv import find_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from tests.functional.core.logger_conf import get_logger
 
 logger = get_logger(__name__)

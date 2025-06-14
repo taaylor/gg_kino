@@ -17,7 +17,8 @@ class SessionMaker:
         self.key_manager = key_manager
 
     async def create_session(
-        self, user_data: SessionUserData
+        self,
+        user_data: SessionUserData,
     ) -> tuple[Session, UserSession, UserSessionsHist]:
         user_data.session_id = uuid.uuid4()
 
@@ -47,7 +48,10 @@ class SessionMaker:
 
         return user_tokens, user_session, user_session_hist
 
-    async def update_session(self, user_data: SessionUserData) -> tuple[Session, UserSession]:
+    async def update_session(
+        self,
+        user_data: SessionUserData,
+    ) -> tuple[Session, UserSession]:
         access_token, refresh_token = await self._create_tokens(user_data=user_data)
 
         user_session = UserSession(
@@ -68,7 +72,9 @@ class SessionMaker:
         return user_tokens, user_session
 
     async def _create_tokens(self, user_data: SessionUserData):
-        access_token, refresh_token = await self.key_manager.create_tokens(user_data=user_data)
+        access_token, refresh_token = await self.key_manager.create_tokens(
+            user_data=user_data,
+        )
         return access_token, refresh_token
 
 

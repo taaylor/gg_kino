@@ -1,6 +1,7 @@
 import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from tests.functional.core.config_log import get_logger
 from tests.functional.testdata.model_enum import PermissionEnum
 from tests.functional.testdata.model_orm import DictRoles, RolesPermissions

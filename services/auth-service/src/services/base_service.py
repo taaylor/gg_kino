@@ -1,16 +1,15 @@
 from typing import Sequence
 
-from services.auth_repository import AuthRepository
-from services.session_maker import SessionMaker
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
 
+from services.auth_repository import AuthRepository
+from services.session_maker import SessionMaker
+
 
 class BaseService:
-    """
-    Базовый класс для бизнес-логика для работы с моделями.
-    """
+    """Базовый класс для бизнес-логика для работы с моделями."""
 
     model = None
 
@@ -22,8 +21,7 @@ class BaseService:
         *where_args,
         options: Sequence = (),
     ):
-        """
-        Выполняет SELECT с условием и возвращает одну запись или None.
+        """Выполняет SELECT с условием и возвращает одну запись или None.
 
         Аргументы должны передаваться строго позиционно:
         сначала session, затем условия (where).

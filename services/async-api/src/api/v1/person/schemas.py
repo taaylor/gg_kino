@@ -4,9 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class PersonInFilmsResponse(BaseModel):
-    """
-    Схема для ответа API, представляющая информацию о фильме, в котором участвует персона.
-    """
+    """Схема для ответа API, представляющая информацию о фильме, в котором участвует персона."""
 
     uuid: UUID = Field(
         ...,  # обязательное поле
@@ -14,14 +12,14 @@ class PersonInFilmsResponse(BaseModel):
     )
     roles: list[str] = Field(
         ...,  # обязательное поле
-        description=("Список ролей персоны в фильме (например, 'actor', 'director', 'writer')."),
+        description=(
+            "Список ролей персоны в фильме (например, 'actor', 'director', 'writer')."
+        ),
     )
 
 
 class PersonResponse(BaseModel):
-    """
-    Модель для ответа API, представляющая человека (актера, сценариста, режиссера).
-    """
+    """Модель для ответа API, представляющая человека (актера, сценариста, режиссера)."""
 
     uuid: UUID = Field(
         ...,

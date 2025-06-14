@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest_asyncio
 from redis.asyncio import Redis
+
 from tests.functional.core.config_log import get_logger
 from tests.functional.core.settings import test_conf
 
@@ -25,10 +26,7 @@ async def redis_client():
 @pytest_asyncio.fixture(name="redis_test")
 async def redis_test(redis_client: Redis):
     async def inner(key: str, cached_data: bool = True) -> list[dict[str, Any]] | None:
-        """
-        : cached_data: bool - праметр отвечает должен ли объекты находится в кеше по ключу
-
-        """
+        """: cached_data: bool - праметр отвечает должен ли объекты находится в кеше по ключу"""
         data = await redis_client.get(key)
 
         if cached_data:
@@ -43,11 +41,12 @@ async def redis_test(redis_client: Redis):
                 raise AssertionError(f"[REDIS] Не удалось удалить кеш по ключу {key=}")
             logger.info("[REDIS] Кеш успешно удалён")
             return response
-        else:
-            if data:
-                raise AssertionError(f"[REDIS] Не ожидалось наличие кеша, но {key=} заполнен")
-            logger.debug(f"[REDIS] Кеш по ключу {key=} отсутствует, как и ожидалось")
-            return None
+        if data:
+            raise AssertionError(
+                f"[REDIS] Не ожидалось наличие кеша, но {key=} заполнен",
+            )
+        logger.debug(f"[REDIS] Кеш по ключу {key=} отсутствует, как и ожидалось")
+        return None
 
     yield inner
 

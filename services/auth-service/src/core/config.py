@@ -2,9 +2,10 @@ import logging
 import os
 
 import dotenv
-from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from core.logger_config import LoggerSettings
 
 ENV_FILE = dotenv.find_dotenv()
 
@@ -47,10 +48,12 @@ class Redis(BaseModel):
 
 class JWTSettings(BaseModel):
     private_key_path: str = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "keys/private.pem"
+        os.path.dirname(os.path.abspath(__file__)),
+        "keys/private.pem",
     )
     public_key_path: str = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "keys/public.pem"
+        os.path.dirname(os.path.abspath(__file__)),
+        "keys/public.pem",
     )
     algorithm: str = "RS256"
     access_token_lifetime_sec: int = 1200  # 10 минут

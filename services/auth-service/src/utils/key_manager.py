@@ -16,7 +16,10 @@ pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 def load_jwt_settings():
     try:
-        with open(app_config.jwt.private_key_path, encoding="utf-8") as private_key_file:
+        with open(
+            app_config.jwt.private_key_path,
+            encoding="utf-8",
+        ) as private_key_file:
             private_key = private_key_file.read()
         with open(app_config.jwt.public_key_path, encoding="utf-8") as public_key_file:
             public_key = public_key_file.read()

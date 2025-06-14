@@ -1,9 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query
+
 from api.v1.filmwork.schemas import FilmListResponse
 from api.v1.person.schemas import PersonResponse
-from fastapi import APIRouter, Depends, Query
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
@@ -29,7 +30,8 @@ async def person_search(
     ],
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
     page_size: Annotated[
-        int, Query(ge=1, le=100, description="Количество записей на странице")
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
     ] = 50,
 ) -> list[PersonResponse] | list:
     persons = await person_service.get_person_by_search(query, page_number, page_size)

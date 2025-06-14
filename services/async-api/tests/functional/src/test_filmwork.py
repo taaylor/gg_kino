@@ -4,18 +4,20 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
+
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.es_mapping import Mapping
 
 
 @pytest.mark.asyncio
 class TestFilmsSearch:
-
     async def prepare_films_data(self, es_write_data, count=10):
         es_data = [
             {
                 "id": str(uuid4()),
-                "title": "Film " + str(i) + (" some horror" if i % 2 == 0 else " some triller"),
+                "title": "Film "
+                + str(i)
+                + (" some horror" if i % 2 == 0 else " some triller"),
                 "imdb_rating": random.randrange(1, 10) + round(random.random(), 1),
                 "description": "Description "
                 + str(i)
@@ -59,7 +61,11 @@ class TestFilmsSearch:
     ):
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
-        _, status = await make_get_request("/films/search", params=query_data, headers=headers)
+        _, status = await make_get_request(
+            "/films/search",
+            params=query_data,
+            headers=headers,
+        )
         assert status == HTTPStatus.BAD_REQUEST, expected_answer["err_msg"]
 
     @pytest.mark.parametrize(
@@ -95,7 +101,11 @@ class TestFilmsSearch:
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
         await self.prepare_films_data(es_write_data, count=101)
-        body, status = await make_get_request("/films/search", params=query_data, headers=headers)
+        body, status = await make_get_request(
+            "/films/search",
+            params=query_data,
+            headers=headers,
+        )
         assert status == HTTPStatus.OK
         assert len(body) == expected_answer["len_body"], expected_answer["err_msg"]
 
@@ -146,13 +156,20 @@ class TestFilmsSearch:
 
         await self.prepare_films_data(es_write_data, count=101)
 
-        body, status = await make_get_request("/films/search", params=query_data, headers=headers)
+        body, status = await make_get_request(
+            "/films/search",
+            params=query_data,
+            headers=headers,
+        )
         titles = {item["title"] for item in body}
 
         assert status == HTTPStatus.OK
-        assert len(body) == expected_answer["len_body"], expected_answer["err_msg_len_body"]
+        assert len(body) == expected_answer["len_body"], expected_answer[
+            "err_msg_len_body"
+        ]
         assert all(
-            True if "unknown" in title else query_data["query"] in title for title in titles
+            True if "unknown" in title else query_data["query"] in title
+            for title in titles
         ), expected_answer["err_msg_wrong_result"]
 
 
@@ -172,7 +189,7 @@ class TestFilmsList:
             {
                 "id": "526769d7-df18-4661-9aa6-49ed24e9dfd8",
                 "name": "horror",
-            }
+            },
         ]
         genre_item_many_genre = [
             {"id": "6a0a479b-cfec-41ac-b520-41b2b007b611", "name": "triller"},
@@ -279,7 +296,11 @@ class TestFilmsList:
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
-        body, status = await make_get_request("/films", params=query_data, headers=headers)
+        body, status = await make_get_request(
+            "/films",
+            params=query_data,
+            headers=headers,
+        )
 
         assert status == HTTPStatus.OK
         assert len(body) == 10, expected_answer["err_msg_len_body"]
@@ -329,13 +350,19 @@ class TestFilmsList:
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
-        body, status = await make_get_request("/films", params=query_data, headers=headers)
+        body, status = await make_get_request(
+            "/films",
+            params=query_data,
+            headers=headers,
+        )
 
         assert status == HTTPStatus.OK
         assert len(body) == 5
         assert all(expected_answer["genre"] in item["title"] for item in body)
         if expected_answer.get("second_genre"):
-            assert all(expected_answer["second_genre"] in item["title"] for item in body)
+            assert all(
+                expected_answer["second_genre"] in item["title"] for item in body
+            )
 
     @pytest.mark.parametrize(
         "query_data, expected_answer",
@@ -394,7 +421,11 @@ class TestFilmsList:
         await self.prepare_films_data(es_write_data, count=10)
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
-        body, status = await make_get_request("/films", params=query_data, headers=headers)
+        body, status = await make_get_request(
+            "/films",
+            params=query_data,
+            headers=headers,
+        )
 
         cache = await redis_test(
             key=expected_answer["cach_key"],
@@ -409,7 +440,6 @@ class TestFilmsList:
 
 @pytest.mark.asyncio
 class TestFilmsDetail:
-
     @pytest.mark.parametrize(
         "url_path, expected_answer",
         [
@@ -477,7 +507,6 @@ class TestFilmsDetail:
         expected_answer: dict[str, Any],
         create_user,
     ):
-
         es_data = [
             {
                 "id": "1d825f60-9fff-4dfe-b294-1a45fa1e115d",
@@ -497,20 +526,31 @@ class TestFilmsDetail:
         await es_write_data(es_data, test_conf.elastic.index_films, Mapping.films)
         tokens_auth = await create_user(superuser_flag=True)
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
-        body, status = await make_get_request(f"/films/{url_path['UUID']}", headers=headers)
+        body, status = await make_get_request(
+            f"/films/{url_path['UUID']}",
+            headers=headers,
+        )
 
         if expected_answer.get("invalid_uuid"):
-            assert status == HTTPStatus.BAD_REQUEST, expected_answer.get("err_msg_status_code")
+            assert status == HTTPStatus.BAD_REQUEST, expected_answer.get(
+                "err_msg_status_code",
+            )
             return
 
-        elif expected_answer.get("no_existing_uuid"):
+        if expected_answer.get("no_existing_uuid"):
             assert status == HTTPStatus.OK, expected_answer.get("err_msg_status_code")
-            assert body == expected_answer["body"], expected_answer.get("err_msg_wrong_result")
+            assert body == expected_answer["body"], expected_answer.get(
+                "err_msg_wrong_result",
+            )
             return
 
         assert status == HTTPStatus.OK, expected_answer.get("err_msg_status_code")
-        assert body == expected_answer["body"], expected_answer.get("err_msg_wrong_result")
+        assert body == expected_answer["body"], expected_answer.get(
+            "err_msg_wrong_result",
+        )
 
         cache = await redis_test(key=expected_answer["cach_key"])
         assert cache is not None
-        assert cache == expected_answer["body"], expected_answer.get("err_msg_wrong_result")
+        assert cache == expected_answer["body"], expected_answer.get(
+            "err_msg_wrong_result",
+        )

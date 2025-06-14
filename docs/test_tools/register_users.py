@@ -3,7 +3,10 @@ import logging
 
 import aiohttp
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 url = "http://localhost/auth/api/v1/sessions/register"

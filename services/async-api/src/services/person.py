@@ -27,15 +27,15 @@ class PersonRepository:
         self.repository = repository
 
     async def get_person_by_id(self, person_id: UUID) -> PersonResponse | None:
-        """
-        Получает информацию о персоне по ее идентификатору.
+        """Получает информацию о персоне по ее идентификатору.
 
         :param person_id: Идентификатор персоны.
         :return: Объект `PersonResponse` с информацией о персоне и ее фильмах или None,
         если персона не найдена.
         """
         person = await self.repository.get_object_by_id(
-            index=self.PERSONS_INDEX, object_id=person_id
+            index=self.PERSONS_INDEX,
+            object_id=person_id,
         )
 
         if not person:
@@ -43,7 +43,8 @@ class PersonRepository:
         body = self.get_query_films_by_person(person_id=person_id)
         films_sources = await self.repository.get_list(self.MOVIES_INDEX, body)
         films = self.convert_roles_and_films_to_model_response(
-            person_id=person_id, films_sources=films_sources
+            person_id=person_id,
+            films_sources=films_sources,
         )
         person_result = PersonResponse(
             uuid=person_id,
@@ -57,8 +58,7 @@ class PersonRepository:
         person_id: UUID,
         films_sources: list[dict],
     ) -> list[PersonInFilmsResponse]:
-        """
-        Извлекает роли персоны из списка фильмов.
+        """Извлекает роли персоны из списка фильмов.
 
         :param person_id: Идентификатор персоны.
         :param films_sources: Список фильмов с информацией о ролях.
@@ -73,32 +73,39 @@ class PersonRepository:
                 self.collects_roles(
                     film,
                     person_id,
-                )
+                ),
             )
             film_roles.append(
                 PersonInFilmsResponse(
                     uuid=film["id"],
                     roles=roles,
-                )
+                ),
             )
         return film_roles
 
-    async def get_person_by_id_films(self, person_id: UUID) -> list[FilmListResponse] | list:
-        """
-        Получает информацию о персоне по ее идентификатору.
+    async def get_person_by_id_films(
+        self,
+        person_id: UUID,
+    ) -> list[FilmListResponse] | list:
+        """Получает информацию о персоне по ее идентификатору.
 
         :param person_id: Идентификатор персоны.
         :return: Объект `PersonResponse` с информацией о персоне и ее фильмах или None,
         если персона не найдена.
         """
         person_data = await self.repository.get_object_by_id(
-            index=self.PERSONS_INDEX, object_id=person_id
+            index=self.PERSONS_INDEX,
+            object_id=person_id,
         )
         if person_data is None:
             return []
         person = PersonLogic.model_validate(person_data)
         body = self.get_query_films_by_person(person_id=person.id)
-        films_sources = await self.repository.get_list(self.MOVIES_INDEX, body, size=1000)
+        films_sources = await self.repository.get_list(
+            self.MOVIES_INDEX,
+            body,
+            size=1000,
+        )
 
         # ! конвертируем фильмы в модель Response
         films = self.convert_films_to_model_response(films_sources=films_sources)
@@ -108,8 +115,7 @@ class PersonRepository:
         self,
         films_sources: list[dict],
     ) -> list[FilmListResponse]:
-        """
-        Извлекает роли персоны в фильмах.
+        """Извлекает роли персоны в фильмах.
 
         :param person_id: ID персоны.
         :param films_sources: Список фильмов.
@@ -127,8 +133,7 @@ class PersonRepository:
         return films
 
     def get_query_films_by_person(self, person_id: str) -> dict[str, Any]:
-        """
-        Выполняет запрос в Elasticsearch для получения фильмов, в которых участвовал человек.
+        """Выполняет запрос в Elasticsearch для получения фильмов, в которых участвовал человек.
 
         :param person_id: Идентификатор персоны.
         :return: Результат поиска в Elasticsearch.
@@ -142,13 +147,12 @@ class PersonRepository:
                         self.build_nested_query_detail("writers", person_id),
                     ],
                     "minimum_should_match": 1,
-                }
-            }
+                },
+            },
         }
 
     def collects_roles(self, film_source: dict, person_id: str) -> list[str]:
-        """
-        Извлекает роли, которые выполнял человек в фильме.
+        """Извлекает роли, которые выполнял человек в фильме.
 
         :param film_source:
             Словарь с данными о фильме, содержащий списки актеров, режиссеров и сценаристов.
@@ -158,14 +162,19 @@ class PersonRepository:
             если персона участвовала в фильме.
         """
         roles = []
-        roles.extend({"actor" for p in film_source["actors"] if p["id"] == str(person_id)})
-        roles.extend({"director" for p in film_source["directors"] if p["id"] == str(person_id)})
-        roles.extend({"writer" for p in film_source["writers"] if p["id"] == str(person_id)})
+        roles.extend(
+            {"actor" for p in film_source["actors"] if p["id"] == str(person_id)},
+        )
+        roles.extend(
+            {"director" for p in film_source["directors"] if p["id"] == str(person_id)},
+        )
+        roles.extend(
+            {"writer" for p in film_source["writers"] if p["id"] == str(person_id)},
+        )
         return roles
 
     def build_nested_query_detail(self, field: str, person_id: UUID) -> dict:
-        """
-        Формирует вложенный запрос для поиска персоны по заданному полю в Elasticsearch.
+        """Формирует вложенный запрос для поиска персоны по заданному полю в Elasticsearch.
 
         :param field:
             Поле, в котором выполняется поиск
@@ -173,11 +182,12 @@ class PersonRepository:
         :param person_id: Уникальный идентификатор персоны.
         :return: Словарь с запросом для Elasticsearch, выполняющий поиск по заданному полю.
         """
-        return {"nested": {"path": field, "query": {"term": {f"{field}.id": person_id}}}}
+        return {
+            "nested": {"path": field, "query": {"term": {f"{field}.id": person_id}}},
+        }
 
     def get_person_ids(self, persons: list[str]) -> dict[str, str]:
-        """
-        Извлекает идентификаторы и имена персон из результатов поиска Elasticsearch.
+        """Извлекает идентификаторы и имена персон из результатов поиска Elasticsearch.
 
         :param persons: Список документов из индекса "persons".
         :return: Словарь, где ключ — ID персоны, значение — её имя.
@@ -190,16 +200,16 @@ class PersonRepository:
         return person_ids
 
     def convert_many_person_to_model_response(
-        self, person_ids: dict[str, str], many_roles: dict[str, Any]
+        self,
+        person_ids: dict[str, str],
+        many_roles: dict[str, Any],
     ) -> list[PersonResponse]:
-        """
-        Формирует список персон с их ролями и фильмами на основе данных из Elasticsearch.
+        """Формирует список персон с их ролями и фильмами на основе данных из Elasticsearch.
 
         :param person_ids: Словарь ID и имён персон.
         :param many_roles: Данные о фильмах, в которых участвуют персоны.
         :return: Список объектов PersonResponse с информацией о фильмах и ролях.
         """
-
         result = []
         for p_id in person_ids:
             list_roles = []
@@ -211,17 +221,27 @@ class PersonRepository:
                             PersonInFilmsResponse(
                                 uuid=film["id"],
                                 roles=roles,
-                            )
+                            ),
                         )
                 result.append(
-                    PersonResponse(uuid=p_id, full_name=person_ids[p_id], films=list_roles)
+                    PersonResponse(
+                        uuid=p_id,
+                        full_name=person_ids[p_id],
+                        films=list_roles,
+                    ),
                 )
-            result.append(PersonResponse(uuid=p_id, full_name=person_ids[p_id], films=[]))
+            result.append(
+                PersonResponse(uuid=p_id, full_name=person_ids[p_id], films=[]),
+            )
         return result
 
-    async def get_person_by_search(self, query, page_number, page_size) -> list[PersonResponse]:
-        """
-        Выполняет поиск персон по имени с пагинацией и возвращает их данные вместе с фильмами.
+    async def get_person_by_search(
+        self,
+        query,
+        page_number,
+        page_size,
+    ) -> list[PersonResponse]:
+        """Выполняет поиск персон по имени с пагинацией и возвращает их данные вместе с фильмами.
 
         :param query: Поисковый запрос (имя персоны).
         :param page_number: Номер страницы результатов.
@@ -247,21 +267,21 @@ class PersonRepository:
         return persons
 
     def build_nested_query_many(self, field: str, person_ids: list[str]) -> dict:
-        """
-        Формирует множественный nested-запрос для поиска фильмов, связанных с персонами.
+        """Формирует множественный nested-запрос для поиска фильмов, связанных с персонами.
 
         :param field: Поле ("actors", "writers" или "directors").
         :param person_ids: Список идентификаторов персон.
         :return: Elasticsearch nested-запрос.
         """
-        return {"nested": {"path": field, "query": {"terms": {f"{field}.id": person_ids}}}}
+        return {
+            "nested": {"path": field, "query": {"terms": {f"{field}.id": person_ids}}},
+        }
 
     def get_query_many_roles(
         self,
         person_ids: list[str],
     ) -> dict[str, Any]:
-        """
-        Выполняет запрос в Elasticsearch для получения фильмов,
+        """Выполняет запрос в Elasticsearch для получения фильмов,
         в которых участвовали много персон.
 
         :param person_ids: Список идентификаторов персон.
@@ -276,14 +296,13 @@ class PersonRepository:
                         self.build_nested_query_many("directors", person_ids),
                     ],
                     "minimum_should_match": 1,
-                }
+                },
             },
             "size": 10000,  # Максимальное количество фильмов, можно уменьшить
         }
 
     def query_person_by_search(self, query: str) -> dict[str, Any]:
-        """
-        Выполняет запрос к Elasticsearch для поиска персон по имени с учётом пагинации.
+        """Выполняет запрос к Elasticsearch для поиска персон по имени с учётом пагинации.
 
         :param query: Поисковый запрос (имя персоны).
         :param from_value: Смещение результатов (начальная позиция).
@@ -305,8 +324,7 @@ class PersonService:
         self.repository = repository
 
     async def get_person_by_id(self, person_id: UUID) -> PersonResponse | None:
-        """
-        Получает информацию о персоне по ее идентификатору.
+        """Получает информацию о персоне по ее идентификатору.
 
         :param person_id: Идентификатор персоны.
         :return: Объект `PersonResponse` с информацией о персоне и ее фильмах или None,
@@ -324,14 +342,18 @@ class PersonService:
             return None
 
         await self.cache.background_set(
-            redis_key, person_result.model_dump_json(), CACHE_FILMS_CACHE_EXPIRES
+            redis_key,
+            person_result.model_dump_json(),
+            CACHE_FILMS_CACHE_EXPIRES,
         )
         logger.debug(f"Person {person_id} будет сохранён в кеш по ключу {redis_key}.")
         return person_result
 
-    async def get_person_by_id_films(self, person_id: UUID) -> list[FilmListResponse] | list:
-        """
-        Получает информацию о персоне по ее идентификатору.
+    async def get_person_by_id_films(
+        self,
+        person_id: UUID,
+    ) -> list[FilmListResponse] | list:
+        """Получает информацию о персоне по ее идентификатору.
 
         :param person_id: Идентификатор персоны.
         :return: Объект `PersonResponse` с информацией о персоне и ее фильмах или None,
@@ -342,20 +364,30 @@ class PersonService:
         if data:
             logger.debug(f"Список фильмов Person {person_id} в кеше. Возвращаю кеш.")
             return [FilmListResponse.model_validate(film) for film in json.loads(data)]
-        logger.debug(f"Список фильмов Person {person_id} отсутствует в кеш. Запрашиваю из БД.")
+        logger.debug(
+            f"Список фильмов Person {person_id} отсутствует в кеш. Запрашиваю из БД.",
+        )
         films = await self.repository.get_person_by_id_films(person_id)
         if not films:
             return []
         data_json = json.dumps([film.model_dump(mode="json") for film in films])
-        await self.cache.background_set(redis_key, data_json, expire=CACHE_FILMS_CACHE_EXPIRES)
+        await self.cache.background_set(
+            redis_key,
+            data_json,
+            expire=CACHE_FILMS_CACHE_EXPIRES,
+        )
         logger.debug(
-            f"Список фильмов Person {person_id} будет сохранён в кеш по ключу {redis_key}."
+            f"Список фильмов Person {person_id} будет сохранён в кеш по ключу {redis_key}.",
         )
         return films
 
-    async def get_person_by_search(self, query, page_number, page_size) -> list[PersonResponse]:
-        """
-        Выполняет поиск персон по имени с пагинацией и возвращает их данные вместе с фильмами.
+    async def get_person_by_search(
+        self,
+        query,
+        page_number,
+        page_size,
+    ) -> list[PersonResponse]:
+        """Выполняет поиск персон по имени с пагинацией и возвращает их данные вместе с фильмами.
 
         :param query: Поисковый запрос (имя персоны).
         :param page_number: Номер страницы результатов.
@@ -366,20 +398,35 @@ class PersonService:
         data = await self.cache.get(redis_key)
         if data:
             logger.debug(f"Список Person по запросу {query} в кеше. Возвращаю кеш.")
-            return [PersonResponse.model_validate(person) for person in json.loads(data)]
-        logger.debug(f"Список Person по запросу {query} отсутствует в кеше. Запрашиваю из БД.")
-        persons = await self.repository.get_person_by_search(query, page_number, page_size)
+            return [
+                PersonResponse.model_validate(person) for person in json.loads(data)
+            ]
+        logger.debug(
+            f"Список Person по запросу {query} отсутствует в кеше. Запрашиваю из БД.",
+        )
+        persons = await self.repository.get_person_by_search(
+            query,
+            page_number,
+            page_size,
+        )
         if not persons:
             return []
         data_json = json.dumps([person.model_dump(mode="json") for person in persons])
-        await self.cache.background_set(redis_key, data_json, expire=CACHE_FILMS_CACHE_EXPIRES)
-        logger.debug(f"Список Person по запросу {query} будет сохранён в кеш по ключу {redis_key}.")
+        await self.cache.background_set(
+            redis_key,
+            data_json,
+            expire=CACHE_FILMS_CACHE_EXPIRES,
+        )
+        logger.debug(
+            f"Список Person по запросу {query} будет сохранён в кеш по ключу {redis_key}.",
+        )
         return persons
 
 
-@lru_cache()
+@lru_cache
 def get_person_service(
-    cache: Cache = Depends(get_cache), repository: BaseDB = Depends(get_repository)
+    cache: Cache = Depends(get_cache),
+    repository: BaseDB = Depends(get_repository),
 ) -> PersonService:
     person_repository = PersonRepository(repository=repository)
     return PersonService(cache, person_repository)

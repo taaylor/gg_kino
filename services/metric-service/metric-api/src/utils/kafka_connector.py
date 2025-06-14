@@ -25,7 +25,9 @@ class KafkaConnector:
             "bootstrap_servers": app_config.kafka.get_servers,
             "client_id": app_config.project_name,
             "value_serializer": self._json_serializer,
-            "key_serializer": lambda v: str(v).encode("utf-8") if v is not None else None,
+            "key_serializer": lambda v: str(v).encode("utf-8")
+            if v is not None
+            else None,
             "acks": app_config.kafka.acks,
             "retries": app_config.kafka.retries,
             "retry_backoff_ms": app_config.kafka.retry_backoff_ms,
@@ -52,12 +54,14 @@ class KafkaConnector:
     )
     def _create_producer(self) -> KafkaProducer:
         try:
-            logger.debug(f"Создаю подключение к Kafka: {self.config["bootstrap_servers"]}")
+            logger.debug(
+                f"Создаю подключение к Kafka: {self.config["bootstrap_servers"]}",
+            )
             producer = KafkaProducer(**self.config)
             logger.info("Kafka producer успешно создан")
             return producer
-        except Exception as e:
-            logger.error(f"Ошибка создания Kafka producer: {e}")
+        except Exception as error:
+            logger.error(f"Ошибка создания Kafka producer: {error}")
             raise
 
     def get_producer(self) -> KafkaProducer:
@@ -73,8 +77,8 @@ class KafkaConnector:
                 self._producer.flush()
                 self._producer.close()
                 logger.info("Kafka producer закрыт")
-            except Exception as e:
-                logger.error(f"Ошибка при закрытии Kafka producer: {e}")
+            except Exception as error:
+                logger.error(f"Ошибка при закрытии Kafka producer: {error}")
             finally:
                 self._producer = None
 
@@ -89,8 +93,8 @@ class KafkaConnector:
             if producer:
                 try:
                     producer.flush()
-                except Exception as e:
-                    logger.error(f"Ошибка при flush Kafka producer: {e}")
+                except Exception as error:
+                    logger.error(f"Ошибка при flush Kafka producer: {error}")
 
     def send_message(
         self,
@@ -101,11 +105,11 @@ class KafkaConnector:
         timestamp_ms: int | None = None,
         headers: str | bytes | None = None,
     ) -> bool:
-        """
-        Отправить сообщение в Kafka
+        """Отправить сообщение в Kafka
 
         Returns:
             bool: True если сообщение отправлено успешно
+
         """
         try:
             with self.producer_context() as producer:
@@ -127,11 +131,11 @@ class KafkaConnector:
         except KafkaTimeoutError:
             logger.error(f"Таймаут при отправке сообщения в топик {topic}")
             return False
-        except KafkaError as e:
-            logger.error(f"Ошибка Kafka при отправке в топик {topic}: {e}")
+        except KafkaError as error:
+            logger.error(f"Ошибка Kafka при отправке в топик {topic}: {error}")
             return False
-        except Exception as e:
-            logger.error(f"Неожиданная ошибка при отправке в топик {topic}: {e}")
+        except Exception as error:
+            logger.error(f"Неожиданная ошибка при отправке в топик {topic}: {error}")
             return False
 
     def __enter__(self):

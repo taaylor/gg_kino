@@ -3,10 +3,11 @@ import logging
 from enum import StrEnum
 
 import requests
-from accounts.utils import decode_jwt_payload
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
+
+from accounts.utils import decode_jwt_payload
 
 User = get_user_model()
 

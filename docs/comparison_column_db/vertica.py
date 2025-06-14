@@ -41,7 +41,7 @@ def create_table():
             timestamp TIMESTAMP
         )
         ORDER BY timestamp;
-        """
+        """,
         )
         print(f"[Vertica] таблица {DB_TABLE} создана")
 
@@ -61,7 +61,7 @@ def load_data(idx_proc: int, total: int = 1000):
                     faker.text(max_nb_chars=200).replace("\n", " "),
                     float(randint(1000, 20000)),
                     datetime.now(),
-                )
+                ),
             )
             leng += 1
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         end = time.perf_counter()
         print(
             f"Время заполнения {NUMBER_PROCESSES * NUMBER_RECORDS_PROCESS} \
-                записей составило: {end - start:.2f} сек"
+                записей составило: {end - start:.2f} сек",
         )
     except vertica_python.errors.Error as err:
         print(f"Возникло исключение: {err}")

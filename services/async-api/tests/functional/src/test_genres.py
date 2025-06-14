@@ -3,13 +3,13 @@ from http import HTTPStatus
 from typing import Any
 
 import pytest
+
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.es_mapping import Mapping
 
 
 @pytest.mark.asyncio
 class TestGenres:
-
     async def test_genres(self, es_write_data, make_get_request, redis_test):
         # Arrange
         es_data = [
@@ -26,10 +26,14 @@ class TestGenres:
         cache = await redis_test(key="genres:all")
 
         # Assert
-        assert status == HTTPStatus.OK, "Ожидался статус код 200 при запросе всех жанров"
-        assert len(body) == 50, f"Ожидалось в ответе 50 жанров, по факту вернулось {len(body)}"
-        assert len(cache) == len(
-            es_data
+        assert (
+            status == HTTPStatus.OK
+        ), "Ожидался статус код 200 при запросе всех жанров"
+        assert (
+            len(body) == 50
+        ), f"Ожидалось в ответе 50 жанров, по факту вернулось {len(body)}"
+        assert (
+            len(cache) == len(es_data)
         ), f"Количество элементов в кеше {len(cache)} != {len(es_data)} - ожидаемому результату"
 
     @pytest.mark.parametrize(
@@ -105,13 +109,18 @@ class TestGenres:
 
         # Act
         body, status = await make_get_request(url)
-        cache = await redis_test(key=key_cache, cached_data=query_data.get("cached_data"))
+        cache = await redis_test(
+            key=key_cache,
+            cached_data=query_data.get("cached_data"),
+        )
 
         # Assert
         assert status == expected_status, f"Ожидался статус код {expected_status}"
 
         if expected_status == HTTPStatus.BAD_REQUEST:
-            assert body.get("body", True) is None, expected_answer.get("err_msg_len_body")
+            assert body.get("body", True) is None, expected_answer.get(
+                "err_msg_len_body",
+            )
             assert cache is None, expected_answer.get("err_msg_cache")
             return
 

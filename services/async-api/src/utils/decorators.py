@@ -25,7 +25,7 @@ def elastic_handler_exeptions[**P, R](
             # общая ошибка запроса (например, неверный формат запроса).
             # нужно если неправльно составлен запрос к elasticsearch
             logger.error(
-                f"[Elasticsearch] общая ошибка запроса (например, неверный формат запроса): {error}"
+                f"[Elasticsearch] общая ошибка запроса (например, неверный формат запроса): {error}",
             )
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,  # возвращаем 400 статус код
@@ -50,7 +50,9 @@ def redis_handler_exeptions[**P, R](
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
         except RedisError as error:
-            logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
 
     return wrapper
 
@@ -63,7 +65,6 @@ def backoff(
     jitter: bool = True,
     max_attempts: int = 5,
 ):
-
     def func_wrapper[**P, R](
         func: Callable[P, Coroutine[Any, Any, R]],
     ) -> Callable[P, Coroutine[Any, Any, R]]:
@@ -78,7 +79,9 @@ def backoff(
                     return await func(*args, **kwargs)
                 except exception as error:
                     last_exception = error
-                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                    logger.error(
+                        f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
+                    )
                 if attempt == max_attempts:
                     logger.error("Backoff исчерпал попытки, прокидываю исключение...")
                     raise HTTPException(

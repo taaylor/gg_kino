@@ -1,5 +1,6 @@
 import psycopg
 from psycopg import DatabaseError, OperationalError
+
 from tests.functional.core.config_log import get_logger
 from tests.functional.core.settings import test_conf
 from tests.functional.utils.decorators import backoff

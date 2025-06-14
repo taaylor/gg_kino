@@ -1,9 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
 from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Depends, Path, Query
+
+from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()
@@ -25,9 +26,13 @@ DEFAULT_PERMISSION = Permissions.FREE_FILMS.value
 async def film_search(
     film_service: Annotated[FilmService, Depends(get_film_service)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
-    query: Annotated[str, Query(description="Поле запроса по поиску кинопроизведений")] = "",
+    query: Annotated[
+        str,
+        Query(description="Поле запроса по поиску кинопроизведений"),
+    ] = "",
     page_size: Annotated[
-        int, Query(ge=1, le=100, description="Количество записей на странице")
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
     ] = 50,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> list[FilmListResponse]:
@@ -47,7 +52,10 @@ async def film_search(
         return []
 
     search_films = await film_service.get_list_film_by_search_query(
-        query=query, page_size=page_size, page_number=page_number, user_permissions=user_permissions
+        query=query,
+        page_size=page_size,
+        page_number=page_number,
+        user_permissions=user_permissions,
     )
 
     return search_films
@@ -77,7 +85,10 @@ async def film_detail(
     if user_token:
         user_permissions = set(user_token.get("permissions"))
 
-    film = await film_service.get_film_by_id(film_id=film_id, user_permissions=user_permissions)
+    film = await film_service.get_film_by_id(
+        film_id=film_id,
+        user_permissions=user_permissions,
+    )
 
     return film
 
@@ -97,14 +108,18 @@ async def film_list(
     film_service: Annotated[FilmService, Depends(get_film_service)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sort: Annotated[
-        FilmSorted, Query(description="Сортировка по рейтингу кинопроизведения")
+        FilmSorted,
+        Query(description="Сортировка по рейтингу кинопроизведения"),
     ] = FilmSorted.RATING_DESC,
     genre: Annotated[
         list[UUID],
-        Query(description="Фильтр по жанрам, принимает один жанр или список жанров (UUID)"),
+        Query(
+            description="Фильтр по жанрам, принимает один жанр или список жанров (UUID)",
+        ),
     ] = None,
     page_size: Annotated[
-        int, Query(ge=1, le=100, description="Количество записей на странице")
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
     ] = 50,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> list[FilmListResponse]:
@@ -115,7 +130,8 @@ async def film_list(
     if user_token:
         user_permissions = set(user_token.get("permissions"))
     total_pages = await film_service.get_total_pages(
-        page_size=page_size, user_permissions=user_permissions
+        page_size=page_size,
+        user_permissions=user_permissions,
     )
 
     if page_number > total_pages:

@@ -12,6 +12,7 @@ from api.v1.role.schemas import (
 from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from rate_limite_utils import rate_limit
+
 from services.role_service import RoleService, get_role_service
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,8 @@ async def get_role(
 async def create_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     request_body: Annotated[
-        RoleDetailRequest, Body(description="Данные для создания роли в формате JSON")
+        RoleDetailRequest,
+        Body(description="Данные для создания роли в формате JSON"),
     ],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse | dict[str, str]:
@@ -88,9 +90,13 @@ async def create_role(
 async def update_role(
     service: Annotated[RoleService, Depends(get_role_service)],
     request_body: Annotated[
-        RoleDetailUpdateRequest, Body(description="Обновленные данные роли в формате JSON")
+        RoleDetailUpdateRequest,
+        Body(description="Обновленные данные роли в формате JSON"),
     ],
-    role_code: Annotated[str, Path(description="Уникальный идентификатор обновляемой роли")],
+    role_code: Annotated[
+        str,
+        Path(description="Уникальный идентификатор обновляемой роли"),
+    ],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> RoleDetailResponse:
     role = await service.update_role(pk=role_code, request_body=request_body)
@@ -107,7 +113,10 @@ async def update_role(
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def destroy_role(
     service: Annotated[RoleService, Depends(get_role_service)],
-    role_code: Annotated[str, Path(description="Уникальный идентификатор удаляемой роли")],
+    role_code: Annotated[
+        str,
+        Path(description="Уникальный идентификатор удаляемой роли"),
+    ],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> MessageResponse:
     await service.destroy_role(pk=role_code)

@@ -9,7 +9,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     engine = AsyncIOMotorClient(app_config.mongodb.ASYNC_DATABASE_URL)
     await init_beanie(
         database=engine[app_config.mongodb.name],

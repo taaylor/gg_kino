@@ -1,9 +1,10 @@
 import logging
 from uuid import UUID
 
-from db.database import BaseDB, PaginateBaseDB
 from elasticsearch import AsyncElasticsearch, ConnectionError, ConnectionTimeout
 from utils.decorators import backoff, elastic_handler_exeptions
+
+from db.database import BaseDB, PaginateBaseDB
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,16 @@ class ElasticDB(BaseDB):
 
     @elastic_handler_exeptions
     @backoff(exception=(ConnectionError, ConnectionTimeout))
-    async def get_object_by_id(self, index: str, object_id: UUID, **kwargs) -> dict | None:
+    async def get_object_by_id(
+        self,
+        index: str,
+        object_id: UUID,
+        **kwargs,
+    ) -> dict | None:
         """Получить детальную информацию об объекте из ElasticSearch по UUID."""
-        logger.debug(f"Получаю детальную информацию из ElasticSearch по объекту {object_id=}")
+        logger.debug(
+            f"Получаю детальную информацию из ElasticSearch по объекту {object_id=}",
+        )
         data = await self.elastic.get(index=index, id=str(object_id), **kwargs)
         return data.get("_source")
 
@@ -51,7 +59,12 @@ class PaginateElasticDB(PaginateBaseDB):
         self.elastic = elastic
         self._base_db = ElasticDB(elastic)
 
-    async def get_object_by_id(self, index: str, object_id: UUID, **kwargs) -> dict | None:
+    async def get_object_by_id(
+        self,
+        index: str,
+        object_id: UUID,
+        **kwargs,
+    ) -> dict | None:
         return await self._base_db.get_object_by_id(index, object_id, **kwargs)
 
     async def get_list(self, index: str, body: dict, **kwargs) -> list[dict]:
@@ -62,9 +75,12 @@ class PaginateElasticDB(PaginateBaseDB):
     async def get_count(self, index: str, categories: list[str], **kwargs) -> int:
         logger.debug(
             f"Получаю количество документов в индексе {index} \
-                ElasticSearch, с параметрами {categories}"
+                ElasticSearch, с параметрами {categories}",
         )
-        body = {"size": 0, "query": {"bool": {"filter": [{"terms": {"type": categories}}]}}}
+        body = {
+            "size": 0,
+            "query": {"bool": {"filter": [{"terms": {"type": categories}}]}},
+        }
         result = await self.elastic.search(index=index, body=body, **kwargs)
         total = result["hits"]["total"]["value"]
         return int(total)

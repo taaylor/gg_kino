@@ -1,6 +1,14 @@
 from typing import Annotated
 from uuid import UUID
 
+from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
+from db.postgres import get_session
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+from models.models import DictRoles, User, UserCred
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
 from api.v1.update_user_data.schemas import (
     AssignRoleRequest,
     ChangePasswordRequest,
@@ -8,14 +16,7 @@ from api.v1.update_user_data.schemas import (
     UserResponse,
     UserRoleResponse,
 )
-from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
-from db.postgres import get_session
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
-from models.models import DictRoles, User, UserCred
-from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.user_service import RoleService, UserCredService, UserService
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
@@ -30,7 +31,10 @@ REQUIRED_PERMISSIONS = {Permissions.ASSIGN_ROLE.value}
 )
 @rate_limit_leaky_bucket()
 async def change_username(
-    request_body: Annotated[ChangeUsernameRequest, Body(description="Данные для изменения имени")],
+    request_body: Annotated[
+        ChangeUsernameRequest,
+        Body(description="Данные для изменения имени"),
+    ],
     session: Annotated[AsyncSession, Depends(get_session)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserResponse | None:
@@ -39,7 +43,9 @@ async def change_username(
     decrypted_token = await authorize.get_raw_jwt()
     user_id = decrypted_token.get("user_id")
     user = await UserService.find_one_or_none(
-        session, User.id == user_id, options=[joinedload(User.user_cred)]
+        session,
+        User.id == user_id,
+        options=[joinedload(User.user_cred)],
     )
     if not user:
         return None
@@ -56,7 +62,10 @@ async def change_username(
 )
 @rate_limit_leaky_bucket()
 async def change_password(
-    request_body: Annotated[ChangePasswordRequest, Body(description="Данные для изменения пароля")],
+    request_body: Annotated[
+        ChangePasswordRequest,
+        Body(description="Данные для изменения пароля"),
+    ],
     session: Annotated[AsyncSession, Depends(get_session)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserResponse | None:
@@ -72,7 +81,9 @@ async def change_password(
             detail="Passwords do not match",
         )
     user_cred = await UserCredService.find_one_or_none(
-        session, UserCred.user_id == user_id, options=[joinedload(UserCred.user)]
+        session,
+        UserCred.user_id == user_id,
+        options=[joinedload(UserCred.user)],
     )
     if not user_cred:
         return None
@@ -91,13 +102,18 @@ async def change_password(
 @access_permissions_check(REQUIRED_PERMISSIONS)
 async def assign_role(
     user_id: Annotated[UUID, Path(title="Уникальный идентификатор пользователя")],
-    request_body: Annotated[AssignRoleRequest, Body(description="Данные для назначения роли")],
+    request_body: Annotated[
+        AssignRoleRequest,
+        Body(description="Данные для назначения роли"),
+    ],
     session: Annotated[AsyncSession, Depends(get_session)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
     new_role = request_body.role
     user = await UserService.find_one_or_none(
-        session, User.id == user_id, options=[joinedload(User.user_cred)]
+        session,
+        User.id == user_id,
+        options=[joinedload(User.user_cred)],
     )
     if not user:
         return None
@@ -126,7 +142,9 @@ async def revoke_role(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> UserRoleResponse | None:
     user = await UserService.find_one_or_none(
-        session, User.id == user_id, options=[joinedload(User.user_cred)]
+        session,
+        User.id == user_id,
+        options=[joinedload(User.user_cred)],
     )
     if not user:
         return None

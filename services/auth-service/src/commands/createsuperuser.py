@@ -9,9 +9,11 @@ app = typer.Typer()
 
 
 def check_common_passwords(password):
-    with open("commands/common-passwords.txt", "r", encoding="utf-8") as f:
+    with open("commands/common-passwords.txt", encoding="utf-8") as f:
         common_passwords_ls = list(filter(bool, f.read().split("\n")))
-        validate_password = password.isalpha() or password.isdigit() or len(password) < 8
+        validate_password = (
+            password.isalpha() or password.isdigit() or len(password) < 8
+        )
         return (password in common_passwords_ls) or validate_password
 
 
@@ -22,8 +24,7 @@ def prompt_passwords_with_confirmation() -> str:
 
         if password == password2 and len(password) > 0:
             return password
-        else:
-            typer.echo(f"Пароли не совпадают. Попытка {attempt}/{MAX_ATTEMPTS}\n")
+        typer.echo(f"Пароли не совпадают. Попытка {attempt}/{MAX_ATTEMPTS}\n")
     typer.echo("Превышено количество попыток.")
     raise typer.Exit(code=1)
 
@@ -34,7 +35,7 @@ def createsuperuser():
     password = prompt_passwords_with_confirmation()
     if check_common_passwords(password):
         confirmation = typer.prompt(
-            "Пароль слишком простой, вы уверены что хотите продолжить (y/n)?"
+            "Пароль слишком простой, вы уверены что хотите продолжить (y/n)?",
         )
         if confirmation.lower() != "y":
             raise typer.Exit(code=1)

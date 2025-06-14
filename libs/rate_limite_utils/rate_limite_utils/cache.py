@@ -35,13 +35,14 @@ def redis_handler_exeptions[**P, R](
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
         except RedisError as error:
-            logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
 
     return wrapper
 
 
 class Cache(ABC):
-
     @abstractmethod
     def pipeline(self):
         pass
@@ -68,10 +69,8 @@ class RedisCache(Cache):
         """Выполняет команды в pipeline и возвращает результаты."""
         result = await pipe.execute()
         logger.info(
-            (
-                "[RedisCache] Pipeline выполнился с "
-                f"{len(result) if result else None} результатом."
-            )
+            "[RedisCache] Pipeline выполнился с "
+            f"{len(result) if result else None} результатом.",
         )
         return result
 
