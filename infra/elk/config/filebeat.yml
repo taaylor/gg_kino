@@ -1,0 +1,20 @@
+filebeat.inputs:
+- type: filestream
+  id: filestream-containers
+
+  paths:
+    - '/var/lib/docker/containers/*/*.log'
+  parsers:
+    - container:
+        stream: all        # или stdout / stderr
+        format: auto       # определяет подходящий формат (docker или cri)
+
+processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"  # Добавляет метаданные Docker
+
+output.logstash:
+  hosts: ["localhost:5044"] # Отправляет логи в Logstash
+
+# output.console:
+#   pretty: true
