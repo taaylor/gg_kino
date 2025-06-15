@@ -67,3 +67,11 @@ exclude = [
     "services/auth-service/src/migrations",
     "services/admin-panel/src/accounts/migrations"
 ]
+
+[tool.mypy]
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "redis.asyncio"
+ignore_missing_imports = true
