@@ -20,11 +20,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8==7.2.0 wemake-python-styleguide==1.1.0 flake8-html
+          pip install flake8==7.2.0 wemake-python-styleguide==1.1.0 flake8-html==0.4.3 mypy==1.13.0
 
       - name: Test lint
         run: |
-          flake8 services/content-actions-service --max-line-length=100 --extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237 --select=WPS --format=html --htmldir=flake-report
+          flake8 services/content-actions-service/src --config=pyproject.toml --select=WPS --format=html --htmldir=flake-report
+          mypy services/content-actions-service/src --config-file=pyproject.toml --no-implicit-reexport
 
       - name: Upload flake8 report  # выгружает отчеты по flake8
         if: always()
