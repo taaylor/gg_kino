@@ -125,6 +125,7 @@ class RatingService:
         logger.debug(
             f"Пользователь - {str(user_id)}\n," f" отозвал оценку фильма {str(film_id)}\n."
         )
+        # if <документ> найден (True), то кешируем, если нет (False), то нет:
         avg_rating = await self.repository.calculate_average_rating(
             self.repository.collection.film_id == film_id
         )
