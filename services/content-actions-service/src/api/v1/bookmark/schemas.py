@@ -1,13 +1,8 @@
 from datetime import datetime
-from enum import StrEnum
 from uuid import UUID
 
+from models.logic_models import FilmBookmarkState
 from pydantic import BaseModel, Field
-
-
-class FilmBookmarkState(StrEnum):
-    NOTWATCHED = "NOTWATCHED"
-    WATCHED = "WATCHED"
 
 
 class FilmIdField(BaseModel):

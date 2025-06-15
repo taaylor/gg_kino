@@ -1,6 +1,12 @@
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
+
+
+class FilmBookmarkState(StrEnum):
+    NOTWATCHED = "NOTWATCHED"
+    WATCHED = "WATCHED"
 
 
 class AvgRatingSchema(BaseModel):

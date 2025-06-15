@@ -12,6 +12,7 @@ from api.v1.bookmark.schemas import (
 from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
 from fastapi import APIRouter, Body, Depends, Path, Query
 from rate_limite_utils import rate_limit
+from services.bookmark_service import BookmarkService, get_bookmark_service
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ router = APIRouter()
 )
 # @rate_limit()
 async def create_bookmark(
-    service: None,
+    service: Annotated[BookmarkService, Depends(get_bookmark_service)],
     request_body: Annotated[CreateBookmarkRequest, Body()],
     film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
@@ -42,7 +43,11 @@ async def create_bookmark(
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))  # type: ignore
 
-    return None
+    result = await service.add_bookmark_by_film_id(
+        user_id=user_id, film_id=film_id, request_body=request_body
+    )
+
+    return result
 
 
 @router.delete(
@@ -53,7 +58,7 @@ async def create_bookmark(
 )
 # @rate_limit()
 async def delete_bookmark(
-    service: None,
+    service: Annotated[BookmarkService, Depends(get_bookmark_service)],
     film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> None:
@@ -61,7 +66,7 @@ async def delete_bookmark(
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))  # type: ignore
 
-    return None
+    await service.remove_bookmark_by_film_id()
 
 
 @router.get(
@@ -72,12 +77,12 @@ async def delete_bookmark(
 )
 # @rate_limit()
 async def fetch_watchlist(
-    service: None,
+    service: Annotated[BookmarkService, Depends(get_bookmark_service)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     user_id: Annotated[
         UUID | None,
         Query(
-            description="user_id пользователя, для которого необходимо получить список для просмотра. По умолчанию получает из JWT токена.", # noqa E501
+            description="user_id пользователя, для которого необходимо получить список для просмотра. По умолчанию получает из JWT токена.",  # noqa E501
         ),
     ] = None,
 ) -> FetchBookmarkList:
@@ -85,7 +90,9 @@ async def fetch_watchlist(
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))  # type: ignore
 
-    return None
+    result = await service.fetch_watchlist_by_user_id()
+
+    return result
 
 
 @router.post(
@@ -95,10 +102,12 @@ async def fetch_watchlist(
     description="Проставляет на фильме статус просмотра WATCHED/NOTWATCHED",
 )
 async def change_watch_status(
-    service: None,
+    service: Annotated[BookmarkService, Depends(get_bookmark_service)],
     film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
     watch_status: Annotated[FilmBookmarkState, Query(description="статус просмотра фильма")],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
 ) -> ChangeBookmarkResponse:
+
+    result = await service.update_bookmark_status_by_film_id()
 
     return None

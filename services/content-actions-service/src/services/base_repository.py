@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any
 
 from beanie import Document
@@ -7,23 +8,27 @@ from beanie import Document
 logger = logging.getLogger(__name__)
 
 
-class BaseRepository:
-    """Базовый репозиторий для CRUD работы с Beanie Document-моделями."""
+class BaseRepository[T: Document]:
+    """
+    Базовый репозиторий для работы с Beanie документами.
+
+    Generic класс, где T - тип документа, с которым будет работать класс, наследник beanie.Document.
+    """
 
     __slots__ = [
         "collection",
     ]
 
-    def __init__(self, model: type[Document]):
+    def __init__(self, model: type[T]):
         """
         Инициализирует репозиторий с указанной Beanie-моделью.
 
         :param model: Класс модели, наследник beanie.Document.
         """
 
-        self.collection = model
+        self.collection: type[T] = model
 
-    async def get_document(self, *filters: Any) -> Document | None:
+    async def get_document(self, *filters: Any) -> T | None:
         """
         Находит один документ по переданным фильтрам.
 
@@ -33,7 +38,7 @@ class BaseRepository:
         logger.debug(f"Поиск документа по фильтрам {filters}.")
         return await self.collection.find_one(*filters)
 
-    async def insert_document(self, **insert_data: Any) -> Document:
+    async def insert_document(self, **insert_data: Any) -> T:
         """
         Создаёт новый документ.
 
@@ -45,7 +50,7 @@ class BaseRepository:
         logger.debug(f"Создание документа с данными {insert_data}.")
         return await self.collection(**insert_data).insert()
 
-    async def update_document(self, document: Document, **update_data: Any) -> Document:
+    async def update_document(self, document: T, **update_data: Any) -> T:
         """
         Обновляет поля в переданном экземпляре документа и сохраняет.
 
@@ -62,7 +67,7 @@ class BaseRepository:
         document.updated_at = datetime.now(timezone.utc)
         return await document.save()
 
-    async def upsert(self, *filters: Any, **insert_data: Any) -> Document:
+    async def upsert(self, *filters: Any, **insert_data: Any) -> T:
         """
         Если документ по фильтрам найден — обновляет его полями из insert_data,
         иначе — создаёт новый документ с переданными данными.
@@ -101,3 +106,8 @@ class BaseRepository:
             return True
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
+
+
+@lru_cache()
+def get_rating_repository(model: type[Document]) -> BaseRepository:
+    return BaseRepository(model)
