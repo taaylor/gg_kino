@@ -73,7 +73,7 @@ jobs:
 
   notify-success:
     runs-on: ubuntu-latest
-    needs: [test-version-python, test-lint, build-and-test]  # Зависит от всех предыдущих задач
+    needs: [test-lint, build-and-test]  # Зависит от всех предыдущих задач
     if: success()  # Выполняется только при успехе
     steps:
       - name: Send Telegram notification
@@ -85,7 +85,7 @@ jobs:
 
   notify-failure:
     runs-on: ubuntu-latest
-    needs: [test-version-python, test-lint, build-and-test]  # Зависит от всех предыдущих задач
+    needs: [test-lint, build-and-test]  # Зависит от всех предыдущих задач
     if: failure()  # Выполняется только при провале
     steps:
       - name: Send Telegram notification
