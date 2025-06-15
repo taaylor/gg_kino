@@ -27,8 +27,8 @@ class BaseDocument(Document):
     )
 
 
-class Like(BaseDocument):
-    rating: int = Field(..., description="0 для дизлайка, 10 для лайка")
+class Rating(BaseDocument):
+    score: int = Field(..., description="Оценка фильма от 1 до 10.")
 
     class Settings:
         name = app_config.mongodb.like_coll
