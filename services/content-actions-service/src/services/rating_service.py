@@ -17,10 +17,10 @@ CACHE_KEY_AVG_RATING = "films:avg_rating:"
 class RatingService:
     """Сервис для работы с рейтингом фильмов."""
 
-    __slots__ = [
+    __slots__ = (
         "cache",
         "repository",
-    ]
+    )
 
     def __init__(
         self,
@@ -36,7 +36,9 @@ class RatingService:
         self.cache = cache
         self.repository = repository
 
-    async def get_average_rating(self, film_id: UUID) -> AvgRatingResponse | None:
+    async def get_average_rating(
+        self, film_id: UUID, user_id: UUID | None
+    ) -> AvgRatingResponse | None:
         """
         Возвращает рейтинг фильма
 
@@ -49,11 +51,16 @@ class RatingService:
         """
         cache_key = CACHE_KEY_AVG_RATING + str(film_id)
         avg_rating = await self.cache.get(cache_key)
-
+        user_score = await self.get_user_score(
+            user_id=user_id,
+            film_id=film_id,
+        )
         if avg_rating:
             logger.debug(f"Рейтинг фильма {str(film_id)} получен из кеша по ключу: {cache_key}")
-            return AvgRatingResponse.model_validate(json.loads(avg_rating))
-
+            return AvgRatingResponse(
+                **json.loads(avg_rating),
+                user_score=user_score,
+            )
         avg_rating = await self.repository.calculate_average_rating(
             self.repository.collection.film_id == film_id
         )
@@ -62,10 +69,34 @@ class RatingService:
             return None
         result = avg_rating[0]
         await self.cache.background_set(
-            key=cache_key, value=result.model_dump_json(), expire=app_config.cache_expire_in_seconds
+            key=cache_key,
+            value=result.model_dump_json(),
+            expire=app_config.cache_expire_in_seconds,
         )
         logger.debug(f"Рейтинг фильма {str(film_id)} будет сохранён в кеш по ключу {cache_key}.")
-        return AvgRatingResponse(**result.model_dump())
+        return AvgRatingResponse(
+            **result.model_dump(),
+            user_score=user_score,
+        )
+
+    async def get_user_score(
+        self,
+        user_id: UUID | None,
+        film_id: UUID,
+    ) -> float | None:
+        """
+        Сохраняет/обновляет оценку фильма поставленную авторизованным пользователем.
+
+        :param user_id: UUID пользователя, ставящего оценку.
+        :param film_id: UUID фильма, для которого ставится оценка.
+        """
+        document = await self.repository.get_document(
+            self.repository.collection.user_id == user_id,
+            self.repository.collection.film_id == film_id,
+        )
+        if document:
+            return document.score
+        return None
 
     async def set_user_score(self, user_id: UUID, film_id: UUID, score: int) -> ScoreResponse:
         """
