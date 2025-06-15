@@ -21,9 +21,7 @@ class RoleRepository:
     ) -> DictRoles | None:
         """Возвращает модель DictRoles по pk"""
         stmt = (
-            select(DictRoles)
-            .where(DictRoles.role == pk)
-            .options(joinedload(DictRoles.permissions))
+            select(DictRoles).where(DictRoles.role == pk).options(joinedload(DictRoles.permissions))
         )
         result = await session.execute(stmt)
         role = result.unique().scalar_one_or_none()

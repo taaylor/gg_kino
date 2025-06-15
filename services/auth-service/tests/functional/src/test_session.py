@@ -3,7 +3,6 @@ from http import HTTPStatus
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from tests.functional.testdata.model_enum import GenderEnum, PermissionEnum
 from tests.functional.testdata.model_orm import (
     DictRoles,

@@ -4,7 +4,6 @@ from typing import Any, Literal
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from tests.functional.testdata.model_enum import PermissionEnum
 from tests.functional.testdata.model_orm import DictRoles, RolesPermissions
 from tests.functional.testdata.schemes import (

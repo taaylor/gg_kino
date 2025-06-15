@@ -4,7 +4,6 @@ from http import HTTPStatus
 from typing import Any
 
 import pytest
-
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.es_mapping import Mapping
 
@@ -100,9 +99,7 @@ class TestPersonsAPI:
         assert status == expected_answer_status, expected_answer["err_msg"]
 
         if expected_answer_status == HTTPStatus.BAD_REQUEST:
-            assert (
-                api_body_resp.get("body", True) is None
-            ), "Пустое тело ответа при ошибке"
+            assert api_body_resp.get("body", True) is None, "Пустое тело ответа при ошибке"
             assert cached_person is None, "Пустой кэш при ошибке"
             return
 
@@ -117,9 +114,7 @@ class TestPersonsAPI:
         cached_person["id"] = cached_person.pop("uuid")
         api_body_resp["id"] = api_body_resp.pop("uuid")
 
-        assert (
-            cached_person == api_body_resp
-        ), "Закэшированный объект не идентичен ответу API"
+        assert cached_person == api_body_resp, "Закэшированный объект не идентичен ответу API"
         assert cached_person in es_data, "Закэшированный объект не идентичен ответу БД"
         assert api_body_resp in es_data, "Ответ API не идентичен ответу БД"
 
@@ -206,9 +201,7 @@ class TestPersonsAPI:
         es_films_data = [
             {
                 "id": str(uuid.uuid4()),
-                "title": "Film "
-                + str(i)
-                + (" some horror" if i % 2 == 0 else " some triller"),
+                "title": "Film " + str(i) + (" some horror" if i % 2 == 0 else " some triller"),
                 "actors": [
                     {
                         "id": "bbbf34ad-0183-4454-8c21-c31a5579ede7",
@@ -262,9 +255,7 @@ class TestPersonsAPI:
         assert status == expected_answer_status, expected_answer["err_msg"]
 
         if expected_answer_status == HTTPStatus.BAD_REQUEST:
-            assert (
-                api_body_resp.get("body", True) is None
-            ), "Пустое тело ответа при ошибке"
+            assert api_body_resp.get("body", True) is None, "Пустое тело ответа при ошибке"
             assert cached_person_films is None, "Пустой кэш при ошибке"
             return
 
@@ -281,9 +272,7 @@ class TestPersonsAPI:
                 len(cached_person_films) == expected_answer_lenth
             ), "Кол-во объектов в кэше не соответствует ожидаемому"
 
-        assert (
-            cached_person_films == api_body_resp
-        ), "Закэшированный объект не идентичен ответу API"
+        assert cached_person_films == api_body_resp, "Закэшированный объект не идентичен ответу API"
 
 
 @pytest.mark.asyncio
@@ -467,6 +456,4 @@ class TestPersonSearch:
             assert cached_persons is None, "Кэширование не ожидалось"
             return
 
-        assert (
-            cached_persons == api_body_resp
-        ), "Закэшированный ответ не совпадает с ответом API"
+        assert cached_persons == api_body_resp, "Закэшированный ответ не совпадает с ответом API"

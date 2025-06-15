@@ -1,6 +1,5 @@
 import pytest
 from clickhouse_driver import Client
-
 from tests.functional.core.settings import test_conf
 
 

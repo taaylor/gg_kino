@@ -398,9 +398,7 @@ class PersonService:
         data = await self.cache.get(redis_key)
         if data:
             logger.debug(f"Список Person по запросу {query} в кеше. Возвращаю кеш.")
-            return [
-                PersonResponse.model_validate(person) for person in json.loads(data)
-            ]
+            return [PersonResponse.model_validate(person) for person in json.loads(data)]
         logger.debug(
             f"Список Person по запросу {query} отсутствует в кеше. Запрашиваю из БД.",
         )

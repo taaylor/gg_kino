@@ -4,7 +4,6 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
-
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.es_mapping import Mapping
 
@@ -15,9 +14,7 @@ class TestFilmsSearch:
         es_data = [
             {
                 "id": str(uuid4()),
-                "title": "Film "
-                + str(i)
-                + (" some horror" if i % 2 == 0 else " some triller"),
+                "title": "Film " + str(i) + (" some horror" if i % 2 == 0 else " some triller"),
                 "imdb_rating": random.randrange(1, 10) + round(random.random(), 1),
                 "description": "Description "
                 + str(i)
@@ -164,12 +161,9 @@ class TestFilmsSearch:
         titles = {item["title"] for item in body}
 
         assert status == HTTPStatus.OK
-        assert len(body) == expected_answer["len_body"], expected_answer[
-            "err_msg_len_body"
-        ]
+        assert len(body) == expected_answer["len_body"], expected_answer["err_msg_len_body"]
         assert all(
-            True if "unknown" in title else query_data["query"] in title
-            for title in titles
+            True if "unknown" in title else query_data["query"] in title for title in titles
         ), expected_answer["err_msg_wrong_result"]
 
 
@@ -360,9 +354,7 @@ class TestFilmsList:
         assert len(body) == 5
         assert all(expected_answer["genre"] in item["title"] for item in body)
         if expected_answer.get("second_genre"):
-            assert all(
-                expected_answer["second_genre"] in item["title"] for item in body
-            )
+            assert all(expected_answer["second_genre"] in item["title"] for item in body)
 
     @pytest.mark.parametrize(
         "query_data, expected_answer",

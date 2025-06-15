@@ -1,6 +1,5 @@
 from redis import Redis
 from redis.exceptions import ConnectionError, RedisError, TimeoutError
-
 from tests.functional.core.config_log import get_logger
 from tests.functional.core.settings import test_conf
 from tests.functional.utils.decorators import backoff

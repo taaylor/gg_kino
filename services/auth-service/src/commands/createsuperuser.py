@@ -11,9 +11,7 @@ app = typer.Typer()
 def check_common_passwords(password):
     with open("commands/common-passwords.txt", encoding="utf-8") as f:
         common_passwords_ls = list(filter(bool, f.read().split("\n")))
-        validate_password = (
-            password.isalpha() or password.isdigit() or len(password) < 8
-        )
+        validate_password = password.isalpha() or password.isdigit() or len(password) < 8
         return (password in common_passwords_ls) or validate_password
 
 

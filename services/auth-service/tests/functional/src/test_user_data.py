@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 import pytest
 from sqlalchemy import select
-
 from tests.functional.testdata.model_orm import User
 
 

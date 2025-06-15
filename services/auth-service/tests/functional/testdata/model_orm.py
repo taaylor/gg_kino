@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
 from tests.functional.testdata.model_enum import GenderEnum
 
 
@@ -59,9 +58,7 @@ class User(Base):
         return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
 
     def __str__(self):
-        return (
-            f"Модель: {self.__class__.__name__}(id={self.id}, username={self.username})"
-        )
+        return f"Модель: {self.__class__.__name__}(id={self.id}, username={self.username})"
 
 
 class UserCred(Base):

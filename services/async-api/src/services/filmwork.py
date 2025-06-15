@@ -5,12 +5,7 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from api.v1.filmwork.schemas import (
-    FilmDetailResponse,
-    FilmListResponse,
-    FilmSorted,
-    FilmsType,
-)
+from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted, FilmsType
 from auth_utils import Permissions
 from core.config import app_config
 from db.cache import Cache, get_cache
@@ -61,9 +56,7 @@ class FilmRepository:
     ) -> list[FilmLogic]:
         """Получить список фильмов из ElasticSearch по фильтрации переданных данных"""
         sort_ = (
-            [{sort.value[1:]: "desc"}]
-            if sort.value.startswith("-")
-            else [{sort.value[:]: "asc"}]
+            [{sort.value[1:]: "desc"}] if sort.value.startswith("-") else [{sort.value[:]: "asc"}]
         )
 
         query = {
@@ -252,9 +245,7 @@ class FilmService:
     ) -> list[FilmListResponse]:
         """Получить список фильмов с фильтрацией."""
         categories = sorted(self._get_categories_for_permissions(user_permissions))
-        genre_key = (
-            f":genres{'-'.join(str(g) for g in sorted(set(genre)))}" if genre else ""
-        )
+        genre_key = f":genres{'-'.join(str(g) for g in sorted(set(genre)))}" if genre else ""
         cache_key = (
             f"{REDIS_KEY_FILMS}{sort.value}"
             f":page{page_number}"
@@ -265,10 +256,7 @@ class FilmService:
 
         if cached_data:
             logger.info("Список фильмов найден в кеше.")
-            films_list = [
-                FilmListResponse.model_validate(film)
-                for film in json.loads(cached_data)
-            ]
+            films_list = [FilmListResponse.model_validate(film) for film in json.loads(cached_data)]
             return films_list
 
         films = await self.repository.get_list_film(

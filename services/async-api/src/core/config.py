@@ -2,10 +2,9 @@ import logging
 import os
 
 import dotenv
+from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from core.logger_config import LoggerSettings
 
 # Применяем настройки логирования
 ENV_FILE = dotenv.find_dotenv()

@@ -1,11 +1,10 @@
 from typing import Sequence
 
+from services.auth_repository import AuthRepository
+from services.session_maker import SessionMaker
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
-
-from services.auth_repository import AuthRepository
-from services.session_maker import SessionMaker
 
 
 class BaseService:

@@ -1,9 +1,8 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
-
 from api.v1.genre.schemas import GenreResponse
+from fastapi import APIRouter, Depends, Path
 from services.genres import GenreService, get_genre_service
 
 router = APIRouter()

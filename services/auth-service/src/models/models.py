@@ -3,17 +3,9 @@ import uuid
 from datetime import datetime
 
 from db.postgres import Base
-from sqlalchemy import (
-    DateTime,
-    ForeignKey,
-    PrimaryKeyConstraint,
-    String,
-    UniqueConstraint,
-    text,
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from models.models_types import GenderEnum
+from sqlalchemy import DateTime, ForeignKey, PrimaryKeyConstraint, String, UniqueConstraint, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +45,7 @@ class User(Base):
         return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
 
     def __str__(self):
-        return (
-            f"Модель: {self.__class__.__name__}(id={self.id}, username={self.username})"
-        )
+        return f"Модель: {self.__class__.__name__}(id={self.id}, username={self.username})"
 
 
 class UserCred(Base):

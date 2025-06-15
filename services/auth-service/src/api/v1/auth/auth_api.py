@@ -1,11 +1,6 @@
 import logging
 from typing import Annotated
 
-from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Query, Request
-from models.models_types import ProvidersEnum
-from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
-
 from api.v1.auth.schemas import (
     LoginRequest,
     LoginResponse,
@@ -16,6 +11,10 @@ from api.v1.auth.schemas import (
     RegisterResponse,
     SessionsHistory,
 )
+from auth_utils import LibAuthJWT, auth_dep
+from fastapi import APIRouter, Body, Depends, Query, Request
+from models.models_types import ProvidersEnum
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
     LoginService,
     LogoutService,

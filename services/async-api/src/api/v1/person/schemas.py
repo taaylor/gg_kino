@@ -12,9 +12,7 @@ class PersonInFilmsResponse(BaseModel):
     )
     roles: list[str] = Field(
         ...,  # обязательное поле
-        description=(
-            "Список ролей персоны в фильме (например, 'actor', 'director', 'writer')."
-        ),
+        description=("Список ролей персоны в фильме (например, 'actor', 'director', 'writer')."),
     )
 
 

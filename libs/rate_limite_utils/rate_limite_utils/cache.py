@@ -69,8 +69,7 @@ class RedisCache(Cache):
         """Выполняет команды в pipeline и возвращает результаты."""
         result = await pipe.execute()
         logger.info(
-            "[RedisCache] Pipeline выполнился с "
-            f"{len(result) if result else None} результатом.",
+            "[RedisCache] Pipeline выполнился с " f"{len(result) if result else None} результатом.",
         )
         return result
 

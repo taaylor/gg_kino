@@ -3,7 +3,6 @@ from http import HTTPStatus
 from typing import Any
 
 import pytest
-
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.es_mapping import Mapping
 
@@ -26,14 +25,10 @@ class TestGenres:
         cache = await redis_test(key="genres:all")
 
         # Assert
-        assert (
-            status == HTTPStatus.OK
-        ), "Ожидался статус код 200 при запросе всех жанров"
-        assert (
-            len(body) == 50
-        ), f"Ожидалось в ответе 50 жанров, по факту вернулось {len(body)}"
-        assert (
-            len(cache) == len(es_data)
+        assert status == HTTPStatus.OK, "Ожидался статус код 200 при запросе всех жанров"
+        assert len(body) == 50, f"Ожидалось в ответе 50 жанров, по факту вернулось {len(body)}"
+        assert len(cache) == len(
+            es_data
         ), f"Количество элементов в кеше {len(cache)} != {len(es_data)} - ожидаемому результату"
 
     @pytest.mark.parametrize(

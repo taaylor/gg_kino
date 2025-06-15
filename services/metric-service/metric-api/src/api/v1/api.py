@@ -1,12 +1,11 @@
 import logging
 
+from api.v1.schemas import EventRequest
 from apiflask import APIBlueprint, HTTPError
 from flask import request
 from models.logic_models import EntryEvent
 from service.metric_sender_service import get_metric_processor
 from utils.rate_limiter import limiter
-
-from api.v1.schemas import EventRequest
 
 logger = logging.getLogger(__name__)
 

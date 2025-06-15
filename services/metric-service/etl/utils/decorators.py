@@ -42,10 +42,7 @@ def backoff(
                 sleep_time = min(sleep_time * factor, border_sleep_time)
                 attempt += 1
             logger.error("Backoff исчерпал попытки, прокидываю исключение...")
-            err_output = (
-                f"Функция {func.__name__} не выполнилась"
-                f" после {max_attempts} попыток."
-            )
+            err_output = f"Функция {func.__name__} не выполнилась" f" после {max_attempts} попыток."
             raise RuntimeError(err_output) from last_exception
 
         return wrapper

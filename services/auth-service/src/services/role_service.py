@@ -13,9 +13,8 @@ from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from services.role_repository import RoleRepository, get_role_repository
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +47,7 @@ class RoleService:
         if not roles:
             return []
 
-        role_list = [
-            RoleResponse(role=r.role, descriptions=r.descriptions) for r in roles
-        ]
+        role_list = [RoleResponse(role=r.role, descriptions=r.descriptions) for r in roles]
 
         json_role = json.dumps([r.model_dump(mode="json") for r in role_list])
         await self.cache.background_set(

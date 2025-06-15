@@ -1,10 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
-
 from api.v1.filmwork.schemas import FilmListResponse
 from api.v1.person.schemas import PersonResponse
+from fastapi import APIRouter, Depends, Query
 from services.person import PersonService, get_person_service
 
 router = APIRouter()

@@ -25,9 +25,7 @@ class KafkaConnector:
             "bootstrap_servers": app_config.kafka.get_servers,
             "client_id": app_config.project_name,
             "value_serializer": self._json_serializer,
-            "key_serializer": lambda v: str(v).encode("utf-8")
-            if v is not None
-            else None,
+            "key_serializer": lambda v: str(v).encode("utf-8") if v is not None else None,
             "acks": app_config.kafka.acks,
             "retries": app_config.kafka.retries,
             "retry_backoff_ms": app_config.kafka.retry_backoff_ms,

@@ -11,16 +11,52 @@ repos:
         exclude: ^(backup/elastic_dump/dump/.*\.json|docs/.*)$
       - id: debug-statements
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
     hooks:
-      - id: ruff
-        name: ruff-lint
-        args: ["--fix", "--select=ALL", "--ignore=E203,W503,COM812,COM813,COM816"]
-        exclude: ^(\.git/.*|\.github/.*|infra/.*|\.venv/.*|build/.*|dist/.*|docs/.*|.*/migrations/.*|.*/migration/.*|services/auth-service/src/migration/.*|backup/.*|.*__init__\.py)$
-      - id: ruff-format
-        name: ruff-format
-        exclude: ^(\.git/.*|\.github/.*|infra/.*|\.venv/.*|build/.*|dist/.*|docs/.*|.*/migrations/.*|.*/migration/.*|services/auth-service/src/migration/.*|backup/.*|.*__init__\.py)$
+      - id: isort
+        name: isort (python)
+        args: ["--profile", "black", "--line-length=100"]
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        language_version: python3.12
+        args: ["--line-length=100"]
+        exclude: >
+            (?x)^(
+                \.git/.*|
+                \.venv/.*|
+                build/.*|
+                dist/.*|
+                docs/.*|
+                migrations/.*|
+                migration/.*
+            )$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.0
+    hooks:
+      - id: flake8
+        language_version: python3.12
+        args: [
+          "--max-line-length=100",
+          "--extend-ignore=E203,W503",
+          "--per-file-ignores=__init__.py:F401"
+        ]
+        exclude: >
+            (?x)^(
+                \.git/.*|
+                \.venv/.*|
+                build/.*|
+                dist/.*|
+                docs/.*|
+                .*/migrations/.*|
+                .*/migration/.*|
+                services/auth-service/src/migration/.*|
+                backup/.*
+            )$
 
   - repo: https://github.com/wemake-services/wemake-python-styleguide
     rev: 1.1.0
@@ -44,6 +80,6 @@ repos:
           - setuptools<81.0.0
         args:
           - "--max-line-length=100"
-          - "--extend-ignore=E203,W503,C812,C813,C814,C815,C816,WPS300,WPS111"
+          - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111"
           - "--select=WPS"
-        exclude: ^(\.git/.*|\.github/.*|infra/.*|\.venv/.*|build/.*|dist/.*|docs/.*|.*/migrations/.*|.*/migration/.*|services/auth-service/src/migration/.*|backup/.*|.*__init__\.py)$
+        files: ^services/content-actions-service

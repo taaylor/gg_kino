@@ -95,7 +95,8 @@ class LoginResponse(Session):
     expires_at: datetime = Field(..., description="Дата и время истечения токена")
 
 
-class RefreshResponse(Session): ...
+class RefreshResponse(Session):
+    pass
 
 
 class EntryPoint(BaseModel):
@@ -131,7 +132,8 @@ class OAuthProviderParams(BaseModel):
         description="URL для перенаправления пользователя на страницу авторизации провайдера.",
     )
     params: OAuthParams = Field(
-        description="Параметры авторизации, используемые для формирования URL и передачи фронтенду.",
+        description="Параметры авторизации, используемые для формирования URL \
+             и передачи фронтенду.",
     )
 
 

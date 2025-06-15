@@ -9,7 +9,6 @@ import pytest
 import requests
 from clickhouse_driver import Client as ClickClient
 from faker import Faker
-
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.model import EventRequest
 

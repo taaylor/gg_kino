@@ -1,10 +1,9 @@
 import logging
 from uuid import UUID
 
+from db.database import BaseDB, PaginateBaseDB
 from elasticsearch import AsyncElasticsearch, ConnectionError, ConnectionTimeout
 from utils.decorators import backoff, elastic_handler_exeptions
-
-from db.database import BaseDB, PaginateBaseDB
 
 logger = logging.getLogger(__name__)
 

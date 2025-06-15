@@ -68,9 +68,7 @@ class AuthRepository:
         role_code: str,
     ) -> list[str]:
         stmt = (
-            select(RolesPermissions.permission)
-            .join(DictRoles)
-            .where(DictRoles.role == role_code)
+            select(RolesPermissions.permission).join(DictRoles).where(DictRoles.role == role_code)
         )
         result = await session.execute(stmt)
         return result.scalars().all()

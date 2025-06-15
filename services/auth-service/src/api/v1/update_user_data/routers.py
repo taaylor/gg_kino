@@ -1,14 +1,6 @@
 from typing import Annotated
 from uuid import UUID
 
-from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
-from db.postgres import get_session
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
-from models.models import DictRoles, User, UserCred
-from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
-
 from api.v1.update_user_data.schemas import (
     AssignRoleRequest,
     ChangePasswordRequest,
@@ -16,7 +8,14 @@ from api.v1.update_user_data.schemas import (
     UserResponse,
     UserRoleResponse,
 )
+from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
+from db.postgres import get_session
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+from models.models import DictRoles, User, UserCred
+from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.user_service import RoleService, UserCredService, UserService
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 

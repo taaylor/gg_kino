@@ -1,7 +1,6 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-
 from tests.functional.core.settings import test_conf
 from tests.functional.testdata.model_orm import Base
 

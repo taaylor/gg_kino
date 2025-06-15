@@ -1,10 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
+from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
 from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Depends, Path, Query
-
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()

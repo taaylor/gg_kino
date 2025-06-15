@@ -2,7 +2,6 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
 from tests.functional.testdata.model_enum import GenderEnum, PermissionEnum
 
 

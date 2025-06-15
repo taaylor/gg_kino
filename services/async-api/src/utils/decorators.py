@@ -25,7 +25,8 @@ def elastic_handler_exeptions[**P, R](
             # общая ошибка запроса (например, неверный формат запроса).
             # нужно если неправльно составлен запрос к elasticsearch
             logger.error(
-                f"[Elasticsearch] общая ошибка запроса (например, неверный формат запроса): {error}",
+                f"[Elasticsearch] общая ошибка запроса \
+                    (например, неверный формат запроса): {error}",
             )
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,  # возвращаем 400 статус код

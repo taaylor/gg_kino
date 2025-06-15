@@ -12,7 +12,6 @@ from api.v1.role.schemas import (
 from auth_utils import LibAuthJWT, Permissions, access_permissions_check, auth_dep
 from fastapi import APIRouter, Body, Depends, Path
 from rate_limite_utils import rate_limit
-
 from services.role_service import RoleService, get_role_service
 
 logger = logging.getLogger(__name__)

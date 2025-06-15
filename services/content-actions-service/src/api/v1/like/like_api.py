@@ -3,10 +3,9 @@ from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
+from api.v1.like.schemas import LikeRequest
 from fastapi import APIRouter, Body, Response, status
 from models.models import Like
-
-from api.v1.like.schemas import LikeRequest
 
 logger = logging.getLogger(__name__)
 

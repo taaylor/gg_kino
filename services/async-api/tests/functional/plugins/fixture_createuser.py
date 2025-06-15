@@ -3,12 +3,7 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.functional.core.config_log import get_logger
 from tests.functional.testdata.model_enum import PermissionEnum
-from tests.functional.testdata.model_orm import (
-    DictRoles,
-    RolesPermissions,
-    User,
-    UserCred,
-)
+from tests.functional.testdata.model_orm import DictRoles, RolesPermissions, User, UserCred
 from tests.functional.testdata.schemes import LoginRequest
 
 logger = get_logger(__name__)

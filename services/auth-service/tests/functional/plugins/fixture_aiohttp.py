@@ -2,7 +2,6 @@ from json.decoder import JSONDecodeError
 
 import aiohttp
 import pytest_asyncio
-
 from tests.functional.core.settings import test_conf
 
 

@@ -27,14 +27,13 @@ from fastapi import Depends, HTTPException, status
 from models.logic_models import OAuthUserInfo, SessionUserData
 from models.models import SocialAccount, User, UserCred
 from models.models_types import ProvidersEnum
+from services.auth_repository import AuthRepository, get_auth_repository
+from services.base_service import BaseAuthService, MixinAuthRepository
+from services.session_maker import SessionMaker, get_auth_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
 from tracer_utils import traced
 from utils.key_manager import pwd_context
 from utils.state_manager import SignedStateManager, get_signed_state_manager
-
-from services.auth_repository import AuthRepository, get_auth_repository
-from services.base_service import BaseAuthService, MixinAuthRepository
-from services.session_maker import SessionMaker, get_auth_session_maker
 
 from .oauth.oauth_providers import active_providers
 
@@ -402,8 +401,10 @@ class OAuthSocialService(BaseAuthService):
         )
 
         yandex_url = (
-            f"{yandex_separate_params.authorize_url}?response_type={yandex_separate_params.response_type}&client_id"
-            f"={yandex_separate_params.client_id}&scope={yandex_separate_params.scope}&state={yandex_separate_params.state}"
+            f"{yandex_separate_params.authorize_url}?"
+            f"response_type={yandex_separate_params.response_type}&client_id"
+            f"={yandex_separate_params.client_id}&scope={yandex_separate_params.scope}"
+            f"&state={yandex_separate_params.state}"
         )
 
         yandex_params = OAuthProviderParams(
