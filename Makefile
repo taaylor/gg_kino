@@ -65,10 +65,6 @@ test-metrics-service-ci:
 content-service-up:
 	docker compose -f $(COMPOSE_FILE) --profile production up -d --build content-actions-api mongodb_router $(srv)
 
-# Остановка контейнеров
-content-service-down:
-	docker compose -f $(COMPOSE_FILE) --profile production down content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)
-
 # Остановка контейнеров и удаление волуме
 content-service-down-v:
 	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)

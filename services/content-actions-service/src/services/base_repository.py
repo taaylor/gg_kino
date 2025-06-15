@@ -90,9 +90,9 @@ class BaseRepository:
         :return: True, если документ найден и удалён; False, если не найден.
         """
 
-        document = await self.get_document(*filters)
-        if document:
-            await document.delete()
+        existing_document = await self.get_document(*filters)
+        if existing_document:
+            await existing_document.delete()
             logger.debug(f"Документ по фильтрам {filters} найден и удалён.")
             return True
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
