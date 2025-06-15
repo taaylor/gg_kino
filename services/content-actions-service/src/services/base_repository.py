@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 class BaseRepository:
     """Базовый репозиторий для CRUD работы с Beanie Document-моделями."""
 
-    __slots__ = [
-        "collection",
-    ]
+    __slots__ = ("collection",)
 
     def __init__(self, model: type[Document]):
         """

@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 class RatingRepository(BaseRepository):
     """Репозиторий для работы с рейтингами (модель Rating)."""
 
-    async def calculate_average_rating(self, *filters: Any) -> AvgRatingSchema | None:
+    __slots__ = ("collection",)  # переопределяем в классе наследнике, т.к. __slots__ не наследуется
+
+    async def calculate_average_rating(self, *filters: Any) -> list[AvgRatingSchema] | None:
         """
         Вычисляет среднюю оценку и количество голосов по указанным фильтрам.
 

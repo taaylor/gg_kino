@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class ScoreRequest(BaseModel):
@@ -25,7 +25,4 @@ class AvgRatingResponse(BaseModel):
     film_id: UUID = Field(..., description="id пользователя поставившего оценку")
     rating: float = Field(..., description="Средняя оценка фильма")
     count_votes: int = Field(..., description="Количество оценивших")
-
-    @field_validator("rating")
-    def round_rating(cls, value: float) -> float:
-        return round(value, 2)
+    user_score: int | None
