@@ -88,7 +88,7 @@ jobs:
     if: success()  # Выполняется только при успехе
     steps:
       - name: Send Telegram notification
-        uses: appleboy/telegram-action@v0.3.1
+        uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -100,7 +100,7 @@ jobs:
     if: failure()  # Выполняется только при провале
     steps:
       - name: Send Telegram notification
-        uses: appleboy/telegram-action@v0.3.1
+        uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
