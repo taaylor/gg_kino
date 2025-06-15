@@ -84,6 +84,8 @@ services:
       - REDIS_DB=${REDIS_DB}
     volumes:
       - redis_data:/data
+    ports: # Удалить
+      - "6379:6379"
     deploy:
       resources:
         limits:
@@ -227,12 +229,6 @@ services:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./infra/nginx/configs:/etc/nginx/conf.d:ro
       - static_django:/var/www
-    depends_on:
-      - async-api
-      - auth-api
-      - admin-panel
-      - content-actions-api
-      - metric-api
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
     restart: always
