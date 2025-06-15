@@ -23,7 +23,7 @@ async def delete_score(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
-):
+) -> None:
     await authorize.jwt_optional()
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))
@@ -31,7 +31,6 @@ async def delete_score(
         user_id=user_id,
         film_id=film_id,
     )
-    return None
 
 
 @router.post(
@@ -52,12 +51,11 @@ async def set_score(
     await authorize.jwt_optional()
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))
-    result = await rating_service.set_user_score(
+    return await rating_service.set_user_score(
         user_id=user_id,
         film_id=film_id,
         score=request_body.score,
     )
-    return result
 
 
 @router.get(
@@ -71,8 +69,7 @@ async def get_avg_rating(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],
     film_id: Annotated[UUID, Path(description="Уникальный идентификатор фильма")],
 ) -> AvgRatingResponse | None:
-    result = await rating_service.get_average_rating(film_id)
-    return result
+    return await rating_service.get_average_rating(film_id)
 
 
 @router.post(
@@ -87,9 +84,8 @@ async def set_score_test(
         ScoreRequest, Body(description="Данные для добавления лайка в формате JSON")
     ],
 ) -> ScoreResponse:
-    result = await rating_service.set_user_score(
+    return await rating_service.set_user_score(
         user_id=user_id,
         film_id=film_id,
         score=request_body.score,
     )
-    return result

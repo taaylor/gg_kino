@@ -9,5 +9,5 @@ class AvgRatingSchema(BaseModel):
     count_votes: int
 
     @field_validator("rating")
-    def round_rating(cls, value: float) -> float:
-        return round(value, 2)
+    def round_rating(cls, rating: float) -> float:
+        return round(rating, 2)

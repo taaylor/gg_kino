@@ -17,10 +17,7 @@ CACHE_KEY_AVG_RATING = "films:avg_rating:"
 class RatingService:
     """Сервис для работы с рейтингом фильмов."""
 
-    __slots__ = [
-        "cache",
-        "repository",
-    ]
+    __slots__ = ("cache", "repository")
 
     def __init__(
         self,
@@ -47,11 +44,12 @@ class RatingService:
                  - count_votes: количество голосов (int);
                  или None, если для фильма нет оценок.
         """
-        cache_key = CACHE_KEY_AVG_RATING + str(film_id)
+        str_film_id = str(film_id)
+        cache_key = CACHE_KEY_AVG_RATING + str_film_id
         avg_rating = await self.cache.get(cache_key)
 
         if avg_rating:
-            logger.debug(f"Рейтинг фильма {str(film_id)} получен из кеша по ключу: {cache_key}")
+            logger.debug(f"Рейтинг фильма {str_film_id} получен из кеша по ключу: {cache_key}")
             return AvgRatingResponse.model_validate(json.loads(avg_rating))
 
         avg_rating = await self.repository.calculate_average_rating(
@@ -64,7 +62,7 @@ class RatingService:
         await self.cache.background_set(
             key=cache_key, value=result.model_dump_json(), expire=app_config.cache_expire_in_seconds
         )
-        logger.debug(f"Рейтинг фильма {str(film_id)} будет сохранён в кеш по ключу {cache_key}.")
+        logger.debug(f"Рейтинг фильма {str_film_id} будет сохранён в кеш по ключу {cache_key}.")
         return AvgRatingResponse(**result.model_dump())
 
     async def set_user_score(self, user_id: UUID, film_id: UUID, score: int) -> ScoreResponse:

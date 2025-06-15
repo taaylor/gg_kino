@@ -1,4 +1,4 @@
-import logging.config
+from logging import config
 from typing import Any
 
 import dotenv
@@ -14,13 +14,13 @@ class LoggerSettings(BaseSettings):
     log_default_handlers: list[str] = [
         "console",
     ]
-    logging: dict[str, Any] = {}
+    logger_config: dict[str, Any] = {}
 
     model_config = ConfigDict(env_prefix="LOG_", env_file=ENV_FILE, extra="ignore")
 
     @model_validator(mode="after")
     def init_loggind(self) -> "LoggerSettings":
-        self.logging = {
+        self.logger_config = {
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
@@ -76,4 +76,4 @@ class LoggerSettings(BaseSettings):
 
     def apply(self) -> None:
         """Применить настройки логирования один раз при старте приложения."""
-        logging.config.dictConfig(self.logging)
+        config.dictConfig(self.logger_config)
