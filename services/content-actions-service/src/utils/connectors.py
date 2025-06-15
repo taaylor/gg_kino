@@ -2,9 +2,11 @@ from contextlib import asynccontextmanager
 
 from beanie import init_beanie
 from core.config import app_config
+from db import cache
 from fastapi import FastAPI
-from models.models import Bookmark, Like, Review
+from models.models import Bookmark, Rating, Review
 from motor.motor_asyncio import AsyncIOMotorClient
+from redis.asyncio import Redis
 
 
 @asynccontextmanager
@@ -14,12 +16,26 @@ async def lifespan(app: FastAPI):
     await init_beanie(
         database=engine[app_config.mongodb.name],
         document_models=[
-            Like,
+            Rating,
             Review,
             Bookmark,
         ],
     )
 
+    cache.cache_conn = Redis(
+        host=app_config.redis.host,
+        port=app_config.redis.port,
+        db=app_config.redis.db,
+        decode_responses=True,
+        username=app_config.redis.user,
+        password=app_config.redis.password,
+        socket_connect_timeout=5,
+        socket_timeout=5,
+        retry_on_error=False,
+        retry_on_timeout=False,
+    )
+
     yield
 
+    await cache.cache_conn.close()
     engine.close()

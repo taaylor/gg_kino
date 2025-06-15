@@ -21,6 +21,14 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
+class Redis(BaseModel):
+    host: str = "localhost"
+    port: int = 6379
+    user: str = "redis_user"
+    password: str = "Parol123"
+    db: int = 0
+
+
 class MongoDB(BaseModel):
     host: str = "mongodb_router"
     port: int = 27017
@@ -40,7 +48,9 @@ class AppConfig(BaseSettings):
     docs_url: str = "/content-api/openapi"
     openapi_url: str = "/content-api/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
+    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
 
+    redis: Redis = Redis()
     mongodb: MongoDB = MongoDB()
     server: Server = Server()
 
