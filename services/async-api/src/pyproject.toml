@@ -2,7 +2,7 @@
 name = "async-api"
 version = "0.1.0"
 description = "async api service"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "fastapi[all]>=0.115.11,<1.0.0",
     "elasticsearch[async]>=8.13.2,<9.0.0",
