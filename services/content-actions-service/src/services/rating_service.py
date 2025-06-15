@@ -17,6 +17,11 @@ CACHE_KEY_AVG_RATING = "films:avg_rating:"
 class RatingService:
     """Сервис для работы с рейтингом фильмов."""
 
+    __slots__ = [
+        "cache",
+        "repository",
+    ]
+
     def __init__(
         self,
         cache: Cache,
@@ -118,23 +123,25 @@ class RatingService:
         """
 
         cache_key = CACHE_KEY_AVG_RATING + str(film_id)
-        await self.repository.delete_document(
+        deleted = await self.repository.delete_document(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
         )
         logger.debug(
             f"Пользователь - {str(user_id)}\n," f" отозвал оценку фильма {str(film_id)}\n."
         )
-        # if <документ> найден (True), то кешируем, если нет (False), то нет:
-        avg_rating = await self.repository.calculate_average_rating(
-            self.repository.collection.film_id == film_id
-        )
-        await self.cache.background_set(
-            key=cache_key,
-            value=avg_rating[0].model_dump_json(),
-            expire=app_config.cache_expire_in_seconds,
-        )
-        logger.debug(f"Рейтинг фильма {str(film_id)} будет сохранён в кеш по ключу {cache_key}.")
+        if deleted:
+            avg_rating = await self.repository.calculate_average_rating(
+                self.repository.collection.film_id == film_id
+            )
+            await self.cache.background_set(
+                key=cache_key,
+                value=avg_rating[0].model_dump_json(),
+                expire=app_config.cache_expire_in_seconds,
+            )
+            logger.debug(
+                f"Рейтинг фильма {str(film_id)} будет сохранён в кеш по ключу {cache_key}."
+            )
 
 
 @lru_cache()

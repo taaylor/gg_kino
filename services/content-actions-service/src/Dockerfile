@@ -14,7 +14,6 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-# COPY src/pyproject.toml src/poetry.lock ./
 COPY services/content-actions-service/src/pyproject.toml services/content-actions-service/src/poetry.lock ./
 
 # Копируем libs и собираем на месте
