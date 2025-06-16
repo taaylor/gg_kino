@@ -7,16 +7,7 @@ from core.config import app_config
 from pydantic import Field
 
 
-class BaseDocument(Document):
-    id: UUID = Field(default_factory=uuid4)
-    user_id: UUID = Field(
-        ...,
-        description="user_id документа",
-    )  # Indexed ниже через Settings.indexes
-    film_id: UUID = Field(
-        ...,
-        description="film_id документа, (ключ шардирования)",
-    )  # Indexed ниже через Settings.indexes
+class MixinTimestamp(Document):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Документ создан",
@@ -24,6 +15,18 @@ class BaseDocument(Document):
     updated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Документ обновлён",
+    )
+
+
+class BaseDocument(MixinTimestamp):
+    id: UUID = Field(default_factory=uuid4)
+    user_id: UUID = Field(
+        ...,
+        description="user_id документа",
+    )
+    film_id: UUID = Field(
+        ...,
+        description="film_id документа, (ключ шардирования)",
     )
 
 
@@ -48,8 +51,37 @@ class Rating(BaseDocument):
 
 
 class Review(BaseDocument):
+    text: str = Field(..., description="Текст рецензии")
+
     class Settings:
         name = app_config.mongodb.reviews_coll
+        indexes = [
+            pymongo.IndexModel(
+                [
+                    ("film_id", pymongo.ASCENDING),
+                ],
+            ),
+        ]
+
+
+class ReviewLike(MixinTimestamp):
+    like: bool = Field(
+        ..., description="Оценка рецензии пользователем True = лайк, False = дизлайк"
+    )
+    review_id: UUID = Field(..., description="Идентификатор рецензии")
+    user_id: UUID = Field(..., description="Идентификатор пользователя")
+
+    class Settings:
+        name = app_config.mongodb.reviews_like_coll
+        indexes = [
+            pymongo.IndexModel(
+                [
+                    ("review_id", pymongo.ASCENDING),
+                    ("user_id", pymongo.ASCENDING),
+                ],
+                unique=True,
+            ),
+        ]
 
 
 class Bookmark(BaseDocument):

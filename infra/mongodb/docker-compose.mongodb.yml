@@ -168,6 +168,7 @@ services:
       - LIKE_COLL=${MONGODB_LIKE_COLL}
       - BOOKMARK_COLL=${MONGODB_BOOKMARK_COLL}
       - REVIEWS_COLL=${MONGODB_REVIEWS_COLL}
+      - REVIEWS_LIKE_COLL=${MONGODB_REVIEWS_LIKE_COLL}
     depends_on:
       mongodb_sh1_rep1:
         condition: service_healthy

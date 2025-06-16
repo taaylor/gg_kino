@@ -36,6 +36,7 @@ class MongoDB(BaseModel):
     like_coll: str = "likeCollection"
     bookmark_coll: str = "bookmarkCollection"
     reviews_coll: str = "reviewsCollection"
+    reviews_like_coll: str = "reviewslikeCollection"
 
     @property
     def ASYNC_DATABASE_URL(self):

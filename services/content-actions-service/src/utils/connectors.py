@@ -4,7 +4,7 @@ from beanie import init_beanie
 from core.config import app_config
 from db import cache
 from fastapi import FastAPI
-from models.models import Bookmark, Rating, Review
+from models.models import Bookmark, Rating, Review, ReviewLike
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
 
@@ -14,11 +14,7 @@ async def lifespan(app: FastAPI):
     engine = AsyncIOMotorClient(app_config.mongodb.ASYNC_DATABASE_URL)
     await init_beanie(
         database=engine[app_config.mongodb.name],
-        document_models=[
-            Rating,
-            Review,
-            Bookmark,
-        ],
+        document_models=[Rating, Review, Bookmark, ReviewLike],
     )
 
     cache.cache_conn = Redis(

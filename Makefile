@@ -68,3 +68,10 @@ content-service-up:
 # Остановка контейнеров и удаление волуме
 content-service-down-v:
 	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)
+
+
+content-api:
+	docker compose --profile production up --build -d content-actions-api
+
+content-stop:
+	docker compose --profile production down content-actions-api
