@@ -107,6 +107,36 @@ class BaseRepository[T: Document]:
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
 
+    async def find(self, *filters: Any, page_size: int = 50, skip_page: int = 0):
+        logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
+        """
+        Получает список объектов с пагинацией и сортировкой на уровне БД.
+
+        :param filters: Условия поиска,
+                        например Model.user_id == user_id, Model.film_id == film_id.
+        :param skip_page: Количество страниц, которые необходимо пропустить при выдаче.
+        :param page_size: Размер одной страницы
+        :return: Список документов с учётом пагинации, отсортированных по дате создания (по убыванию).
+        """  # noqa E501
+        skip_count = skip_page * page_size
+        # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
+        result = (
+            await self.collection.find(*filters)
+            .sort("-created_at")
+            .skip(skip_count)
+            .limit(page_size)
+            .to_list()
+        )
+        logger.debug(
+            f"Получен список документов {self.collection.__name__} в количестве: {len(result)}"
+        )
+
+        return result
+
+    async def get_count(self, *filters: Any) -> int:
+        """Возвращает количество документов в коллекции по заданным фильтрам"""
+        return await self.collection.find(*filters).count()
+
 
 @lru_cache()
 def get_rating_repository(model: type[Document]) -> BaseRepository:
