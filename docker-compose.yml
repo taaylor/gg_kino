@@ -84,8 +84,6 @@ services:
       - REDIS_DB=${REDIS_DB}
     volumes:
       - redis_data:/data
-    ports: # Удалить
-      - "6379:6379"
     deploy:
       resources:
         limits:
@@ -157,8 +155,6 @@ services:
       dockerfile: ./services/content-actions-service/src/Dockerfile
     env_file:
       - ./.env
-    ports:
-      - 8099:8000
     cpus: "1"
     mem_limit: 256M
     depends_on:
@@ -166,9 +162,9 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      async-api:
+        condition: service_started
     restart: always
-
-
 
   admin-panel:
     build:

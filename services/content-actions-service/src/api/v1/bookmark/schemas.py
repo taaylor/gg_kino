@@ -17,7 +17,7 @@ class DateFields(BaseModel):
 class CommentField(BaseModel):
     comment: str | None = Field(
         None,
-        min_length=1,
+        min_length=5,
         max_length=500,
         examples=["Звучит хайпово, посмотрю на НГ"],
         description="Опциональный комментарий к фильму в закладках",

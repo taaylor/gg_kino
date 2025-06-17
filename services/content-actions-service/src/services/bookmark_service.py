@@ -38,7 +38,7 @@ class BookmarkService:
 
         logger.info(f"Пользователь: {user_id=} добавляет фильм: {film_id=} в закладки")
 
-        await self._validate_film_id(film_id)
+        await self.film_id_validator.validate_film_id(film_id)
 
         await self.repository.upsert(
             self.repository.collection.user_id == user_id,
@@ -70,7 +70,7 @@ class BookmarkService:
         )
 
     async def remove_bookmark_by_film_id(self, user_id: UUID, film_id: UUID):
-        await self._validate_film_id(film_id=film_id)
+        await self.film_id_validator.validate_film_id(film_id)
         await self.repository.delete_document(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
@@ -136,7 +136,7 @@ class BookmarkService:
         self, user_id: UUID, film_id: UUID, request_body: ChangeBookmarkRequest
     ) -> ChangeBookmarkResponse:
 
-        await self._validate_film_id(film_id=film_id)
+        await self.film_id_validator.validate_film_id(film_id)
 
         await self.repository.upsert(
             self.repository.collection.user_id == user_id,
@@ -167,10 +167,6 @@ class BookmarkService:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось добавить фильм в список просмотра",
         )
-
-    async def _validate_film_id(self, film_id: UUID):
-        if not self.film_id_validator.validate_film_id(film_id):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Фильм не найден")
 
     async def _invalidate_user_bookmark_cache(self, user_id: UUID):
         user_cache_key = CACHE_KEY_USER_BOOKMARKS.format(user_id=user_id, page="*")
