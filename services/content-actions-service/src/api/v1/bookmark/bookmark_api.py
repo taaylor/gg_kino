@@ -78,7 +78,7 @@ async def fetch_watchlist(
     other_user_id: Annotated[
         UUID | None,
         Query(
-            description="user_id пользователя, для которого необходимо получить список для просмотра. По умолчанию получает из JWT токена.",  # noqa E501
+            description="user_id пользователя, для которого необходимо получить список для просмотра. По умолчанию получает из JWT токена.",  # noqa: E501
         ),
     ] = None,
     page_size: Annotated[
@@ -100,11 +100,11 @@ async def fetch_watchlist(
 ) -> FetchBookmarkList:
     await authorize.jwt_required()
 
-    if not other_user_id:
+    if other_user_id:
+        user_id = other_user_id
+    else:
         decrypted_token = await authorize.get_raw_jwt()
         user_id = UUID(decrypted_token.get("user_id"))  # type: ignore
-    else:
-        user_id = other_user_id
 
     result = await service.fetch_watchlist_by_user_id(
         user_id=user_id, page_size=page_size, skip_page=skip_page

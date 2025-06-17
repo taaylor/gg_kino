@@ -5,7 +5,7 @@ from services.base_repository import BaseRepository
 
 
 class BookmarkRepository(BaseRepository[Bookmark]):
-    pass
+    """Репозиторий для работы с закладками фильмов."""
 
 
 @lru_cache()
