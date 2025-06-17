@@ -32,7 +32,8 @@ def main():
             logger.info("Получаем сообщения...")
 
             messages = extract_from_kafka(
-                consumer=kafka_consumer, batch_size=kafka_config.batch_size
+                consumer=kafka_consumer,
+                batch_size=kafka_config.batch_size,
             )
 
             logger.info(f"Прочитано сообщений: {len(messages)}")

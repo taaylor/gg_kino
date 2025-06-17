@@ -10,7 +10,6 @@ from tests.functional.testdata.es_mapping import Mapping
 
 @pytest.mark.asyncio
 class TestPersonsAPI:
-
     @pytest.mark.parametrize(
         "query_data, expected_answer",
         [
@@ -73,10 +72,15 @@ class TestPersonsAPI:
     ):
         es_data = [
             {"id": "4cb1cad5-7705-43c3-8c21-237e1d352c85", "name": "Oleg Skorobogatko"},
-            {"id": "bbbf34ad-0183-4454-8c21-c31a5579ede7", "name": "Mikhail Shufutinsky"},
+            {
+                "id": "bbbf34ad-0183-4454-8c21-c31a5579ede7",
+                "name": "Mikhail Shufutinsky",
+            },
         ]
         await es_write_data(
-            data=es_data, index=test_conf.elastic.index_persons, mapping=Mapping.persons
+            data=es_data,
+            index=test_conf.elastic.index_persons,
+            mapping=Mapping.persons,
         )
 
         person_id = query_data.get("id")
@@ -84,7 +88,10 @@ class TestPersonsAPI:
 
         api_body_resp, status = await make_get_request(uri)
         key_cache = f"persons:{person_id}"
-        cached_person = await redis_test(key=key_cache, cached_data=query_data.get("cached_data"))
+        cached_person = await redis_test(
+            key=key_cache,
+            cached_data=query_data.get("cached_data"),
+        )
 
         expected_answer_status = expected_answer.get("status")
         expected_answer_lenth = expected_answer.get("length")
@@ -115,7 +122,10 @@ class TestPersonsAPI:
         "query_data, expected_answer",
         [
             (
-                {"id": "bbbf34ad-0183-4454-8c21-c31a5579ede7", "cached_data": True},  # actors films
+                {
+                    "id": "bbbf34ad-0183-4454-8c21-c31a5579ede7",
+                    "cached_data": True,
+                },  # actors films
                 {
                     "status": HTTPStatus.OK,
                     "length": 50,
@@ -181,7 +191,10 @@ class TestPersonsAPI:
         expected_answer: dict[str, Any],
     ):
         es_person_data = [
-            {"id": "bbbf34ad-0183-4454-8c21-c31a5579ede7", "name": "Mikhail Shufutinsky"},
+            {
+                "id": "bbbf34ad-0183-4454-8c21-c31a5579ede7",
+                "name": "Mikhail Shufutinsky",
+            },
             {"id": "4cb1cad5-7705-43c3-8c21-237e1d352c85", "name": "Oleg Skorobogatko"},
             {"id": "8a9f0e1f-77af-465b-abdd-339790968a26", "name": "Michael Bay"},
         ]
@@ -193,15 +206,20 @@ class TestPersonsAPI:
                     {
                         "id": "bbbf34ad-0183-4454-8c21-c31a5579ede7",
                         "name": "Mikhail Shufutinsky",
-                    }
+                    },
                 ],
                 "directors": [
                     {
                         "id": "4cb1cad5-7705-43c3-8c21-237e1d352c85",
                         "name": "Oleg Skorobogatko",
-                    }
+                    },
                 ],
-                "writers": [{"id": "8a9f0e1f-77af-465b-abdd-339790968a26", "name": "Michael Bay"}],
+                "writers": [
+                    {
+                        "id": "8a9f0e1f-77af-465b-abdd-339790968a26",
+                        "name": "Michael Bay",
+                    },
+                ],
                 "imdb_rating": random.randrange(1, 10) + round(random.random(), 1),
                 "description": "Description "
                 + str(i)
@@ -211,10 +229,14 @@ class TestPersonsAPI:
             for i in range(1, 51)
         ]
         await es_write_data(
-            data=es_person_data, index=test_conf.elastic.index_persons, mapping=Mapping.persons
+            data=es_person_data,
+            index=test_conf.elastic.index_persons,
+            mapping=Mapping.persons,
         )
         await es_write_data(
-            data=es_films_data, index=test_conf.elastic.index_films, mapping=Mapping.films
+            data=es_films_data,
+            index=test_conf.elastic.index_films,
+            mapping=Mapping.films,
         )
 
         person_id = query_data.get("id")
@@ -223,7 +245,8 @@ class TestPersonsAPI:
         api_body_resp, status = await make_get_request(uri)
         key_cache = f"persons:{person_id}:films"
         cached_person_films = await redis_test(
-            key=key_cache, cached_data=query_data.get("cached_data")
+            key=key_cache,
+            cached_data=query_data.get("cached_data"),
         )
 
         expected_answer_status = expected_answer.get("status")
@@ -270,15 +293,24 @@ class TestPersonSearch:
         [
             (
                 {"query": "Bond", "page_size": 0},
-                {"status": HTTPStatus.BAD_REQUEST, "err_msg": "Ошибка валидации для page_size=0"},
+                {
+                    "status": HTTPStatus.BAD_REQUEST,
+                    "err_msg": "Ошибка валидации для page_size=0",
+                },
             ),
             (
                 {"query": "Bond", "page_size": 101},
-                {"status": HTTPStatus.BAD_REQUEST, "err_msg": "Ошибка валидации для page_size=101"},
+                {
+                    "status": HTTPStatus.BAD_REQUEST,
+                    "err_msg": "Ошибка валидации для page_size=101",
+                },
             ),
             (
                 {"query": "Bond", "page_number": 0},
-                {"status": HTTPStatus.BAD_REQUEST, "err_msg": "Ошибка валидации для page_number=0"},
+                {
+                    "status": HTTPStatus.BAD_REQUEST,
+                    "err_msg": "Ошибка валидации для page_number=0",
+                },
             ),
         ],
         ids=[
@@ -394,9 +426,15 @@ class TestPersonSearch:
     ):
         await self.prepare_persons_data(es_write_data, count=101)
 
-        api_body_resp, status = await make_get_request("/persons/search", params=query_data)
+        api_body_resp, status = await make_get_request(
+            "/persons/search",
+            params=query_data,
+        )
         key_cache = f"persons:{query_data['query']}:{query_data.get('page_number', 1)}:{query_data['page_size']}"  # noqa: E501
-        cached_persons = await redis_test(key=key_cache, cached_data=cached_data.get("cached_data"))
+        cached_persons = await redis_test(
+            key=key_cache,
+            cached_data=cached_data.get("cached_data"),
+        )
 
         assert status == HTTPStatus.OK
         assert len(api_body_resp) == expected_answer["len_body"], expected_answer[

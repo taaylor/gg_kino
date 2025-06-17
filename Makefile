@@ -57,9 +57,9 @@ test-auth-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
 
 test-metrics-service-ci:
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:

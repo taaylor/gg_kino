@@ -7,8 +7,7 @@ from .check_auth import LibAuthJWT, auth_dep
 
 
 def access_permissions_check(req_permissions: set[str]) -> Callable:
-    """
-    Декоратор для проверки наличия у пользователя необходимых
+    """Декоратор для проверки наличия у пользователя необходимых
     разрешений (permissions) в access токене.
 
     Args:
@@ -21,12 +20,15 @@ def access_permissions_check(req_permissions: set[str]) -> Callable:
         @access_permissions_check({"READ", "WRITE"})
         async def example_function():
             pass
+
     """
 
     def decorator[**P, R](func: Callable) -> Callable[P, Coroutine[Any, Any, R]]:
         @wraps(func)
         async def wrapper(
-            *args: P.args, authorize: Annotated[LibAuthJWT, Depends(auth_dep)], **kwargs: P.kwargs
+            *args: P.args,
+            authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+            **kwargs: P.kwargs,
         ) -> R | None:
             await authorize.jwt_required()
             decrypted_token = await authorize.get_raw_jwt()

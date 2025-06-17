@@ -37,8 +37,18 @@ def upgrade() -> None:
             nullable=False,
             comment="Наименование поставщика услуг",
         ),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["profile.user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("social_name", "social_id", name="social_idx"),
@@ -48,7 +58,10 @@ def upgrade() -> None:
     op.add_column(
         "user_cred",
         sa.Column(
-            "is_fictional_email", sa.Boolean(), server_default=sa.text("'false'"), nullable=False
+            "is_fictional_email",
+            sa.Boolean(),
+            server_default=sa.text("'false'"),
+            nullable=False,
         ),
         schema="profile",
     )

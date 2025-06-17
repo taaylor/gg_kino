@@ -49,9 +49,24 @@ def upgrade() -> None:
             nullable=False,
             comment="Рефреш токен пользовательской сессии (JWT)",
         ),
-        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "expires_at",
+            sa.DateTime(),
+            nullable=False,
+            comment="Дата истечения сессии",
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("session_id"),
         schema="session",
     )
@@ -76,9 +91,24 @@ def upgrade() -> None:
             nullable=True,
             comment="Клиентское устройство пользователя",
         ),
-        sa.Column("expires_at", sa.DateTime(), nullable=False, comment="Дата истечения сессии"),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "expires_at",
+            sa.DateTime(),
+            nullable=False,
+            comment="Дата истечения сессии",
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("user_id", "session_id"),
         postgresql_partition_by="HASH (user_id)",
         schema="session",
@@ -89,52 +119,52 @@ def upgrade() -> None:
         """
         CREATE TABLE IF NOT EXISTS session.user_sessions_hist_p0 PARTITION OF session.user_sessions_hist
         FOR VALUES WITH (MODULUS 4, REMAINDER 0);
-        """
+        """,
     )
     op.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_user_sessions_hist_p0_user_id
         ON session.user_sessions_hist_p0 (user_id, session_id);
-        """
+        """,
     )
 
     op.execute(
         """
         CREATE TABLE IF NOT EXISTS session.user_sessions_hist_p1 PARTITION OF session.user_sessions_hist
         FOR VALUES WITH (MODULUS 4, REMAINDER 1);
-        """
+        """,
     )
     op.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_user_sessions_hist_p1_user_id
         ON session.user_sessions_hist_p1 (user_id, session_id);
-        """
+        """,
     )
 
     op.execute(
         """
         CREATE TABLE IF NOT EXISTS session.user_sessions_hist_p2 PARTITION OF session.user_sessions_hist
         FOR VALUES WITH (MODULUS 4, REMAINDER 2);
-        """
+        """,
     )
     op.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_user_sessions_hist_p2_user_id
         ON session.user_sessions_hist_p2 (user_id, session_id);
-        """
+        """,
     )
 
     op.execute(
         """
         CREATE TABLE IF NOT EXISTS session.user_sessions_hist_p3 PARTITION OF session.user_sessions_hist
         FOR VALUES WITH (MODULUS 4, REMAINDER 3);
-        """
+        """,
     )
     op.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_user_sessions_hist_p3_user_id
         ON session.user_sessions_hist_p3 (user_id, session_id);
-        """
+        """,
     )
 
 

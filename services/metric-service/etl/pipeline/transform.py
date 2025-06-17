@@ -5,8 +5,7 @@ logger = get_logger(__name__)
 
 
 def transform_messages(messages: list[dict]) -> list[tuple]:
-    """
-    Преобразует сообщения из Kafka в формат для ClickHouse.
+    """Преобразует сообщения из Kafka в формат для ClickHouse.
 
     :param messages: Список словарей с данными сообщений.
     :return: Список кортежей для вставки в ClickHouse.

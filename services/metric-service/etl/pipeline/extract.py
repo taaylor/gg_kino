@@ -7,8 +7,7 @@ logger = get_logger(__name__)
 
 
 def extract_from_kafka(consumer: KafkaConsumer, batch_size: int = 1000) -> list[dict]:
-    """
-    Извлекает батч сообщений из указанных топиков Kafka.
+    """Извлекает батч сообщений из указанных топиков Kafka.
 
     :param consumer: KafkaConsumerSingleton
     :param batch_size: Размер батча (по умолчанию 1000).

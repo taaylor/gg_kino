@@ -40,7 +40,7 @@ for i in range(10000):
             "comment",
             "like",
             "subscribe",
-        ]
+        ],
     )
     try:
         producer.send(

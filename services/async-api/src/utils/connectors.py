@@ -21,7 +21,10 @@ async def lifespan(app: FastAPI):
         retry_on_error=False,
         retry_on_timeout=False,
     )
-    elastic.es = AsyncElasticsearch(app_config.elastic.get_es_host(), request_timeout=20)
+    elastic.es = AsyncElasticsearch(
+        app_config.elastic.get_es_host(),
+        request_timeout=20,
+    )
     yield
 
     await cache.cache_conn.close()

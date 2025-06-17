@@ -6,8 +6,7 @@ from opentelemetry import context, trace
 
 
 def traced(name: str = None) -> Callable:
-    """
-    Декоратор для трассировки выполнения асинхронных и синхронных функций
+    """Декоратор для трассировки выполнения асинхронных и синхронных функций
     с использованием OpenTelemetry.
 
     Args:
@@ -21,10 +20,10 @@ def traced(name: str = None) -> Callable:
         @traced("custom_span_name")
         async def example_function():
             pass
+
     """
 
     def decorator[**P, R](func: Callable) -> Callable[P, Coroutine[Any, Any, R]]:
-
         tracer = trace.get_tracer(__name__)
         span_name = name or func.__name__
         current_context = context.get_current()

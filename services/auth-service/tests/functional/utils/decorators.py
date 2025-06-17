@@ -1,7 +1,7 @@
 import random
 import time
 from functools import wraps
-from typing import Any, Callable, NoReturn, Type
+from typing import Any, Callable, Type
 
 from tests.functional.core.config_log import get_logger
 
@@ -18,7 +18,7 @@ def backoff(
 ):
     def func_wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any | NoReturn:
+        def wrapper(*args, **kwargs) -> Any:
             sleep_time = start_sleep_time
             attempt = 1
             last_exception = None
@@ -28,10 +28,14 @@ def backoff(
                     return func(*args, **kwargs)
                 except exception as error:
                     last_exception = error
-                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                    logger.error(
+                        f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
+                    )
                 except Exception as error:
                     last_exception = error
-                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                    logger.error(
+                        f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
+                    )
                 if jitter:
                     sleep_time += random.uniform(0, sleep_time * 0.1)
                 time.sleep(sleep_time)

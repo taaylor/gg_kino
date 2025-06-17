@@ -130,13 +130,18 @@ async def entry_history(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     sessions_service: Annotated[SessionService, Depends(get_session_service)],
     page_size: Annotated[
-        int, Query(ge=1, le=50, description="Количество записей на странице")
+        int,
+        Query(ge=1, le=50, description="Количество записей на странице"),
     ] = 25,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> SessionsHistory:
     await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
-    history = await sessions_service.get_history_session(access_data, page_size, page_number)
+    history = await sessions_service.get_history_session(
+        access_data,
+        page_size,
+        page_number,
+    )
     return history
 
 
@@ -168,7 +173,10 @@ async def login_oauth_provider(
 ) -> LoginResponse:
     user_agent = request.headers.get("user-agent")
     data = await oauth_service.authorize_user(
-        provider_name=provider_name.value, user_agent=user_agent, state=state, code=code
+        provider_name=provider_name.value,
+        user_agent=user_agent,
+        state=state,
+        code=code,
     )
     return data
 
@@ -189,7 +197,10 @@ async def connect_provider(
     await authorize.jwt_required()
     access_data = await authorize.get_raw_jwt()
     result = await oauth_service.connect_provider(
-        access_data=access_data, provider_name=provider_name.value, state=state, code=code
+        access_data=access_data,
+        provider_name=provider_name.value,
+        state=state,
+        code=code,
     )
     return result
 

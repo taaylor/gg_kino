@@ -14,9 +14,12 @@ def redis_handler_exeptions[**P, R](
             return await func(*args, **kwargs)
         except ConnectionError as error:
             logger.error(f"[RedisCache] Ошибка соединения: {error}")
+            return None
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
+            return None
         except RedisError as error:
             logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            return None
 
     return wrapper

@@ -13,15 +13,14 @@ def load_to_clickhouse(
     database: str,
     table_name_dist: str,
 ):
-    """
-    Загружает данные в ClickHouse.
+    """Загружает данные в ClickHouse.
 
     :param data: Список кортежей с данными.
     :param database: Имя базы данных.
     :param table_name_dist: Имя таблицы в ClickHouse.
     """
     client.execute(
-        """
+        f"""
         INSERT INTO {database}.{table_name_dist}
         (
             user_session,
@@ -36,10 +35,7 @@ def load_to_clickhouse(
             user_timestamp
         )
         VALUES
-        """.format(
-            database=database,
-            table_name_dist=table_name_dist,
-        ),
+        """,
         data,
     )
     logger.info(f"Загружено {len(data)} записей в таблицу {database}.{table_name_dist}")

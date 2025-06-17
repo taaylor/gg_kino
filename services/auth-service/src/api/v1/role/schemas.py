@@ -6,7 +6,9 @@ class Permission(BaseModel):
     """Модель представления права доступа в системе"""
 
     permission: Permissions = Field(
-        ..., description="Тип права доступа из предопределенного перечня", example="FREE_FILMS"
+        ...,
+        description="Тип права доступа из предопределенного перечня",
+        example="FREE_FILMS",
     )
     descriptions: str | None = Field(
         description="Подробное описание назначения и scope права доступа",
@@ -30,7 +32,7 @@ class RoleDetailRequest(BaseModel):
             {
                 "permission": "FREE_FILMS",
                 "descriptions": "Возможность просматривать бесплатные фильмы",
-            }
+            },
         ],
     )
 
@@ -38,15 +40,18 @@ class RoleDetailRequest(BaseModel):
 class RoleDetailResponse(RoleDetailRequest):
     """Базовая модель ответа для создания роли через API"""
 
-    pass
-
 
 class RoleResponse(BaseModel):
     """Упрощенное представление роли (для списков и краткой информации)"""
 
-    role: str = Field(..., description="Системное название роли", example="content_moderator")
+    role: str = Field(
+        ...,
+        description="Системное название роли",
+        example="content_moderator",
+    )
     descriptions: str | None = Field(
-        description="Краткое описание назначения роли", example="Роль для модерации контента"
+        description="Краткое описание назначения роли",
+        example="Роль для модерации контента",
     )
 
 

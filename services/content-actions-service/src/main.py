@@ -20,16 +20,6 @@ app = FastAPI(
 # Подключение обработчиков
 setup_exception_handlers(app)
 
-
-"""
-SERVICE_PATH = "/content-actions/api/v1"
-# Префикс для операций над фильмами:
-films_prefix = f"{SERVICE_PATH}/films"
-
-app.include_router(like_api.router, prefix=films_prefix, tags=["Лайки"])
-app.include_router(bookmark_api.router, prefix=films_prefix, tags=["Закладки"])
-app.include_router(review_api.router, prefix=films_prefix, tags=["Рецензии"])
-"""
 SERVICE_PATH = "/content-api/api/v1/"
 app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}films-rating", tags=["Рейтинг"])
 app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])

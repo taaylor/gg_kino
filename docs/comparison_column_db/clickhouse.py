@@ -34,7 +34,7 @@ def create_table():
     )
     ENGINE = MergeTree()
     ORDER BY timestamp;
-    """
+    """,
     )
     print("[ClickHouse] таблица default.test создана")
     client.disconnect()
@@ -53,7 +53,7 @@ def load_data(idx_proc: int, total: int = 1000):
                 faker.text(max_nb_chars=200).replace("\n", " ").replace("\r", ""),
                 float(randint(1000, 20000)),
                 datetime.now(),
-            )
+            ),
         )
         leng += 1
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         end = time.perf_counter()
         print(
             f"Время заполнения {NUMBER_PROCESSES * NUMBER_RECORDS_PROCESS} \
-                записей составило: {end - start:.2f} сек"
+                записей составило: {end - start:.2f} сек",
         )
     except errors.Error as err:
         print(f"Возникло исключение: {err}")

@@ -11,7 +11,9 @@ def get_logger(name: str) -> logging.Logger:
     logger.setLevel(logging.DEBUG)
 
     if not logger.hasHandlers():
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
 
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(formatter)
@@ -38,12 +40,10 @@ def main():
 
     # Создание базы данных
     client.execute(
-        """
+        f"""
         CREATE DATABASE IF NOT EXISTS {DB_NAME}
         ON CLUSTER {CLUSTER_NAME}
-    """.format(
-            DB_NAME=DB_NAME, CLUSTER_NAME=CLUSTER_NAME
-        )
+    """,
     )
 
     # Создание локальной таблицы с репликацией
@@ -79,12 +79,12 @@ def main():
             cluster="{cluster}",
             shard="{shard}",
             replica="{replica}",
-        )
+        ),
     )
 
     # Создание дистрибутивной таблицы
     client.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS {DB_NAME}.{TABLE_NAME_DIST}
         ON CLUSTER {CLUSTER_NAME}
         (
@@ -106,12 +106,7 @@ def main():
             '{TABLE_NAME}',
             rand()
         )
-    """.format(
-            DB_NAME=DB_NAME,
-            TABLE_NAME_DIST=TABLE_NAME_DIST,
-            CLUSTER_NAME=CLUSTER_NAME,
-            TABLE_NAME=TABLE_NAME,
-        )
+    """,
     )
 
 

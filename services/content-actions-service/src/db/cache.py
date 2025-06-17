@@ -12,24 +12,19 @@ cache_conn: Redis | None = None
 
 class Cache(ABC):
     @abstractmethod
-    async def get(self, key: str) -> str | None:
-        pass
+    async def get(self, key: str) -> str | None: ...
 
     @abstractmethod
-    async def destroy(self, key: str) -> None:
-        pass
+    async def destroy(self, key: str) -> None: ...
 
     @abstractmethod
-    async def set(self, key: str, value: str, expire: int | None):
-        pass
+    async def set(self, key: str, value: str, expire: int | None): ...
 
     @abstractmethod
-    async def background_set(self, key: str, value: str, expire: int | None):
-        pass
+    async def background_set(self, key: str, value: str, expire: int | None): ...
 
     @abstractmethod
-    async def background_destroy(self, key: str) -> None:
-        pass
+    async def background_destroy(self, key: str) -> None: ...
 
 
 class RedisCache(Cache):
