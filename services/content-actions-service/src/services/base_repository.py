@@ -8,7 +8,7 @@ from beanie import Document
 logger = logging.getLogger(__name__)
 
 
-class BaseRepository[T: Document]:
+class BaseRepository[T: Document]:  # noqa: WPS214
     """
     Базовый репозиторий для работы с Beanie документами.
 
@@ -114,14 +114,14 @@ class BaseRepository[T: Document]:
         :param skip_page: Количество страниц, которые необходимо пропустить при выдаче.
         :param page_size: Размер одной страницы
         :return: Список документов с учётом пагинации, отсортированных по дате создания (по убыванию).
-        """  # noqa E501
+        """  # noqa: E501
 
         logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
 
         skip_count = skip_page * page_size
         # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
         result = (
-            await self.collection.find(*filters)
+            await self.collection.find(*filters)  # noqa: WPS221
             .sort("-created_at")
             .skip(skip_count)
             .limit(page_size)
@@ -141,3 +141,6 @@ class BaseRepository[T: Document]:
 @lru_cache()
 def get_rating_repository(model: type[Document]) -> BaseRepository:
     return BaseRepository(model)
+
+
+# noqa: WPS214

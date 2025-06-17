@@ -45,7 +45,6 @@ class Rating(BaseDocument):
 
 
 class Review(BaseDocument):
-
     class Settings:
         name = app_config.mongodb.reviews_coll
 
@@ -54,7 +53,7 @@ class Bookmark(BaseDocument):
     comment: str | None = Field(
         None,
         min_length=5,
-        max_length=500,
+        max_length=500,  # noqa: WPS432
     )
     status: FilmBookmarkState = Field(FilmBookmarkState.NOTWATCHED)
 

@@ -8,7 +8,11 @@ from tests.functional.testdata.model_orm import Base
 @pytest_asyncio.fixture(name="async_session_maker", scope="session")
 async def async_session_maker():
     engine = create_async_engine(test_conf.postgres.ASYNC_DATABASE_URL, future=True)
-    async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    async_session_maker = sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
 
     yield async_session_maker
 

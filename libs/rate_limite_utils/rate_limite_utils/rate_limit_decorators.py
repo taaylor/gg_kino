@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def get_identifier() -> str:
-    """
-    Определяет идентификатор пользователя: user_id из JWT или IP-адрес.
-    """
+    """Определяет идентификатор пользователя: user_id из JWT или IP-адрес."""
     request = current_request.get()
     # Проверяем JWT
     if request.headers.get("authorization"):
@@ -37,8 +35,7 @@ async def get_identifier() -> str:
 
 
 def rate_limit(limit: int = 20, window: int = 60):
-    """
-    Декоратор для rate limiting с использованием Redis.
+    """Декоратор для rate limiting с использованием Redis.
     limit: максимальное количество запросов.
     window: временное окно в секундах.
     """
@@ -68,7 +65,8 @@ def rate_limit(limit: int = 20, window: int = 60):
 
             if request_number > limit:
                 raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too Many Requests"
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too Many Requests",
                 )
             return await func(*args, **kwargs)
 
@@ -78,10 +76,11 @@ def rate_limit(limit: int = 20, window: int = 60):
 
 
 def rate_limit_leaky_bucket(
-    bucket_size: int = 20, leak_rate: float = 0.333, time_to_live: int = 10 * 60
+    bucket_size: int = 20,
+    leak_rate: float = 0.333,
+    time_to_live: int = 10 * 60,
 ):  # 1 запрос каждые 3 секунды
-    """
-    Декоратор для rate limiting с использованием Leaky Bucket.
+    """Декоратор для rate limiting с использованием Leaky Bucket.
     bucket_size: Максимальное количество запросов в ведре.
     leak_rate: Скорость протекания (запросов в секунду).
     """
@@ -116,7 +115,8 @@ def rate_limit_leaky_bucket(
             # Проверяем, прошло ли достаточно времени с последнего запроса
             if requests and (now - requests[-1] < leak_interval):
                 raise HTTPException(
-                    status_code=429, detail="Too Many Requests - wait before sending again"
+                    status_code=429,
+                    detail="Too Many Requests - wait before sending again",
                 )
             # Проверяем, не переполнено ли ведро
             if len(requests) < bucket_size:
@@ -128,7 +128,8 @@ def rate_limit_leaky_bucket(
             else:
                 # Ведро переполнено
                 raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too Many Requests"
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too Many Requests",
                 )
 
             return await func(*args, **kwargs)

@@ -82,7 +82,7 @@ class BookmarkService:
     ) -> FetchBookmarkList:
 
         logger.info(
-            f"Пользователь: {user_id=} запрашивает список для просмотра с параметрами: {page_size=}, {skip_page=}"  # noqa E501
+            f"Пользователь: {user_id=} запрашивает список для просмотра с параметрами: {page_size=}, {skip_page=}"  # noqa: E501
         )
 
         user_cache_key = CACHE_KEY_USER_BOOKMARKS.format(user_id=user_id, page=skip_page + 1)
@@ -90,12 +90,12 @@ class BookmarkService:
 
         if cached_user_watchlist:
             logger.info(
-                f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} найден в кэше"  # noqa E501
+                f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} найден в кэше"  # noqa: E501
             )
             return FetchBookmarkList.model_validate_json(cached_user_watchlist)
 
         logger.debug(
-            f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} отсутствует в кэше"  # noqa E501
+            f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} отсутствует в кэше"  # noqa: E501
         )
 
         fetched_watchlist = await self.repository.find(
@@ -121,7 +121,7 @@ class BookmarkService:
         )
 
         logger.info(
-            f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} найден в БД"  # noqa E501
+            f"Список фильмов пользователя: {user_id=} для запроса: {page_size=}, {skip_page=} найден в БД"  # noqa: E501
         )
 
         await self.cache.background_set(

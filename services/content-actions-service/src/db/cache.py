@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Coroutine
 
 from redis.asyncio import Redis
-from utils.decorators import redis_handler_exeptions
+from utils.decorators import redis_handler_exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -12,59 +12,63 @@ cache_conn: Redis | None = None
 
 
 class Cache(ABC):
+    """Абстрактный класс для работы с кэшем."""
+
     @abstractmethod
     def get(self, key: str) -> Coroutine[None, None, str | None]:
-        pass
+        """Получает значение из кэша по ключу."""
 
     @abstractmethod
     def destroy(self, key: str) -> Coroutine[None, None, None]:
-        pass
+        """Удаляет значение из кэша по ключу."""
 
     @abstractmethod
     def destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, int | None]:
-        pass
+        """Удаляет все значения из кэша по паттерну."""
 
     @abstractmethod
-    def set(self, key: str, value: str, expire: int | None) -> Coroutine[None, None, None]:
-        pass
+    def set(
+        self, key: str, value: str, expire: int | None
+    ) -> Coroutine[None, None, None]:  # noqa: WPS221
+        """Сохраняет значение в кэш."""
 
     @abstractmethod
     def background_set(
         self, key: str, value: str, expire: int | None
     ) -> Coroutine[None, None, None]:
-        pass
+        """Сохраняет значение в кэш в фоновом режиме."""
 
     @abstractmethod
     def background_destroy(self, key: str) -> Coroutine[None, None, None]:
-        pass
+        """Удаляет значение из кэша в фоновом режиме."""
 
     @abstractmethod
     def background_destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, None]:
-        pass
+        """Удаляет все значения из кэша по паттерну в фоновом режиме."""
 
 
-class RedisCache(Cache):
+class RedisCache(Cache):  # noqa: WPS214
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def get(self, key: str) -> str | None:
         """Получает кеш из redis"""
         return await self.redis.get(key)
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def destroy(self, key: str) -> None:
         await self.redis.delete(key)
         logger.info(f"[RedisCache] Объект удален по ключу '{key}'")
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в redis"""
         await self.destroy(key)  # инвалидация кеша
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def destroy_all_by_pattern(self, pattern: str) -> int:
         """
         Удаляет все ключи, соответствующие паттерну.
@@ -78,7 +82,9 @@ class RedisCache(Cache):
 
         while True:
             # SCAN возвращает курсор и список ключей
-            cursor, keys = await self.redis.scan(cursor=cursor, match=pattern, count=100)
+            cursor, keys = await self.redis.scan(
+                cursor=cursor, match=pattern, count=100
+            )  # noqa: WPS221
 
             if keys:
                 deleted_count += await self.redis.delete(*keys)

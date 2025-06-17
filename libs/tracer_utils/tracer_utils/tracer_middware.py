@@ -14,10 +14,10 @@ async def request_id_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID")
 
     if not request_id:
-        request_id = f"service:{str(uuid.uuid4())}"
+        request_id = f"service:{uuid.uuid4()!s}"
         logger.warning(
             f"Отсутствует заголовок X-Request-ID в запросе к {request.method} {request.url.path}. "
-            f"Сгенерирован request_id: {request_id}"
+            f"Сгенерирован request_id: {request_id}",
         )
     else:
         request_id = f"nginx:{request_id}"

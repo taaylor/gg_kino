@@ -9,7 +9,9 @@ class Permission(BaseModel):
     """Модель представления права доступа в системе"""
 
     permission: PermissionEnum = Field(
-        ..., description="Тип права доступа из предопределенного перечня", example="FREE_FILMS"
+        ...,
+        description="Тип права доступа из предопределенного перечня",
+        example="FREE_FILMS",
     )
     descriptions: str | None = Field(
         description="Подробное описание назначения и scope права доступа",
@@ -36,18 +38,22 @@ class RoleDetailRequest(BaseModel):
 class RoleDetailResponse(RoleDetailRequest):
     """Базовая модель ответа для создания/получения роли через API"""
 
-    pass
-
 
 class AccessTokenField(BaseModel):
     access_token: str = Field(
-        ..., min_length=10, max_length=5000, description="Токен доступа для авторизации"
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Токен доступа для авторизации",
     )
 
 
 class RefreshTokenField(BaseModel):
     refresh_token: str = Field(
-        ..., min_length=10, max_length=5000, description="Токен для обновления сессии"
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Токен для обновления сессии",
     )
 
 
@@ -56,12 +62,23 @@ class Session(RefreshTokenField, AccessTokenField):
 
 
 class UserFields(BaseModel):
-    username: str = Field(..., min_length=4, max_length=30, description="Юзернейм пользователя")
+    username: str = Field(
+        ...,
+        min_length=4,
+        max_length=30,
+        description="Юзернейм пользователя",
+    )
     email: str = Field(
-        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+        ...,
+        min_length=5,
+        max_length=254,
+        description="Электронная почта пользователя",
     )
     first_name: str | None = Field(
-        None, min_length=4, max_length=30, description="Имя пользователя (опционально)"
+        None,
+        min_length=4,
+        max_length=30,
+        description="Имя пользователя (опционально)",
     )
     last_name: str | None = Field(
         None,
@@ -73,7 +90,12 @@ class UserFields(BaseModel):
 
 
 class RegisterRequest(UserFields):
-    password: str = Field(..., min_length=8, max_length=128, description="Пароль для регистрации")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Пароль для регистрации",
+    )
 
 
 class RegisterResponse(UserFields):
@@ -83,17 +105,30 @@ class RegisterResponse(UserFields):
 
 class LoginRequest(BaseModel):
     email: str = Field(
-        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+        ...,
+        min_length=5,
+        max_length=254,
+        description="Электронная почта пользователя",
     )
-    password: str = Field(..., min_length=8, max_length=128, description="Пароль пользователя")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Пароль пользователя",
+    )
 
 
 class RoleResponse(BaseModel):
     """Упрощенное представление роли (для списков и краткой информации)"""
 
-    role: str = Field(..., description="Системное название роли", example="content_moderator")
+    role: str = Field(
+        ...,
+        description="Системное название роли",
+        example="content_moderator",
+    )
     descriptions: str | None = Field(
-        description="Краткое описание назначения роли", example="Роль для модерации контента"
+        description="Краткое описание назначения роли",
+        example="Роль для модерации контента",
     )
 
 

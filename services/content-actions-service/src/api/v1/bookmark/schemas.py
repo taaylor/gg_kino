@@ -18,7 +18,7 @@ class CommentField(BaseModel):
     comment: str | None = Field(
         None,
         min_length=5,
-        max_length=500,
+        max_length=500,  # noqa: WPS432
         examples=["Звучит хайпово, посмотрю на НГ"],
         description="Опциональный комментарий к фильму в закладках",
     )
@@ -30,8 +30,8 @@ class StatusField(BaseModel):
     )
 
 
-class BookmarkObj(FilmIdField, DateFields, CommentField, StatusField):
-    pass
+class BookmarkObj(FilmIdField, DateFields, CommentField, StatusField):  # noqa: WPS215
+    """Базовая модель закладки"""
 
 
 class WatchListPage(BaseModel):
@@ -45,11 +45,11 @@ class WatchListPage(BaseModel):
 
 
 class CreateBookmarkRequest(CommentField):
-    pass
+    """Схема запроса для создания закладки."""
 
 
 class CreateBookmarkResponse(BookmarkObj):
-    pass
+    """Схема ответа при создании закладки."""
 
 
 class FetchBookmarkList(WatchListPage):
@@ -59,8 +59,8 @@ class FetchBookmarkList(WatchListPage):
 
 
 class ChangeBookmarkRequest(CommentField, StatusField):
-    pass
+    """Схема запроса для изменения закладки."""
 
 
 class ChangeBookmarkResponse(BookmarkObj):
-    pass
+    """Схема ответа при изменении закладки."""

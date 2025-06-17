@@ -13,11 +13,14 @@ async def es_client():
     await es_client.close()
 
 
-def _create_bulk_query(index: str, es_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _create_bulk_query(
+    index: str,
+    es_data: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     bulk_query = []
     for item in es_data:
         data = {
-            "_" "index": index,
+            "_index": index,
             "_id": item.get("id"),
             "_source": item,
         }
@@ -44,7 +47,11 @@ async def es_write_data(es_client: AsyncElasticsearch):
         prepared_data = _create_bulk_query(index=index, es_data=data)
 
         # Записываем данные в индекс
-        _, failed = await async_bulk(client=es_client, actions=prepared_data, refresh="wait_for")
+        _, failed = await async_bulk(
+            client=es_client,
+            actions=prepared_data,
+            refresh="wait_for",
+        )
 
         if failed:
             raise Exception("Ошибка записи данных в Elasticsearch", errors=failed)

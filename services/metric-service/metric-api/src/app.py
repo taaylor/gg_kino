@@ -22,7 +22,7 @@ app.security_schemes = {
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "Опциональное указание токена авторизации",
-    }
+    },
 }
 
 

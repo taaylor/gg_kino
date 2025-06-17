@@ -32,10 +32,13 @@ class GenreRepository:
         """Получает один жанр из ElasticSearch по id"""
         logger.debug(f"Получаю жанр id:{genre_id} из ElasticSearch")
         es_response = await self.repository.get_object_by_id(
-            index=self.GENRES_INDEX, object_id=genre_id
+            index=self.GENRES_INDEX,
+            object_id=genre_id,
         )
         if not es_response:
-            logger.error(f"В результате запроса жанра id:{genre_id} жанр не был найден в ES.")
+            logger.error(
+                f"В результате запроса жанра id:{genre_id} жанр не был найден в ES.",
+            )
             return None
 
         genre = GenreLogic.model_validate(es_response)
@@ -48,14 +51,20 @@ class GenreRepository:
         """Получает все жанры из ElasticSearch"""
         logger.debug("Получаю все жанры из ElasticSearch")
         query = {"query": {"match_all": {}}}
-        es_response = await self.repository.get_list(index=self.GENRES_INDEX, body=query, size=1000)
+        es_response = await self.repository.get_list(
+            index=self.GENRES_INDEX,
+            body=query,
+            size=1000,
+        )
 
         if not es_response:
             logger.error("В результате запроса всех жанров в ES ничего не нашлось.")
             return []
 
         genres = [GenreLogic.model_validate(genre) for genre in es_response]
-        logger.info(f"В результате запроса всех жанров из ES получен список жанров {genres}.")
+        logger.info(
+            f"В результате запроса всех жанров из ES получен список жанров {genres}.",
+        )
 
         return genres
 
@@ -79,7 +88,6 @@ class GenreService:
 
     async def get_genres_list(self) -> list[GenreResponse]:
         """Получает список всех жанров."""
-
         cached_genres = await self._get_cached_data(CACHE_ALL_GENRES_KEY)
 
         if cached_genres:
@@ -98,12 +106,14 @@ class GenreService:
 
         cache_value = json.dumps([genre.model_dump(mode="json") for genre in genres])
         await self._set_cache_data(
-            key=CACHE_ALL_GENRES_KEY, value=cache_value, expire=CACHE_GENRES_CACHE_EXPIRES
+            key=CACHE_ALL_GENRES_KEY,
+            value=cache_value,
+            expire=CACHE_GENRES_CACHE_EXPIRES,
         )
 
         logger.info(
             f"""Список жанров будет сохранён в кэш с ключом
-            {CACHE_ALL_GENRES_KEY}, всего жанров {len(genres)}."""
+            {CACHE_ALL_GENRES_KEY}, всего жанров {len(genres)}.""",
         )
         return genres
 
@@ -127,7 +137,9 @@ class GenreService:
 
         cache_value = genre.model_dump_json()
         await self._set_cache_data(
-            key=cache_key, value=cache_value, expire=CACHE_GENRES_CACHE_EXPIRES
+            key=cache_key,
+            value=cache_value,
+            expire=CACHE_GENRES_CACHE_EXPIRES,
         )
 
         logger.info(f"Жанр с {genre_id=} будет сохранён в кэш с: {cache_key=}.")
@@ -136,8 +148,8 @@ class GenreService:
 
 @lru_cache
 def get_genre_service(
-    cache: Cache = Depends(get_cache), repository: BaseDB = Depends(get_repository)
+    cache: Cache = Depends(get_cache),
+    repository: BaseDB = Depends(get_repository),
 ) -> GenreService:
-
     genre_repository = GenreRepository(repository=repository)
     return GenreService(cache=cache, repository=genre_repository)

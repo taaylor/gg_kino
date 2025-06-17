@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class FilmBookmarkState(StrEnum):
+    """Состояния закладки фильма."""
+
     NOTWATCHED = "NOTWATCHED"
     WATCHED = "WATCHED"
 
@@ -15,5 +17,5 @@ class AvgRatingSchema(BaseModel):
     count_votes: int
 
     @field_validator("rating")
-    def round_rating(cls, value: float) -> float:
-        return round(value, 2)
+    def round_rating(cls, rating: float) -> float:
+        return round(rating, 2)

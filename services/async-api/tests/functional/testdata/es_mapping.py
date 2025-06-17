@@ -1,7 +1,9 @@
 class Mapping:
     _settings = {
         "index": {
-            "routing": {"allocation": {"include": {"_tier_preference": "data_content"}}},
+            "routing": {
+                "allocation": {"include": {"_tier_preference": "data_content"}},
+            },
             "refresh_interval": "1s",
             "number_of_shards": "1",
             "number_of_replicas": "1",
@@ -27,10 +29,10 @@ class Mapping:
                             "russian_stop",
                             "russian_stemmer",
                         ],
-                    }
+                    },
                 },
             },
-        }
+        },
     }
     films = {
         "settings": _settings,

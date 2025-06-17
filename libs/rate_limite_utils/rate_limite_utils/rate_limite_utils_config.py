@@ -28,7 +28,9 @@ class RedisConfig(BaseSettings):
 
 def _get_config() -> RedisConfig:
     app_config = RedisConfig()
-    logger.info(f"rate_limite_utils_conf.initialized: {app_config.model_dump_json(indent=4)}")
+    logger.info(
+        f"rate_limite_utils_conf.initialized: {app_config.model_dump_json(indent=4)}",
+    )
     return app_config
 
 

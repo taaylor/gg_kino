@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Базовый класс для всех моделей
 class Base(AsyncAttrs, DeclarativeBase):
-    """
-    AsyncAttrs: Позволяет создавать асинхронные модели, что улучшает
+    """AsyncAttrs: Позволяет создавать асинхронные модели, что улучшает
     производительность при работе с асинхронными операциями.
 
     __abstract__ = True - абстрактный класс, чтобы не создавать отдельную таблицу для него
@@ -28,7 +27,10 @@ class Base(AsyncAttrs, DeclarativeBase):
     __abstract__ = True
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
 
 async_session_maker: sessionmaker | None = None

@@ -1,6 +1,4 @@
-"""
-Пример использования улучшенного Kafka коннектора
-"""
+"""Пример использования улучшенного Kafka коннектора"""
 
 from utils.kafka_connector_improved import KafkaConnector, get_kafka_connector
 
@@ -31,7 +29,12 @@ def send_user_event(user_id: str, event_type: str, data: dict):
 def send_metric(metric_name: str, value: float, tags: dict = None):
     kafka = get_kafka_connector()
 
-    message = {"metric": metric_name, "value": value, "tags": tags or {}, "timestamp": time.time()}
+    message = {
+        "metric": metric_name,
+        "value": value,
+        "tags": tags or {},
+        "timestamp": time.time(),
+    }
 
     return kafka.send_message(topic="metrics", value=message, key=metric_name)
 
