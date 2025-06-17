@@ -23,3 +23,5 @@ class MongoDB(BaseModel):
     @property
     def ASYNC_DATABASE_URL(self):
         return f"mongodb://{self.host}:{self.port}"
+
+app_config = Postgres()

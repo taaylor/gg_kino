@@ -137,6 +137,22 @@ services:
       mongodb_cfg3:
         condition: service_healthy
 
+  init_research:
+    build:
+      context: .
+      dockerfile: ./research/Dockerfile
+    # env_file:
+    #   - ../../.env
+    # ports:
+    #   - 8099:8000
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      mongodb_init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    restart: always
 
 volumes:
   research_mongodb_data1:
