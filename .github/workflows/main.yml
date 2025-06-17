@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8==7.2.0 wemake-python-styleguide==1.1.0 flake8-html==0.4.3 mypy==1.13.0
+          pip install flake8==7.2.0 wemake-python-styleguide==1.1.0 flake8-html==0.4.3 mypy==1.13.0 types-ujson
 
       - name: Test lint
         run: |
