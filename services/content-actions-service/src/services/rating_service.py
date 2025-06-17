@@ -17,10 +17,10 @@ CACHE_KEY_AVG_RATING = "films:avg_rating:"
 class RatingService:
     """Сервис для работы с рейтингом фильмов."""
 
-    __slots__ = [
+    __slots__ = (
         "cache",
         "repository",
-    ]
+    )
 
     def __init__(
         self,

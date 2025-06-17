@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class MetricProcessor:
-    __slots__ = ["broker"]
+    __slots__ = "broker"
 
     def __init__(self, broker: KafkaConnector) -> None:
         self.broker = broker

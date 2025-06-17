@@ -37,11 +37,9 @@ class Cache(ABC):
     @abstractmethod
     def background_destroy(self, key: str) -> Coroutine[None, None, None]:
         pass
-        pass
 
     @abstractmethod
     def background_destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, None]:
-        pass
         pass
 
 

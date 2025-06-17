@@ -10,7 +10,7 @@ from api.v1.bookmark.schemas import (
     FetchBookmarkList,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from rate_limite_utils import rate_limit
 from services.bookmark_service import BookmarkService, get_bookmark_service
 
@@ -22,6 +22,7 @@ router = APIRouter()
 @router.post(
     path="/{film_id}",
     response_model=CreateBookmarkResponse,
+    status_code=status.HTTP_201_CREATED,
     summary="Добавить фильм в закладки",
     description="Сохраняет фильм в список просмотра со статусом: 'Не просмотрен'",
 )
@@ -45,7 +46,7 @@ async def create_bookmark(
 
 @router.delete(
     path="/{film_id}",
-    status_code=204,
+    status_code=status.HTTP_204_NO_CONTENT,
     summary="Удаляет фильм из закладок",
     description="Удаляет фильм из списка сохранённых в список для просмотра",
 )
@@ -65,8 +66,10 @@ async def delete_bookmark(
 @router.get(
     path="/watchlist",
     response_model=FetchBookmarkList,
-    summary="Возвращает список для просмотра для пользователя",
-    description="Удаляет фильм из списка сохранённых в список для просмотра",
+    summary="Возвращает список для просмотра пользователя",
+    description="""
+        Возвращает список для просмотра пользователя, по умолчанию для user_id из
+        JWT токена авторизации, но можно указать user_id другого пользователя""",
 )
 @rate_limit()
 async def fetch_watchlist(

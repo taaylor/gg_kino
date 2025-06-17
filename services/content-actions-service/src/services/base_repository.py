@@ -15,9 +15,7 @@ class BaseRepository[T: Document]:
     Generic класс, где T - тип документа, с которым будет работать класс, наследник beanie.Document.
     """
 
-    __slots__ = [
-        "collection",
-    ]
+    __slots__ = ("collection",)
 
     def __init__(self, model: type[T]):
         """
@@ -64,7 +62,7 @@ class BaseRepository[T: Document]:
         for field in update_field:
             if hasattr(document, field):
                 setattr(document, field, update_data[field])
-        document.updated_at = datetime.now(timezone.utc)
+        document.updated_at = datetime.now(timezone.utc)  # type: ignore
         return await document.save()
 
     async def upsert(self, *filters: Any, **insert_data: Any) -> T:
@@ -108,7 +106,6 @@ class BaseRepository[T: Document]:
         return False
 
     async def find(self, *filters: Any, page_size: int = 50, skip_page: int = 0):
-        logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
         """
         Получает список объектов с пагинацией и сортировкой на уровне БД.
 
@@ -118,6 +115,9 @@ class BaseRepository[T: Document]:
         :param page_size: Размер одной страницы
         :return: Список документов с учётом пагинации, отсортированных по дате создания (по убыванию).
         """  # noqa E501
+
+        logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
+
         skip_count = skip_page * page_size
         # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
         result = (

@@ -12,8 +12,7 @@ from api.v1.bookmark.schemas import (
 )
 from core.config import app_config
 from db.cache import Cache, get_cache
-from fastapi import Depends
-from fastapi.exceptions import HTTPException
+from fastapi import Depends, HTTPException, status
 from models.logic_models import FilmBookmarkState
 from services.bookmark_repository import BookmarkRepository, get_bookmark_repository
 from utils.film_id_validator import FilmIdValidator, get_film_id_validator
@@ -65,7 +64,10 @@ class BookmarkService:
                 updated_at=inserted_bookmark.updated_at,
             )
 
-        raise HTTPException(status_code=500, detail="Не удалось добавить фильм в список просмотра")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось добавить фильм в список просмотра",
+        )
 
     async def remove_bookmark_by_film_id(self, user_id: UUID, film_id: UUID):
         await self._validate_film_id(film_id=film_id)
@@ -161,11 +163,14 @@ class BookmarkService:
                 updated_at=inserted_bookmark.updated_at,
             )
 
-        raise HTTPException(status_code=500, detail="Не удалось добавить фильм в список просмотра")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось добавить фильм в список просмотра",
+        )
 
     async def _validate_film_id(self, film_id: UUID):
         if not self.film_id_validator.validate_film_id(film_id):
-            raise HTTPException(status_code=400, detail="Фильм не найден")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Фильм не найден")
 
     async def _invalidate_user_bookmark_cache(self, user_id: UUID):
         user_cache_key = CACHE_KEY_USER_BOOKMARKS.format(user_id=user_id, page="*")

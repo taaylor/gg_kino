@@ -48,7 +48,7 @@ class CreateBookmarkRequest(CommentField):
     pass
 
 
-class CreateBookmarkResponse(FilmIdField, CommentField, DateFields, StatusField):
+class CreateBookmarkResponse(BookmarkObj):
     pass
 
 
