@@ -53,6 +53,8 @@ class AppConfig(BaseSettings):
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
     film_validation_url: str = "http://localhost/async/api/v1/films/{film_id}"
+    max_page_size: int = 50
+    min_page_size: int = 1
 
     test_films: set[UUID] = {
         UUID("3e5351d6-4e4a-486b-8529-977672177a07"),

@@ -161,8 +161,8 @@ services:
     cpus: "1"
     mem_limit: 256M
     depends_on:
-      # mongodb_init:
-      #   condition: service_completed_successfully
+      mongodb_init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
       async-api:

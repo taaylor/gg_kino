@@ -3,8 +3,11 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any
 
+import backoff
 from beanie import Document
 from models.enum_models import SortedEnum
+from pymongo.errors import ConnectionFailure, NetworkTimeout, PyMongoError
+from utils.decorators import mongodb_handler_exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
 
         self.collection: type[T] = model
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def get_document(self, *filters: Any) -> T | None:
         """
         Находит один документ по переданным фильтрам.
@@ -37,6 +42,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Поиск документа по фильтрам {filters}.")
         return await self.collection.find_one(*filters)
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def insert_document(self, **insert_data: Any) -> T:
         """
         Создаёт новый документ.
@@ -49,6 +56,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Создание документа с данными {insert_data}.")
         return await self.collection(**insert_data).insert()
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def update_document(self, document: T, **update_data: Any) -> T:
         """
         Обновляет поля в переданном экземпляре документа и сохраняет.
@@ -66,6 +75,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         document.updated_at = datetime.now(timezone.utc)  # type: ignore
         return await document.save()
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def upsert(self, *filters: Any, **insert_data: Any) -> T:
         """
         Если документ по фильтрам найден — обновляет его полями из insert_data,
@@ -89,6 +100,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         else:
             return await self.insert_document(**insert_data)
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def delete_document(self, *filters: Any) -> bool:
         """
         Удаляет один документ по переданным фильтрам.
@@ -106,6 +119,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def find(
         self,
         *filters: Any,
@@ -139,6 +154,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
 
         return result
 
+    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @mongodb_handler_exceptions
     async def get_count(self, *filters: Any) -> int:
         """Возвращает количество документов в коллекции по заданным фильтрам"""
         return await self.collection.find(*filters).count()

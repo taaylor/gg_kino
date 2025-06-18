@@ -22,13 +22,16 @@ class AvgRatingSchema(BaseModel):
         return round(rating, 2)
 
 
-class ReviewSchema(BaseModel):
-    id: UUID
+class ReviewRepositorySchema(BaseModel):
+    id: UUID = Field(alias="_id")
     film_id: UUID
     user_id: UUID
     text: str
-    user_score: float | None
     count_like: int
     count_dislike: int
     created_at: datetime
     updated_at: datetime
+
+
+class ReviewScoreSchema(ReviewRepositorySchema):
+    user_score: int | None

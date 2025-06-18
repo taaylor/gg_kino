@@ -11,7 +11,9 @@ from redis.asyncio import Redis
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    engine = AsyncIOMotorClient(app_config.mongodb.ASYNC_DATABASE_URL)
+    engine = AsyncIOMotorClient(
+        app_config.mongodb.ASYNC_DATABASE_URL, uuidRepresentation="standard"
+    )
     await init_beanie(
         database=engine[app_config.mongodb.name],
         document_models=[Rating, Review, Bookmark, ReviewLike],

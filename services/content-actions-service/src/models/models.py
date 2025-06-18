@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 import pymongo
@@ -67,6 +67,12 @@ class ReviewLike(MixinTimestamp):
     user_id: UUID = Field(..., description="Идентификатор пользователя")
 
     class Settings:
+        # позволяет включить кеширование заросов на уровне lru_cache
+        # первый запрос будет в бд, второй будет браться из кеша
+        use_cache = True
+        cache_expiration_time = timedelta(seconds=10)
+        cache_capacity = 5
+
         name = app_config.mongodb.reviews_like_coll
         use_revision = False
         indexes = [

@@ -8,42 +8,43 @@ from api.v1.review.schemas import (
     ReviewDetailResponse,
     ReviewModifiedRequest,
     ReviewModifiedResponse,
+    ReviewRateResponse,
 )
 from core.config import app_config
 from db.cache import Cache, get_cache
 from fastapi import Depends, HTTPException, status
-from models.enum_models import SortedEnum
-from models.models import Review
+from models.enum_models import LikeEnum, SortedEnum
+from models.models import Review, ReviewLike
 from services.review_repository import (
     ReviewLikeRepository,
     ReviewRepository,
     get_review_like_repository,
     get_review_repository,
 )
+from utils.film_id_validator import FilmIdValidator, get_film_id_validator
 
 logger = logging.getLogger(__name__)
 
 
-class ReviewService:
+class ReviewService:  # noqa: WPS214
     CACHE_KEYS = {
-        "list_review": "review:{film_id}:{sorted}:{page_number}:{page_size}",
+        "list_review": "review:film:{film_id}:{sorted}:{page_number}:{page_size}",
+        "user_review": "review:user:{user_id}:{sorted}:{page_number}:{page_size}",
     }
 
-    __slots__ = (
-        "cache",
-        "review_repository",
-        "review_like_repository",
-    )
+    __slots__ = ("cache", "review_repository", "review_like_repository", "film_validator")
 
     def __init__(
         self,
         cache: Cache,
         review_repository: ReviewRepository,
         review_like_repository: ReviewLikeRepository,
+        film_validator: FilmIdValidator,
     ):
         self.cache = cache
         self.review_repository = review_repository
         self.review_like_repository = review_like_repository
+        self.film_validator = film_validator
 
     async def get_reviews(
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
@@ -76,8 +77,10 @@ class ReviewService:
             рецензиям с параметрами: {film_id=}, {page_number=}, {page_size}, {sorted.value=}"
         )
 
+        await self._valid_film(film_id)
+
         reviews = await self.review_repository.get_reviews(film_id, page_number, page_size, sorted)
-        logger.debug(f"Получено {len(reviews)} рецензий")
+        logger.debug(f"Получено {len(reviews)} рецензий к фильму {film_id=}")
 
         if reviews:
             convert_data = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
@@ -103,10 +106,13 @@ class ReviewService:
         Returns:
             ReviewModifiedResponse: Объект созданной рецензии со всеми полями.
         """
+        await self._valid_film(film_id)
         review = await self.review_repository.insert_document(
             user_id=user_id, film_id=film_id, text=review_text.text
         )
         logger.debug(f"Пользователь {user_id=} добавляет рецензию {review.id=} к фильму {film_id=}")
+        await self.cache.background_destroy_all_by_pattern(f"review:user:{user_id}:*")
+        await self.cache.background_destroy_all_by_pattern(f"review:film:{film_id}:-created_at:*")
         return ReviewModifiedResponse(**review.model_dump())
 
     async def update_review(
@@ -124,7 +130,6 @@ class ReviewService:
             ReviewModifiedResponse: Объект с обновленными данными рецензии.
 
         """
-
         review = await self.review_repository.get_document(
             Review.id == review_id, Review.user_id == user_id
         )
@@ -160,8 +165,83 @@ class ReviewService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=f"Рецензия {review_id=} не найдена"
             )
-
+        await self.cache.background_destroy_all_by_pattern(f"review:user:{user_id}:*")
         logger.debug(f"Пользователь {user_id=} удалил рецензию {review_id=}")
+
+    async def get_user_reviews(
+        self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
+    ) -> list[ReviewDetailResponse]:
+
+        cache_key = self.CACHE_KEYS["user_review"].format(
+            user_id=user_id, sorted=sorted.value, page_number=page_number, page_size=page_size
+        )
+
+        logger.debug(f"Заправшиваю кеш по ключу {cache_key}...")
+        reviews_cache = await self.cache.get(cache_key)
+        if reviews_cache:
+            return [ReviewDetailResponse.model_validate(obj) for obj in json.loads(reviews_cache)]
+
+        logger.debug(
+            f"В кеше данных не оказалось делаю запрос по \
+            рецензиям с параметрами: {user_id=}, {page_number=}, {page_size}, {sorted.value=}"
+        )
+
+        reviews = await self.review_repository.get_user_reviews(
+            user_id, page_number, page_size, sorted
+        )
+
+        logger.debug(f"Получено {len(reviews)} рецензий пользователя {user_id=}")
+
+        if reviews:
+            convert_data = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
+            await self.cache.background_set(
+                key=cache_key,
+                value=json.dumps([obj.model_dump(mode="json") for obj in convert_data]),
+                expire=app_config.cache_expire_in_seconds,
+            )
+            return convert_data
+        return []
+
+    async def rate_review(
+        self, review_id: UUID, user_id: UUID, mark: LikeEnum
+    ) -> ReviewRateResponse:
+
+        is_like = True
+        if mark == LikeEnum.DISLIKE:
+            is_like = False
+
+        review_like_model = await self.review_like_repository.upsert(
+            ReviewLike.user_id == user_id,
+            ReviewLike.review_id == review_id,
+            user_id=user_id,
+            review_id=review_id,
+            is_like=is_like,
+        )
+        logger.info(review_like_model)
+        logger.debug(f"Пользователь {user_id=} оценил рецензию {review_id=} тип оценки {is_like=}")
+        return ReviewRateResponse(**review_like_model.model_dump())
+
+    async def delete_rate_review(self, user_id: UUID, review_id: UUID) -> None:
+
+        logger.debug("мы туту ========")
+
+        del_status = await self.review_like_repository.delete_document(
+            ReviewLike.user_id == user_id,
+            ReviewLike.review_id == review_id,
+        )
+
+        if not del_status:
+            logger.warning(
+                f"Оценка рецензии {review_id=} от пользователя {user_id=} не удалена или не найдена"
+            )
+
+        logger.debug(f"Оценка пользователя {user_id=} удалена с рецензии {review_id}")
+
+    async def _valid_film(self, film_id: UUID) -> None:
+        if not self.film_validator.validate_film_id(film_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Фильма с {film_id=} не существует"
+            )
 
 
 @lru_cache()
@@ -169,5 +249,6 @@ def get_review_service(
     cache: Annotated[Cache, Depends(get_cache)],
     review_repository: Annotated[ReviewRepository, Depends(get_review_repository)],
     review_like_repository: Annotated[ReviewLikeRepository, Depends(get_review_like_repository)],
+    film_validator: Annotated[FilmIdValidator, Depends(get_film_id_validator)],
 ) -> ReviewService:
-    return ReviewService(cache, review_repository, review_like_repository)
+    return ReviewService(cache, review_repository, review_like_repository, film_validator)
