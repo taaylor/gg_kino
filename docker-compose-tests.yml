@@ -168,6 +168,8 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_started
+      pg-import:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "http://0.0.0.0:8000/content-api/openapi.json"]
       interval: 20s
