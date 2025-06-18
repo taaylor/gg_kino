@@ -45,6 +45,11 @@ test-metrics-service:
 	docker compose -f $(COMPOSE_FILE_TEST) logs -f tests-metrics-api
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
 
+# Запуск тестов content-api-test
+test-content-service:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test up --build -d
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
+
 
 test-async-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
