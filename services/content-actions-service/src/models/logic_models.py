@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -11,3 +12,15 @@ class AvgRatingSchema(BaseModel):
     @field_validator("rating")
     def round_rating(cls, rating: float) -> float:
         return round(rating, 2)
+
+
+class ReviewSchema(BaseModel):
+    id: UUID
+    film_id: UUID
+    user_id: UUID
+    text: str
+    user_score: float | None
+    count_like: int
+    count_dislike: int
+    created_at: datetime
+    updated_at: datetime

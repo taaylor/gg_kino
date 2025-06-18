@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from beanie import Document
+from models.enum_models import SortedEnum
 
 logger = logging.getLogger(__name__)
 
@@ -99,3 +100,35 @@ class BaseRepository:
             return True
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
+
+    async def find(
+        self,
+        *filters: Any,
+        page_size: int = 50,
+        skip_page: int = 0,
+        sorted: SortedEnum = SortedEnum.CREATED_DESC,
+    ) -> list[Document]:
+        logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
+        """
+        Получает список объектов с пагинацией и сортировкой на уровне БД.
+
+        :param filters: Условия поиска,
+                        например Model.user_id == user_id, Model.film_id == film_id.
+        :param skip_page: Количество страниц, которые необходимо пропустить при выдаче.
+        :param page_size: Размер одной страницы
+        :return: Список документов с учётом пагинации и сортировкой.
+        """
+        skip_count = skip_page * page_size
+        # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
+        result = (
+            await self.collection.find(*filters)
+            .sort(sorted.value)
+            .skip(skip_count)
+            .limit(page_size)
+            .to_list()
+        )
+        logger.debug(
+            f"Получен список документов {self.collection.__name__} в количестве: {len(result)}"
+        )
+
+        return result

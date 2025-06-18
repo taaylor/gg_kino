@@ -125,6 +125,8 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    ports:
+      - 8000:8000
     healthcheck:
       test: [
         "CMD-SHELL",

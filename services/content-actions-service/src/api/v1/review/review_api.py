@@ -2,8 +2,14 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.review.schemas import ReviewResponse, SortedReview
-from fastapi import APIRouter, Depends, Path, Query
+from api.v1.review.schemas import (
+    ReviewDetailResponse,
+    ReviewModifiedRequest,
+    ReviewModifiedResponse,
+)
+from auth_utils import LibAuthJWT, auth_dep
+from fastapi import APIRouter, Body, Depends, Path, Query, status
+from models.enum_models import SortedEnum
 from services.review_service import ReviewService, get_review_service
 
 logger = logging.getLogger(__name__)
@@ -15,15 +21,70 @@ router = APIRouter()
     path="/{film_id}",
     summary="Отдает рецензии по id фильма в зависимости от фильтрации",
     description="Отдает рецензии по id фильма в зависимости от фильтрации",
-    response_model=list[ReviewResponse],
+    response_model=list[ReviewDetailResponse],
 )
-async def get_reviews_film(  # type: ignore
+async def receive_reviews_film(
     film_id: Annotated[UUID, Path(description="Идентификатор фильма")],
     review_service: Annotated[ReviewService, Depends(get_review_service)],
-    page_number: Annotated[int, Query(description="Номер страницы")] = 1,
-    page_total: Annotated[int, Query(description="Количестов рецензий на странице")] = 20,
+    page_number: Annotated[int, Query(description="Номер страницы рецензий", ge=1)] = 1,
+    page_size: Annotated[
+        int, Query(description="Количестов рецензий на странице", ge=1, le=25)
+    ] = 25,
     sorted: Annotated[
-        SortedReview, Query(description="Сортировка по параметру")
-    ] = SortedReview.CREATED_ASC,
-) -> list[ReviewResponse]:
-    pass  # type: ignore
+        SortedEnum, Query(description="Сортировка по параметру")
+    ] = SortedEnum.CREATED_DESC,
+) -> list[ReviewDetailResponse]:
+    return await review_service.get_reviews(film_id, page_number, page_size, sorted)
+
+
+@router.post(
+    path="/{film_id}",
+    summary="Позволяет добавить пользователю рецензию к фильму",
+    description="Добавить рецензию к фильму",
+    response_model=ReviewModifiedResponse,
+)
+async def append_review_film(
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    film_id: Annotated[UUID, Path(description="Идентификатор фильма")],
+    review_service: Annotated[ReviewService, Depends(get_review_service)],
+    review_text: Annotated[ReviewModifiedRequest, Body(description="Текст рецензии")],
+) -> ReviewModifiedResponse:
+    await authorize.jwt_required()
+    decrypted_token = await authorize.get_raw_jwt()
+    user_id = UUID(decrypted_token.get("user_id"))
+    return await review_service.append_review(film_id, user_id, review_text)
+
+
+@router.patch(
+    path="/{review_id}",
+    summary="Позволяет обновить текст рецензии",
+    description="Позволяет обновить текст рецензии пользователя к фильму",
+    response_model=ReviewModifiedResponse,
+)
+async def update_review_film(
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    review_id: Annotated[UUID, Path(description="Идентификатор рецензии")],
+    review_service: Annotated[ReviewService, Depends(get_review_service)],
+    review_text: Annotated[ReviewModifiedRequest, Body(description="Измененный текст рецензии")],
+) -> ReviewModifiedResponse:
+    await authorize.jwt_required()
+    decrypted_token = await authorize.get_raw_jwt()
+    user_id = UUID(decrypted_token.get("user_id"))
+    return await review_service.update_review(review_id, user_id, review_text)
+
+
+@router.delete(
+    path="/{review_id}",
+    summary="Позволяет удалить рецензию",
+    description="Позволяет удалить рецензию пользователя к фильму",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_review_film(
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    review_id: Annotated[UUID, Path(description="Идентификатор рецензии")],
+    review_service: Annotated[ReviewService, Depends(get_review_service)],
+) -> None:
+    await authorize.jwt_required()
+    decrypted_token = await authorize.get_raw_jwt()
+    user_id = UUID(decrypted_token.get("user_id"))
+    return await review_service.delete_review(review_id, user_id)

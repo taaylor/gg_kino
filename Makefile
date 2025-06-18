@@ -63,7 +63,7 @@ test-metrics-service-ci:
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
-	docker compose -f $(COMPOSE_FILE) --profile production up -d --build content-actions-api mongodb_router $(srv)
+	docker compose -f $(COMPOSE_FILE) --profile production up -d --build content-actions-api mongodb_router auth-api postgres pg-import jaeger $(srv)
 
 # Остановка контейнеров и удаление волуме
 content-service-down-v:

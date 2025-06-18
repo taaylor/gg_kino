@@ -36,10 +36,6 @@ class Rating(BaseDocument):
     class Settings:
         name = app_config.mongodb.like_coll
         indexes = [
-            # индекс для шардирования
-            pymongo.IndexModel(
-                [("film_id", pymongo.HASHED)],
-            ),
             pymongo.IndexModel(
                 [
                     ("film_id", pymongo.ASCENDING),
@@ -55,17 +51,15 @@ class Review(BaseDocument):
 
     class Settings:
         name = app_config.mongodb.reviews_coll
+        use_revision = False
         indexes = [
-            pymongo.IndexModel(
-                [
-                    ("film_id", pymongo.ASCENDING),
-                ],
-            ),
+            pymongo.IndexModel([("film_id", pymongo.ASCENDING)]),
+            pymongo.IndexModel([("created_at", pymongo.ASCENDING)]),
         ]
 
 
 class ReviewLike(MixinTimestamp):
-    like: bool = Field(
+    is_like: bool = Field(
         ..., description="Оценка рецензии пользователем True = лайк, False = дизлайк"
     )
     review_id: UUID = Field(..., description="Идентификатор рецензии")
@@ -73,6 +67,7 @@ class ReviewLike(MixinTimestamp):
 
     class Settings:
         name = app_config.mongodb.reviews_like_coll
+        use_revision = False
         indexes = [
             pymongo.IndexModel(
                 [
