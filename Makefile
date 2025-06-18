@@ -51,7 +51,6 @@ test-content-service:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
-
 test-async-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test run --rm tests-async-api /bin/bash -c ./tests/functional/start-tests.sh
@@ -59,12 +58,12 @@ test-async-api-ci:
 
 test-auth-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test run --rm tests-auth-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test run --rm tests-auth-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
 
 test-metrics-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
 
 test-content-service-ci:
