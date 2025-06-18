@@ -7,17 +7,19 @@ from utils.decorators import sqlalchemy_universal_decorator
 
 
 class UserService(BaseService):
-    """
-    Бизнес-логика для работы с моделью User.
-    """
+    """Бизнес-логика для работы с моделью User."""
 
     model = User
 
     @classmethod
     @sqlalchemy_universal_decorator
-    async def set_username(cls, session: AsyncSession, user: User, new_username: str) -> User:
-        """
-        Устанавливает новое имя пользователя и сохраняет изменения в базе данных.
+    async def set_username(
+        cls,
+        session: AsyncSession,
+        user: User,
+        new_username: str,
+    ) -> User:
+        """Устанавливает новое имя пользователя и сохраняет изменения в базе данных.
 
         Аргументы должны передаваться позиционно:
         - session: Асинхронная сессия SQLAlchemy.
@@ -46,10 +48,12 @@ class UserCredService(BaseService):
     @classmethod
     @sqlalchemy_universal_decorator
     async def set_password(
-        cls, session: AsyncSession, user_cred: UserCred, new_password: str
+        cls,
+        session: AsyncSession,
+        user_cred: UserCred,
+        new_password: str,
     ) -> UserCred:
-        """
-        Устанавливает новый пароль для пользователя и сохраняет изменения в базе данных.
+        """Устанавливает новый пароль для пользователя и сохраняет изменения в базе данных.
 
         Аргументы должны передаваться позиционно:
         - session: Асинхронная сессия SQLAlchemy.
@@ -78,8 +82,7 @@ class RoleService(BaseService):
     @classmethod
     @sqlalchemy_universal_decorator
     async def set_role(cls, session: AsyncSession, user: User, new_role: str) -> User:
-        """
-        Устанавливает новую роль для пользователя и сохраняет изменения в базе данных.
+        """Устанавливает новую роль для пользователя и сохраняет изменения в базе данных.
 
         Аргументы должны передаваться позиционно:
         - session: Асинхронная сессия SQLAlchemy.

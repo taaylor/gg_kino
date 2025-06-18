@@ -36,17 +36,19 @@ class LibAuthJWT(AuthJWT):
     """Изолированная версия AuthJWT для библиотеки"""
 
     async def compare_permissions(
-        self, decrypted_token: dict, required_permissions: set
+        self,
+        decrypted_token: dict,
+        required_permissions: set,
     ) -> set[str]:
         user_permissions = set(decrypted_token.get("permissions"))
 
         logger.info(
-            f"Из токена пользователя:{decrypted_token.get('user_id')}, с ролью: {decrypted_token.get('role_code')} получены разрешения {user_permissions}"  # noqa: E501
+            f"Из токена пользователя:{decrypted_token.get('user_id')}, с ролью: {decrypted_token.get('role_code')} получены разрешения {user_permissions}",  # noqa: E501
         )
 
         result = required_permissions.issubset(user_permissions)
         logger.info(
-            f"Сравнение разрешений пользователя: {user_permissions} и необходимых разрешений: {required_permissions}. Результат: {result}"  # noqa: E501
+            f"Сравнение разрешений пользователя: {user_permissions} и необходимых разрешений: {required_permissions}. Результат: {result}",  # noqa: E501
         )
         if not result:
             raise HTTPException(
@@ -74,7 +76,10 @@ def get_config():
 
 @AuthJWT.token_in_denylist_loader
 @backoff.on_exception(
-    backoff.expo, (RedisError, ConnectionError), max_tries=5, jitter=backoff.full_jitter
+    backoff.expo,
+    (RedisError, ConnectionError),
+    max_tries=5,
+    jitter=backoff.full_jitter,
 )
 async def check_if_session_in_denylist(decrypted_token: dict) -> bool:
     logger.info(f"Проверка токена: {decrypted_token}")

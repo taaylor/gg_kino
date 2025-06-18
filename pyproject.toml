@@ -21,6 +21,11 @@ kafka-python = "^2.2.10"
 pyjwt = ">=2.9.0,<2.10.0"
 flask-limiter = "^3.12"
 wemake-python-styleguide = "^1.1.0"
+uvicorn = "^0.34.3"
+dotenv = "^0.9.9"
+mypy = "1.16.0"
+ujson = "^5.10.0"
+types-ujson = "^5.10.0.20250326"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=4.1.0,<5.0.0"
@@ -55,6 +60,9 @@ line_length = 100
 
 [tool.flake8]
 max-line-length = 100
+extend-ignore = [
+    "E203", "W503","C812","C813","C814","C815S","C816","WPS300","WPS111","WPS431","WPS226","WPS110","WPS404","WPS601","WPS237"
+    ]
 exclude = [
     ".git",
     "__pycache__",
@@ -63,5 +71,14 @@ exclude = [
     "migration",
     "migrations",
     "services/auth-service/src/migration",
-    "services/auth-service/src/migrations"
+    "services/auth-service/src/migrations",
+    "services/admin-panel/src/accounts/migrations"
 ]
+
+[tool.mypy]
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "redis.asyncio"
+ignore_missing_imports = true

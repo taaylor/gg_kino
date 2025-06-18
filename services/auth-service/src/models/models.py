@@ -53,14 +53,22 @@ class UserCred(Base):
     __table_args__ = {"schema": "profile"}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("profile.user.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("profile.user.id", ondelete="CASCADE"),
+        primary_key=True,
     )
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str] = mapped_column(String(255))
-    is_fictional_email: Mapped[bool] = mapped_column(default=False, server_default=text("'false'"))
+    is_fictional_email: Mapped[bool] = mapped_column(
+        default=False,
+        server_default=text("'false'"),
+    )
 
     # обратная orm связь с user (one-to-one)
-    user: Mapped["User"] = relationship("User", back_populates="user_cred", uselist=False)
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="user_cred",
+        uselist=False,
+    )
 
     def __repr__(self):
         return f"<{self.__class__.__name__}(user_id={self.user_id})>"
@@ -78,11 +86,17 @@ class SocialAccount(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profile.user.id", ondelete="CASCADE"))
-    social_id: Mapped[str] = mapped_column(
-        String(255), comment="Уникальный идентификатор пользователя в социальной сети"
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profile.user.id", ondelete="CASCADE"),
     )
-    social_name: Mapped[str] = mapped_column(String(255), comment="Наименование поставщика услуг")
+    social_id: Mapped[str] = mapped_column(
+        String(255),
+        comment="Уникальный идентификатор пользователя в социальной сети",
+    )
+    social_name: Mapped[str] = mapped_column(
+        String(255),
+        comment="Наименование поставщика услуг",
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="social_account")
 
@@ -120,7 +134,7 @@ class RolesPermissions(Base):
     )
 
     role_code: Mapped[str] = mapped_column(
-        ForeignKey("profile.dict_roles.role", ondelete="CASCADE")
+        ForeignKey("profile.dict_roles.role", ondelete="CASCADE"),
     )
     permission: Mapped[str] = mapped_column(String(50))
     descriptions: Mapped[str | None] = mapped_column(String(500))
@@ -140,19 +154,27 @@ class UserSession(Base):
     __table_args__ = {"schema": "session"}
 
     session_id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True, default=uuid.uuid4, comment="Уникальный идентификатор сессии"
+        primary_key=True,
+        default=uuid.uuid4,
+        comment="Уникальный идентификатор сессии",
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        nullable=False, comment="Уникальный идентификатор пользователя"
+        nullable=False,
+        comment="Уникальный идентификатор пользователя",
     )
     user_agent: Mapped[str | None] = mapped_column(
-        String(255), comment="Клиентское устройство пользователя"
+        String(255),
+        comment="Клиентское устройство пользователя",
     )
     refresh_token: Mapped[str] = mapped_column(
-        String, nullable=False, comment="Рефреш токен пользовательской сессии (JWT)"
+        String,
+        nullable=False,
+        comment="Рефреш токен пользовательской сессии (JWT)",
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, comment="Дата истечения сессии"
+        DateTime,
+        nullable=False,
+        comment="Дата истечения сессии",
     )
 
 
@@ -166,14 +188,20 @@ class UserSessionsHist(Base):
     )
 
     session_id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True, comment="Уникальный идентификатор сессии"
+        primary_key=True,
+        comment="Уникальный идентификатор сессии",
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        nullable=False, primary_key=True, comment="Уникальный идентификатор пользователя"
+        nullable=False,
+        primary_key=True,
+        comment="Уникальный идентификатор пользователя",
     )
     user_agent: Mapped[str | None] = mapped_column(
-        String(255), comment="Клиентское устройство пользователя"
+        String(255),
+        comment="Клиентское устройство пользователя",
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, comment="Дата истечения сессии"
+        DateTime,
+        nullable=False,
+        comment="Дата истечения сессии",
     )

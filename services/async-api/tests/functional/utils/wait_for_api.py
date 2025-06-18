@@ -14,7 +14,7 @@ def check_api():
     path = "/async/openapi.json"
 
     with socket.create_connection((host, port), timeout=2) as sock:
-        request = f"GET {path} HTTP/1.1\r\n" f"Host: {host}\r\n" f"Connection: close\r\n\r\n"
+        request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
         sock.send(request.encode())
 
         response = sock.recv(1024).decode()

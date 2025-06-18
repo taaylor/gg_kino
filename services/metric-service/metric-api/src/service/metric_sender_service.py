@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class MetricProcessor:
-    __slots__ = ["broker"]
+    __slots__ = "broker"
 
     def __init__(self, broker: KafkaConnector) -> None:
         self.broker = broker
@@ -47,12 +47,13 @@ class MetricProcessor:
             user_timestamp=getattr(event, "user_timestamp", None),
         )
 
-        logger.debug(f"Собран Event для отправки в Kafka: {message.model_dump_json(indent=4)}")
+        logger.debug(
+            f"Собран Event для отправки в Kafka: {message.model_dump_json(indent=4)}",
+        )
 
         self._send_event(topic=target_topic, message=message)
 
     def _send_event(self, topic: str, message: MetricEvent):
-
         if self.broker.send_message(topic=topic, value=message.model_dump_json()):
             logger.info(f"Сообщение: {message.id} успешно отправлено в брокер")
         else:
@@ -75,7 +76,11 @@ class MetricProcessor:
             "user_session": token_payload.get("session_id"),
         }
 
-    def _get_header_case_insensitive(self, headers: dict, header_name: str) -> str | None:
+    def _get_header_case_insensitive(
+        self,
+        headers: dict,
+        header_name: str,
+    ) -> str | None:
         """Получить заголовок независимо от регистра"""
         for key, value in headers.items():
             if key.lower() == header_name.lower():
@@ -83,7 +88,7 @@ class MetricProcessor:
         return None
 
 
-@lru_cache()
+@lru_cache
 def get_metric_processor() -> MetricProcessor:
     broker = get_broker_connector()
     return MetricProcessor(broker)

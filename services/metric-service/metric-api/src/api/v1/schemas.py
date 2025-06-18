@@ -5,9 +5,13 @@ from marshmallow import fields
 class EventRequest(Schema):
     """Схема для входящих запросов с событиями"""
 
-    film_uuid = fields.UUID(allow_none=True, metadata={"description": "Идентификатор фильма"})
+    film_uuid = fields.UUID(
+        allow_none=True,
+        metadata={"description": "Идентификатор фильма"},
+    )
     event_type = fields.String(
-        required=True, metadata={"description": "Тип события", "example": "like"}
+        required=True,
+        metadata={"description": "Тип события", "example": "like"},
     )
     message_event = fields.String(
         allow_none=True,

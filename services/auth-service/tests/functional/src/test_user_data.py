@@ -7,7 +7,6 @@ from tests.functional.testdata.model_orm import User
 
 @pytest.mark.asyncio
 class TestUserData:
-
     URL_PATH = "users"
 
     def _get_headers(self, jwt_tokens: dict) -> dict:
@@ -41,7 +40,9 @@ class TestUserData:
         }
         headers = self._get_headers(jwt_tokens)
         response_body, status = await make_post_request(
-            f"/{self.URL_PATH}/change-password", data=payload, headers=headers
+            f"/{self.URL_PATH}/change-password",
+            data=payload,
+            headers=headers,
         )
 
         assert status == HTTPStatus.OK
@@ -54,7 +55,9 @@ class TestUserData:
         payload = {"role": "ADMIN"}
         headers = self._get_headers(jwt_tokens)
         response_body, status = await make_post_request(
-            f"/{self.URL_PATH}/{user.id}/role", data=payload, headers=headers
+            f"/{self.URL_PATH}/{user.id}/role",
+            data=payload,
+            headers=headers,
         )
 
         assert status == HTTPStatus.OK
@@ -62,7 +65,11 @@ class TestUserData:
         assert response_body["role"] == "ADMIN"
 
     async def test_revoke_role(
-        self, pg_session, create_user, create_all_roles, make_delete_request
+        self,
+        pg_session,
+        create_user,
+        create_all_roles,
+        make_delete_request,
     ):
         jwt_tokens = await create_user(superuser_flag=True)
         user = (await pg_session.execute(select(User))).scalar_one()
@@ -70,7 +77,8 @@ class TestUserData:
 
         headers = self._get_headers(jwt_tokens)
         response_body, status = await make_delete_request(
-            f"/{self.URL_PATH}/{user.id}/role", headers=headers
+            f"/{self.URL_PATH}/{user.id}/role",
+            headers=headers,
         )
 
         assert status == HTTPStatus.OK

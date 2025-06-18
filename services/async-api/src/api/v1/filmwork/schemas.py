@@ -12,9 +12,7 @@ class FilmsType(StrEnum):
 
 
 class FilmDetailResponse(BaseModel):
-    """
-    Схема для ответа API, представляющая полную информацию о фильме.
-    """
+    """Схема для ответа API, представляющая полную информацию о фильме."""
 
     uuid: UUID = Field(
         ...,
@@ -66,9 +64,7 @@ class FilmDetailResponse(BaseModel):
 
 
 class FilmListResponse(BaseModel):
-    """
-    Схема для ответа API, представляющая сокращенную информацию о фильмах.
-    """
+    """Схема для ответа API, представляющая сокращенную информацию о фильмах."""
 
     uuid: UUID = Field(..., description="Уникальный идентификатор фильма.")
     title: str = Field(

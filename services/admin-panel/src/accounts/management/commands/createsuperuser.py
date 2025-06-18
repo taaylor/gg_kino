@@ -16,7 +16,11 @@ class Command(createsuperuser.Command):
     def handle(self, *args, **options):
         username_field = User.USERNAME_FIELD
         try:
-            username = self._get_input_data(username_field, f"{username_field}: ", input_type=str)
+            username = self._get_input_data(
+                username_field,
+                f"{username_field}: ",
+                input_type=str,
+            )
             if not username:
                 raise CommandError(f"{username_field} must be set")
 
@@ -24,19 +28,31 @@ class Command(createsuperuser.Command):
             if not email:
                 raise CommandError("Email must be set")
 
-            password = self._get_input_data("password", "password: ", input_type=str, hidden=True)
+            password = self._get_input_data(
+                "password",
+                "password: ",
+                input_type=str,
+                hidden=True,
+            )
             password2 = self._get_input_data(
-                "password (again)", "password (again): ", input_type=str, hidden=True
+                "password (again)",
+                "password (again): ",
+                input_type=str,
+                hidden=True,
             )
             if password != password2:
                 raise CommandError("Пароли не совпадают")
 
-            User.objects.create_superuser(username=username, email=email, password=password)
+            User.objects.create_superuser(
+                username=username,
+                email=email,
+                password=password,
+            )
             self.stdout.write(self.style.SUCCESS("Суперпользователь создан"))
         except KeyboardInterrupt:
             self.stderr.write(self.style.ERROR("Операция прервана"))
         except Exception as e:
-            self.stderr.write(self.style.ERROR(f"Error: {str(e)}"))
+            self.stderr.write(self.style.ERROR(f"Error: {e!s}"))
             raise
 
     def _get_input_data(self, field_name, message, input_type=str, hidden=False):
@@ -50,9 +66,13 @@ class Command(createsuperuser.Command):
                 try:
                     return input_type(value)
                 except (TypeError, ValueError):
-                    self.stderr.write(self.style.ERROR(f"Некорректный ввод {field_name}"))
+                    self.stderr.write(
+                        self.style.ERROR(f"Некорректный ввод {field_name}"),
+                    )
             else:
-                self.stderr.write(self.style.ERROR(f"{field_name} не может быть пустым"))
+                self.stderr.write(
+                    self.style.ERROR(f"{field_name} не может быть пустым"),
+                )
 
 
 def input_hidden(message):

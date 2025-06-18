@@ -60,14 +60,25 @@ class AuthAPICong(BaseModel):
 
 
 class TestConfig(BaseSettings):
-    redis: RedisConf = Field(default_factory=RedisConf, description="Конфигурация Redis")
-    elastic: ESConf = Field(default_factory=ESConf, description="Конфигурация ElasticSearch")
-    asyncapi: APIConf = Field(
-        default_factory=APIConf, description="Конфигурация сервиса AsyncAPI FastAPI"
+    redis: RedisConf = Field(
+        default_factory=RedisConf,
+        description="Конфигурация Redis",
     )
-    postgres: Postgres = Field(default_factory=Postgres, description="Конфигурация Postgres")
+    elastic: ESConf = Field(
+        default_factory=ESConf,
+        description="Конфигурация ElasticSearch",
+    )
+    asyncapi: APIConf = Field(
+        default_factory=APIConf,
+        description="Конфигурация сервиса AsyncAPI FastAPI",
+    )
+    postgres: Postgres = Field(
+        default_factory=Postgres,
+        description="Конфигурация Postgres",
+    )
     authapi: AuthAPICong = Field(
-        default_factory=AuthAPICong, description="Конфигурация сервиса Auth"
+        default_factory=AuthAPICong,
+        description="Конфигурация сервиса Auth",
     )
 
     model_config = SettingsConfigDict(

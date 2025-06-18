@@ -31,7 +31,6 @@ async def delete_score(
         user_id=user_id,
         film_id=film_id,
     )
-    return None
 
 
 @router.post(
@@ -52,12 +51,11 @@ async def set_score(
     await authorize.jwt_required()
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))
-    result = await rating_service.set_user_score(
+    return await rating_service.set_user_score(
         user_id=user_id,
         film_id=film_id,
         score=request_body.score,
     )
-    return result
 
 
 @router.get(
@@ -96,9 +94,8 @@ async def set_score_test(
         ScoreRequest, Body(description="Данные для добавления лайка в формате JSON")
     ],
 ) -> ScoreResponse:
-    result = await rating_service.set_user_score(
+    return await rating_service.set_user_score(
         user_id=user_id,
         film_id=film_id,
         score=request_body.score,
     )
-    return result

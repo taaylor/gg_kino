@@ -13,9 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class RoleRepository:
-
     @sqlalchemy_universal_decorator
-    async def fetch_role_by_pk(self, session: AsyncSession, pk: str) -> DictRoles | None:
+    async def fetch_role_by_pk(
+        self,
+        session: AsyncSession,
+        pk: str,
+    ) -> DictRoles | None:
         """Возвращает модель DictRoles по pk"""
         stmt = (
             select(DictRoles).where(DictRoles.role == pk).options(joinedload(DictRoles.permissions))
@@ -53,19 +56,27 @@ class RoleRepository:
 
     @sqlalchemy_universal_decorator
     async def update_role(
-        self, session: AsyncSession, request_body: RoleDetailUpdateRequest, pk: str
+        self,
+        session: AsyncSession,
+        request_body: RoleDetailUpdateRequest,
+        pk: str,
     ):
         role = await self.fetch_role_by_pk(session=session, pk=pk)
         if role is None:
             logger.debug(f"Роль {pk} не найдена")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Роль не существует"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Роль не существует",
             )
 
         role.descriptions = request_body.descriptions
 
         new_permissions = [
-            RolesPermissions(role=role, permission=p.permission.value, descriptions=p.descriptions)
+            RolesPermissions(
+                role=role,
+                permission=p.permission.value,
+                descriptions=p.descriptions,
+            )
             for p in request_body.permissions
         ]
 
@@ -81,6 +92,6 @@ class RoleRepository:
         logger.info(f"Роль {pk} удалена")
 
 
-@lru_cache()
+@lru_cache
 def get_role_repository() -> RoleRepository:
     return RoleRepository()

@@ -12,13 +12,19 @@ class Gender(StrEnum):
 
 class AccessTokenField(BaseModel):
     access_token: str = Field(
-        ..., min_length=10, max_length=5000, description="Токен доступа для авторизации"
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Токен доступа для авторизации",
     )
 
 
 class RefreshTokenField(BaseModel):
     refresh_token: str = Field(
-        ..., min_length=10, max_length=5000, description="Токен для обновления сессии"
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Токен для обновления сессии",
     )
 
 
@@ -27,12 +33,23 @@ class Session(RefreshTokenField, AccessTokenField):
 
 
 class UserFields(BaseModel):
-    username: str = Field(..., min_length=4, max_length=30, description="Юзернейм пользователя")
+    username: str = Field(
+        ...,
+        min_length=4,
+        max_length=30,
+        description="Юзернейм пользователя",
+    )
     email: str = Field(
-        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+        ...,
+        min_length=5,
+        max_length=254,
+        description="Электронная почта пользователя",
     )
     first_name: str | None = Field(
-        None, min_length=4, max_length=30, description="Имя пользователя (опционально)"
+        None,
+        min_length=4,
+        max_length=30,
+        description="Имя пользователя (опционально)",
     )
     last_name: str | None = Field(
         None,
@@ -44,7 +61,12 @@ class UserFields(BaseModel):
 
 
 class RegisterRequest(UserFields):
-    password: str = Field(..., min_length=8, max_length=128, description="Пароль для регистрации")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Пароль для регистрации",
+    )
 
 
 class RegisterResponse(UserFields):
@@ -54,9 +76,17 @@ class RegisterResponse(UserFields):
 
 class LoginRequest(BaseModel):
     email: str = Field(
-        ..., min_length=5, max_length=254, description="Электронная почта пользователя"
+        ...,
+        min_length=5,
+        max_length=254,
+        description="Электронная почта пользователя",
     )
-    password: str = Field(..., min_length=8, max_length=128, description="Пароль пользователя")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Пароль пользователя",
+    )
 
 
 class LoginResponse(Session):
@@ -65,7 +95,8 @@ class LoginResponse(Session):
     expires_at: datetime = Field(..., description="Дата и время истечения токена")
 
 
-class RefreshResponse(Session): ...  # noqa: E701
+class RefreshResponse(Session):
+    pass
 
 
 class EntryPoint(BaseModel):
@@ -76,7 +107,10 @@ class EntryPoint(BaseModel):
 class SessionsHistory(BaseModel):
     actual_user_agent: str = Field(..., description="Актуальная точка входа в аккаунт")
     create_at: datetime = Field(..., description="Время входа в аккаунт")
-    history: list[EntryPoint] = Field(default=[], description="Последние дествия в аккаунте")
+    history: list[EntryPoint] = Field(
+        default=[],
+        description="Последние дествия в аккаунте",
+    )
 
 
 class MessageResponse(BaseModel):
@@ -85,7 +119,7 @@ class MessageResponse(BaseModel):
 
 class OAuthParams(BaseModel):
     client_id: str = Field(
-        description="Идентификатор клиента, выданный сервисом для вашего приложения."
+        description="Идентификатор клиента, выданный сервисом для вашего приложения.",
     )
     scope: str = Field(description="Список запрашиваемых разрешений")
     state: str = Field(description="Уникальная строка. Подписывается сервером.")
@@ -95,14 +129,15 @@ class OAuthParams(BaseModel):
 
 class OAuthProviderParams(BaseModel):
     url_auth: str = Field(
-        description="URL для перенаправления пользователя на страницу авторизации провайдера."
+        description="URL для перенаправления пользователя на страницу авторизации провайдера.",
     )
     params: OAuthParams = Field(
-        description="Параметры авторизации, используемые для формирования URL и передачи фронтенду."
+        description="Параметры авторизации, используемые для формирования URL \
+             и передачи фронтенду.",
     )
 
 
 class OAuthSocialResponse(BaseModel):
     yandex: OAuthProviderParams = Field(
-        description="Объект, содержащий параметры и URL для авторизации через Yandex."
+        description="Объект, содержащий параметры и URL для авторизации через Yandex.",
     )

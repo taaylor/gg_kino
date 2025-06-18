@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class YandexOAuthProvider(OAuthBaseService):
-
     def create_token_request(self, code: str) -> tuple[str, dict, dict]:
         url = providers_conf.yandex.access_token_url
         data = {
@@ -31,7 +30,11 @@ class YandexOAuthProvider(OAuthBaseService):
         }
         return url, data, headers
 
-    async def get_user_info(self, session: aiohttp.ClientSession, code: str) -> OAuthUserInfo:
+    async def get_user_info(
+        self,
+        session: aiohttp.ClientSession,
+        code: str,
+    ) -> OAuthUserInfo:
         url, data, headers = self.create_token_request(code=code)
 
         async with session.post(url, data=data, headers=headers) as token_response:
@@ -40,7 +43,10 @@ class YandexOAuthProvider(OAuthBaseService):
             logger.debug(f"Получены данные авторизации через Yandex: {token_data}")
 
             if token_response.status != status.HTTP_200_OK:
-                error_desc = token_data.get("error_description", "Описание ошибки отсутствует")
+                error_desc = token_data.get(
+                    "error_description",
+                    "Описание ошибки отсутствует",
+                )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Ошибка при авторизации через Yandex: {error_desc}",
@@ -50,12 +56,14 @@ class YandexOAuthProvider(OAuthBaseService):
         headers = {"Authorization": f"OAuth {token_data.get("access_token")}"}
 
         async with session.get(url_info, headers=headers) as info_user:
-
             user_data = await info_user.json()
             logger.debug(f"Получены данные о пользователе через Yandex: {user_data}")
 
             if info_user.status != status.HTTP_200_OK:
-                error_desc = token_data.get("error_description", "Описание ошибки отсутствует")
+                error_desc = token_data.get(
+                    "error_description",
+                    "Описание ошибки отсутствует",
+                )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Ошибка при авторизации через Yandex: {error_desc}",

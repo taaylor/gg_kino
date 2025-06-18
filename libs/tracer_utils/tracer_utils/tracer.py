@@ -23,7 +23,8 @@ def init_tracer(app, service_name: str):
 
     # Создаем OTLP экспортер
     otlp_exporter = OTLPSpanExporter(
-        endpoint=tracer_conf.jaeger.jaeger_url, insecure=True  # Порт для OTLP gRPC
+        endpoint=tracer_conf.jaeger.jaeger_url,
+        insecure=True,  # Порт для OTLP gRPC
     )
 
     # Добавляем оба процессора
@@ -35,7 +36,6 @@ def init_tracer(app, service_name: str):
 
 # Кастомный SpanProcessor для добавления request_id к спанам
 class RequestIdSpanProcessor(SpanProcessor):
-
     def on_start(self, span, parent_context: Context = None):
         if parent_context is None:
             parent_context = context_api.get_current()

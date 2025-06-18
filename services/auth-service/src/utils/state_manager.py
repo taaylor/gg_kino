@@ -24,7 +24,8 @@ class SignedStateManager:
         """Валидирует state."""
         if state.count("-") != 1:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверный формат state"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный формат state",
             )
         nonce, signature = state.split("-", 1)
         signer = hmac.new(self.secret_key, digestmod=hashlib.sha256)
@@ -32,7 +33,8 @@ class SignedStateManager:
         expected_signature = signer.hexdigest()
         if not hmac.compare_digest(signature, expected_signature):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверная подпись state"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверная подпись state",
             )
         return True
 

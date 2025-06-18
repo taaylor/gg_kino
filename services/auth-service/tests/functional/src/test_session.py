@@ -16,13 +16,14 @@ from tests.functional.testdata.schemes import LoginRequest, RegisterRequest
 
 @pytest.mark.asyncio
 class TestSessions:
-
     async def _create_default_role(self, pg_session: AsyncSession):
         role = DictRoles(role="UNSUB_USER", descriptions="...")
         pg_session.add(role)
         await pg_session.flush()
         permission = RolesPermissions(
-            role_code=role.role, permission=PermissionEnum.FREE_FILMS.value, descriptions="..."
+            role_code=role.role,
+            permission=PermissionEnum.FREE_FILMS.value,
+            descriptions="...",
         )
         pg_session.add(permission)
         await pg_session.commit()
@@ -41,7 +42,8 @@ class TestSessions:
         )
 
         body, status = await make_post_request(
-            uri="/sessions/register", data=user_register.model_dump(mode="json")
+            uri="/sessions/register",
+            data=user_register.model_dump(mode="json"),
         )
 
         assert status == HTTPStatus.OK
@@ -54,7 +56,8 @@ class TestSessions:
         request_login = LoginRequest(email="user@mail.ru", password="12345678")
 
         body, status = await make_post_request(
-            uri="/sessions/login", data=request_login.model_dump(mode="json")
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
         )
 
         assert status == HTTPStatus.OK
@@ -95,17 +98,26 @@ class TestSessions:
         tokens_auth = await create_user(superuser_flag=False)
         request_login = LoginRequest(email="user@mail.ru", password="12345678")
         # cсоздаем множество сессий пользователя
-        await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
-        await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
+        await make_post_request(
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
+        )
+        await make_post_request(
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
+        )
         current, _ = await make_post_request(
-            uri="/sessions/login", data=request_login.model_dump(mode="json")
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
         )
         headers = {"Authorization": f'Bearer {current.get("access_token")}'}
 
         _, status = await make_post_request(uri="/sessions/logout-all", headers=headers)
 
         assert status == HTTPStatus.OK
-        stmt = select(func.count()).where(UserSession.user_id == tokens_auth.get("user_id"))
+        stmt = select(func.count()).where(
+            UserSession.user_id == tokens_auth.get("user_id"),
+        )
         session_count = (await pg_session.execute(stmt)).scalar()
         assert session_count == 1
 
@@ -118,11 +130,20 @@ class TestSessions:
         tokens_auth = await create_user(superuser_flag=False)
         request_login = LoginRequest(email="user@mail.ru", password="12345678")
         # cсоздаем множество сессий пользователя
-        await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
-        await make_post_request(uri="/sessions/login", data=request_login.model_dump(mode="json"))
+        await make_post_request(
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
+        )
+        await make_post_request(
+            uri="/sessions/login",
+            data=request_login.model_dump(mode="json"),
+        )
         headers = {"Authorization": f'Bearer {tokens_auth.get("access_token")}'}
 
-        body, status = await make_get_request(uri="/sessions/entry-history", headers=headers)
+        body, status = await make_get_request(
+            uri="/sessions/entry-history",
+            headers=headers,
+        )
 
         assert status == HTTPStatus.OK
         assert len(body.get("history")) == 2

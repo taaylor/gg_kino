@@ -57,9 +57,9 @@ test-auth-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
 
 test-metrics-service-ci:
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
-	docker-compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
@@ -68,3 +68,8 @@ content-service-up:
 # Остановка контейнеров и удаление волуме
 content-service-down-v:
 	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)
+
+
+# Локальный запуск сервисов при разработке
+up-local-content-api:
+	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload

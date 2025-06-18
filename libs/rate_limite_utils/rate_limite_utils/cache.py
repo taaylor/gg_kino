@@ -24,7 +24,7 @@ cache_conn = Redis(
 )
 
 
-def redis_handler_exeptions[**P, R](
+def redis_handler_exceptions[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
@@ -35,13 +35,14 @@ def redis_handler_exeptions[**P, R](
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
         except RedisError as error:
-            logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
 
     return wrapper
 
 
 class Cache(ABC):
-
     @abstractmethod
     def pipeline(self):
         pass
@@ -63,19 +64,16 @@ class RedisCache(Cache):
         """Создаёт Redis pipeline для атомарных операций."""
         return self.redis.pipeline()
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def pipeline_execute(self, pipe: Pipeline) -> list | None:
         """Выполняет команды в pipeline и возвращает результаты."""
         result = await pipe.execute()
         logger.info(
-            (
-                "[RedisCache] Pipeline выполнился с "
-                f"{len(result) if result else None} результатом."
-            )
+            "[RedisCache] Pipeline выполнился с " f"{len(result) if result else None} результатом.",
         )
         return result
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
         """Извлекает список из Redis по ключу в диапазоне."""
         return await self.redis.lrange(key, start, end)

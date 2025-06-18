@@ -15,7 +15,11 @@ class LoggerSettings(BaseSettings):
 
     logging: dict[str, Any] = {}
 
-    model_config = SettingsConfigDict(env_prefix="LOG_", env_file=ENV_FILE, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="LOG_",
+        env_file=ENV_FILE,
+        extra="ignore",
+    )
 
     @model_validator(mode="after")
     def init_logging(self) -> "LoggerSettings":

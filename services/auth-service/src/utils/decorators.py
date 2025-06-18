@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 
 
-def redis_handler_exeptions[**P, R](
+def redis_handler_exceptions[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
@@ -31,7 +31,9 @@ def redis_handler_exeptions[**P, R](
         except TimeoutError as error:
             logger.error(f"[RedisCache] Timeout соединения: {error}")
         except RedisError as error:
-            logger.error(f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}")
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
 
     return wrapper
 
@@ -44,12 +46,14 @@ def backoff(
     jitter: bool = True,
     max_attempts: int = 5,
 ):
-
     def func_wrapper[**P, R](
         func: Callable[P, Coroutine[Any, Any, R]],
     ) -> Callable[P, Coroutine[Any, Any, R]]:
         @wraps(func)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> AsyncGenerator[AsyncSession, None]:
+        async def wrapper(
+            *args: P.args,
+            **kwargs: P.kwargs,
+        ) -> AsyncGenerator[AsyncSession, None]:
             time = start_sleep_time
             attempt = 1
             last_exception = None
@@ -64,11 +68,15 @@ def backoff(
                 except exception as error:
                     await session.rollback()
                     last_exception = error
-                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                    logger.error(
+                        f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
+                    )
                 except Exception as error:
                     await session.rollback()
                     last_exception = error
-                    logger.error(f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}")
+                    logger.error(
+                        f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
+                    )
 
                 if attempt == max_attempts:
                     logger.error("Backoff исчерпал попытки, прокидываю исключение...")
@@ -112,7 +120,10 @@ def sqlalchemy_handler_400_exeptions[**P, R](
         except NoResultFound as e:
             await session.rollback()
             logger.warning(f"Запись не найдена: {e}")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Запись не найдена")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Запись не найдена",
+            )
 
         except MultipleResultsFound as e:
             await session.rollback()
@@ -129,7 +140,8 @@ def sqlalchemy_universal_decorator[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @backoff(
-        exception=(DBAPIError, DisconnectionError, InterfaceError, OperationalError), max_attempts=5
+        exception=(DBAPIError, DisconnectionError, InterfaceError, OperationalError),
+        max_attempts=5,
     )
     @sqlalchemy_handler_400_exeptions
     @wraps(func)

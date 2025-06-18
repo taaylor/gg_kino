@@ -39,10 +39,17 @@ class AuthAPICong(BaseModel):
 
 
 class TestConfig(BaseSettings):
-    redis: RedisConf = Field(default_factory=RedisConf, description="Конфигурация Redis")
-    postgres: Postgres = Field(default_factory=Postgres, description="Конфигурация Postgres")
+    redis: RedisConf = Field(
+        default_factory=RedisConf,
+        description="Конфигурация Redis",
+    )
+    postgres: Postgres = Field(
+        default_factory=Postgres,
+        description="Конфигурация Postgres",
+    )
     authapi: AuthAPICong = Field(
-        default_factory=AuthAPICong, description="Конфигурация сервиса Auth"
+        default_factory=AuthAPICong,
+        description="Конфигурация сервиса Auth",
     )
 
     model_config = SettingsConfigDict(
