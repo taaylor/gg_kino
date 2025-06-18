@@ -18,7 +18,7 @@ class ContentAPI(BaseModel):
 
 class AuthAPI(BaseModel):
     host: str = "localhost"
-    port: int = 8001
+    port: int = 8000
 
     register_path: str = "/auth/api/v1/sessions/register"
     login_path: str = "/auth/api/v1/sessions/login"

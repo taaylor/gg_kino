@@ -22,6 +22,6 @@ RUN poetry install --only main
 
 COPY services/content-actions-service/tests ./tests
 
-RUN chmod +x tests/functional/start-test.sh
+RUN chmod +x tests/functional/start-tests.sh
 
-CMD ["./tests/functional/start-test.sh"]
+CMD ["./tests/functional/start-tests.sh"]

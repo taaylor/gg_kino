@@ -154,6 +154,7 @@ services:
       context: .
       dockerfile: ./services/content-actions-service/src/Dockerfile
     profiles: ["content-api-test"]
+    container_name: content-actions-api-container
     env_file:
       - ./.env
     ports:
@@ -168,6 +169,24 @@ services:
       auth-api:
         condition: service_started
     restart: always
+
+  tests-content-api:
+    build:
+      context: .
+      dockerfile: ./services/content-actions-service/tests/functional/Dockerfile
+    profiles: ["content-api-test"]
+    container_name: tests-content-api-container
+    cpus: "0.5"
+    mem_limit: 256M
+    env_file:
+      - ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
 
   tests-async-api:
     build:

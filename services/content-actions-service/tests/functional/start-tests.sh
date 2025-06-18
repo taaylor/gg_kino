@@ -2,13 +2,13 @@
 
 echo "Запуск тестов..."
 sleep 5
-pytest ./tests/functional/src -v -rP
+pytest -v -rP
 TEST_EXIT_CODE=$?
 
 if [ $TEST_EXIT_CODE -ne 0 ]; then
     echo "Обнаружены провалившиеся тесты. Повторный запуск через 5 сек..."
     sleep 5
-    pytest ./tests/functional/src -v --last-failed -rP
+    pytest -v --last-failed -rP
     FINAL_EXIT_CODE=$?
     if [ $FINAL_EXIT_CODE -ne 0 ]; then
         echo "Повторный запуск тестов провалился!"

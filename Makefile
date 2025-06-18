@@ -48,6 +48,7 @@ test-metrics-service:
 # Запуск тестов content-api-test
 test-content-service:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test up --build -d
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
 
@@ -65,6 +66,11 @@ test-metrics-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
+
+test-content-service-ci:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
