@@ -2,8 +2,8 @@ from logging import config
 from typing import Any
 
 import dotenv
-from pydantic import ConfigDict, model_validator
-from pydantic_settings import BaseSettings
+from pydantic import model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = dotenv.find_dotenv()
 
@@ -16,7 +16,7 @@ class LoggerSettings(BaseSettings):
     ]
     logger_config: dict[str, Any] = {}
 
-    model_config = ConfigDict(env_prefix="LOG_", env_file=ENV_FILE, extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="LOG_", env_file=ENV_FILE, extra="ignore")
 
     @model_validator(mode="after")
     def init_loggind(self) -> "LoggerSettings":
@@ -63,6 +63,22 @@ class LoggerSettings(BaseSettings):
                 "uvicorn.access": {
                     "handlers": ["access"],
                     "level": self.log_level,
+                    "propagate": False,
+                },
+                # Настройки для PyMongo логгеров
+                "pymongo": {
+                    "level": "ERROR",
+                    "handlers": self.log_default_handlers,
+                    "propagate": False,
+                },
+                "pymongo.connection": {
+                    "level": "ERROR",
+                    "handlers": self.log_default_handlers,
+                    "propagate": False,
+                },
+                "pymongo.command": {
+                    "level": "ERROR",
+                    "handlers": self.log_default_handlers,
                     "propagate": False,
                 },
             },

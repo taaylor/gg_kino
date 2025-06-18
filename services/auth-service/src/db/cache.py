@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from redis.asyncio import Redis
-from utils.decorators import redis_handler_exeptions
+from utils.decorators import redis_handler_exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -36,17 +36,17 @@ class RedisCache(Cache):
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def get(self, key: str) -> str | None:
         """Получает кеш из redis"""
         return await self.redis.get(key)
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def destroy(self, key: str) -> None:
         await self.redis.delete(key)
         logger.info(f"[RedisCache] Объект удален по ключу '{key}'")
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def set(self, key: str, value: str, expire: int | None):
         """Сохраняет кеш в redis"""
         await self.destroy(key)  # инвалидация кеша

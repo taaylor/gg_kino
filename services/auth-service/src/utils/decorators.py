@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 
 
-def redis_handler_exeptions[**P, R](
+def redis_handler_exceptions[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:

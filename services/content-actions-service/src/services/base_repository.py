@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any
 
 from beanie import Document
@@ -7,21 +8,25 @@ from beanie import Document
 logger = logging.getLogger(__name__)
 
 
-class BaseRepository:
-    """Базовый репозиторий для CRUD работы с Beanie Document-моделями."""
+class BaseRepository[T: Document]:  # noqa: WPS214
+    """
+    Базовый репозиторий для работы с Beanie документами.
+
+    Generic класс, где T - тип документа, с которым будет работать класс, наследник beanie.Document.
+    """
 
     __slots__ = ("collection",)
 
-    def __init__(self, model: type[Document]):
+    def __init__(self, model: type[T]):
         """
         Инициализирует репозиторий с указанной Beanie-моделью.
 
         :param model: Класс модели, наследник beanie.Document.
         """
 
-        self.collection = model
+        self.collection: type[T] = model
 
-    async def get_document(self, *filters: Any) -> Document | None:
+    async def get_document(self, *filters: Any) -> T | None:
         """
         Находит один документ по переданным фильтрам.
 
@@ -31,7 +36,7 @@ class BaseRepository:
         logger.debug(f"Поиск документа по фильтрам {filters}.")
         return await self.collection.find_one(*filters)
 
-    async def insert_document(self, **insert_data: Any) -> Document:
+    async def insert_document(self, **insert_data: Any) -> T:
         """
         Создаёт новый документ.
 
@@ -43,7 +48,7 @@ class BaseRepository:
         logger.debug(f"Создание документа с данными {insert_data}.")
         return await self.collection(**insert_data).insert()
 
-    async def update_document(self, document: Document, **update_data: Any) -> Document:
+    async def update_document(self, document: T, **update_data: Any) -> T:
         """
         Обновляет поля в переданном экземпляре документа и сохраняет.
 
@@ -57,10 +62,10 @@ class BaseRepository:
         for field in update_field:
             if hasattr(document, field):
                 setattr(document, field, update_data[field])
-        document.updated_at = datetime.now(timezone.utc)
+        document.updated_at = datetime.now(timezone.utc)  # type: ignore
         return await document.save()
 
-    async def upsert(self, *filters: Any, **insert_data: Any) -> Document:
+    async def upsert(self, *filters: Any, **insert_data: Any) -> T:
         """
         Если документ по фильтрам найден — обновляет его полями из insert_data,
         иначе — создаёт новый документ с переданными данными.
@@ -99,3 +104,43 @@ class BaseRepository:
             return True
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
+
+    async def find(self, *filters: Any, page_size: int = 50, skip_page: int = 0):
+        """
+        Получает список объектов с пагинацией и сортировкой на уровне БД.
+
+        :param filters: Условия поиска,
+                        например Model.user_id == user_id, Model.film_id == film_id.
+        :param skip_page: Количество страниц, которые необходимо пропустить при выдаче.
+        :param page_size: Размер одной страницы
+        :return: Список документов с учётом пагинации, отсортированных по дате создания (по убыванию).
+        """  # noqa: E501
+
+        logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
+
+        skip_count = skip_page * page_size
+        # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
+        result = (
+            await self.collection.find(*filters)  # noqa: WPS221
+            .sort("-created_at")
+            .skip(skip_count)
+            .limit(page_size)
+            .to_list()
+        )
+        logger.debug(
+            f"Получен список документов {self.collection.__name__} в количестве: {len(result)}"
+        )
+
+        return result
+
+    async def get_count(self, *filters: Any) -> int:
+        """Возвращает количество документов в коллекции по заданным фильтрам"""
+        return await self.collection.find(*filters).count()
+
+
+@lru_cache()
+def get_rating_repository(model: type[Document]) -> BaseRepository:
+    return BaseRepository(model)
+
+
+# noqa: WPS214

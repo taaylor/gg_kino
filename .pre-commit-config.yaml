@@ -80,7 +80,7 @@ repos:
           - setuptools<81.0.0
         args:
           - "--max-line-length=100"
-          - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237"
+          - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237,WPS202,WPS115"
           - "--select=WPS"
         files: ^services/content-actions-service
 
@@ -94,4 +94,6 @@ repos:
           "--no-implicit-reexport",
         ]
         files: ^services/content-actions-service/src/.*\.py$
-        additional_dependencies: [mypy==1.13.0]
+        additional_dependencies:
+          - mypy==1.13.0
+          - types-ujson

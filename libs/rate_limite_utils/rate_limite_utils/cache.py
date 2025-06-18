@@ -24,7 +24,7 @@ cache_conn = Redis(
 )
 
 
-def redis_handler_exeptions[**P, R](
+def redis_handler_exceptions[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
@@ -64,7 +64,7 @@ class RedisCache(Cache):
         """Создаёт Redis pipeline для атомарных операций."""
         return self.redis.pipeline()
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def pipeline_execute(self, pipe: Pipeline) -> list | None:
         """Выполняет команды в pipeline и возвращает результаты."""
         result = await pipe.execute()
@@ -73,7 +73,7 @@ class RedisCache(Cache):
         )
         return result
 
-    @redis_handler_exeptions
+    @redis_handler_exceptions
     async def lrange(self, key: str, start: int, end: int) -> list[bytes]:
         """Извлекает список из Redis по ключу в диапазоне."""
         return await self.redis.lrange(key, start, end)
