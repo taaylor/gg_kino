@@ -168,6 +168,12 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "http://0.0.0.0:8000/content-api/openapi.json"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     restart: always
 
   tests-content-api:
@@ -186,6 +192,8 @@ services:
       redis:
         condition: service_healthy
       auth-api:
+        condition: service_healthy
+      content-actions-api:
         condition: service_healthy
 
   tests-async-api:
