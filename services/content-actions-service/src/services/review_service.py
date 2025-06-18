@@ -156,13 +156,12 @@ class ReviewService:
             Review.id == review_id, Review.user_id == user_id
         )
 
-        if review:
-            logger.debug(f"Пользователь {user_id=} удалил рецензию {review_id=}")
-            return None
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Рецензия {review_id=} не найдена"
+            )
 
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Рецензия {review_id=} не найдена"
-        )
+        logger.debug(f"Пользователь {user_id=} удалил рецензию {review_id=}")
 
 
 @lru_cache()

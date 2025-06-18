@@ -4,6 +4,7 @@ from api.v1.review import review_api
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+from rate_limite_utils import RequestContextMiddleware
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
 
@@ -19,6 +20,9 @@ app = FastAPI(
 
 # Подключение обработчиков
 setup_exception_handlers(app)
+
+# Добавляю миддлвар для доступа Request во всех эндпоинтах
+app.add_middleware(RequestContextMiddleware)
 
 SERVICE_PATH = "/content-api/api/v1/"
 app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}films-rating", tags=["Рейтинг"])

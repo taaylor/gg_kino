@@ -75,3 +75,7 @@ content-api:
 
 content-stop:
 	docker compose --profile production down content-actions-api
+
+# Локальный запуск сервисов при разработке
+up-local-content-api:
+	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload

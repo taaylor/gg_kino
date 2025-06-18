@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 import pymongo
 from beanie import Document
 from core.config import app_config
+from models.logic_models import FilmBookmarkState
 from pydantic import Field
 
 
@@ -80,5 +81,21 @@ class ReviewLike(MixinTimestamp):
 
 
 class Bookmark(BaseDocument):
+    comment: str | None = Field(
+        None,
+        min_length=5,
+        max_length=500,  # noqa: WPS432
+    )
+    status: FilmBookmarkState = Field(FilmBookmarkState.NOTWATCHED)
+
     class Settings:
         name = app_config.mongodb.bookmark_coll
+        indexes = [
+            pymongo.IndexModel(
+                [
+                    ("film_id", pymongo.ASCENDING),
+                    ("user_id", pymongo.ASCENDING),
+                ],
+                unique=True,
+            ),
+        ]

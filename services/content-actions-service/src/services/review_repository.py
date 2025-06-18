@@ -16,7 +16,7 @@ class ReviewRepository(BaseRepository):
 
     __slots__ = ("collection",)
 
-    async def get_reviews(
+    async def get_reviews(  # noqa: WPS210
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewSchema]:
 
@@ -29,7 +29,8 @@ class ReviewRepository(BaseRepository):
         )
         logger.debug(f"Получено {len(reviews)} рецензий по фильму {film_id=} из хранилища")
 
-        ids_users = ids_reviews = []
+        ids_users = []
+        ids_reviews = []
 
         for review in reviews:
             ids_users.append(review.user_id)
@@ -56,7 +57,8 @@ class ReviewRepository(BaseRepository):
 
         results = []
         for review in reviews:
-            cnt_like = cnt_dislike = 0
+            cnt_like = 0
+            cnt_dislike = 0
             for lik in storage_like.get(review.id, []):
 
                 if lik is True:

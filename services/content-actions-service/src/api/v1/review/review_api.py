@@ -8,6 +8,7 @@ from api.v1.review.schemas import (
     ReviewModifiedResponse,
 )
 from auth_utils import LibAuthJWT, auth_dep
+from core.config import app_config
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 from models.enum_models import SortedEnum
 from services.review_service import ReviewService, get_review_service
@@ -26,10 +27,15 @@ router = APIRouter()
 async def receive_reviews_film(
     film_id: Annotated[UUID, Path(description="Идентификатор фильма")],
     review_service: Annotated[ReviewService, Depends(get_review_service)],
-    page_number: Annotated[int, Query(description="Номер страницы рецензий", ge=1)] = 1,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы рецензий")] = 1,
     page_size: Annotated[
-        int, Query(description="Количестов рецензий на странице", ge=1, le=25)
-    ] = 25,
+        int,
+        Query(
+            ge=app_config.min_page_size,
+            le=app_config.max_page_size,
+            description="Количестов рецензий на странице",
+        ),
+    ] = app_config.max_page_size,
     sorted: Annotated[
         SortedEnum, Query(description="Сортировка по параметру")
     ] = SortedEnum.CREATED_DESC,

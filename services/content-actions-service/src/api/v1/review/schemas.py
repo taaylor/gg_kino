@@ -26,8 +26,8 @@ class ReviewDetailResponse(MixinReviewUUID, MixinTextField, MixinTimestamp):
 
 
 class ReviewModifiedResponse(MixinReviewUUID, MixinTextField, MixinTimestamp):
-    pass
+    """Модель ответа добавления/изменения рецензии"""
 
 
 class ReviewModifiedRequest(MixinTextField):
-    pass
+    """Модель запроса добавления/изменения рецензии"""
