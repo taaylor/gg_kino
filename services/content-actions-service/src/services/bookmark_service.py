@@ -13,7 +13,7 @@ from api.v1.bookmark.schemas import (
 from core.config import app_config
 from db.cache import Cache, get_cache
 from fastapi import Depends, HTTPException, status
-from models.logic_models import FilmBookmarkState
+from models.enum_models import FilmBookmarkState
 from services.bookmark_repository import BookmarkRepository, get_bookmark_repository
 from utils.film_id_validator import FilmIdValidator, get_film_id_validator
 

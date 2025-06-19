@@ -1,23 +1,14 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 import pymongo
 from beanie import Document
 from core.config import app_config
-from models.logic_models import FilmBookmarkState
+from models.enum_models import FilmBookmarkState
 from pydantic import Field
 
 
-class BaseDocument(Document):
-    id: UUID = Field(default_factory=uuid4)  # type: ignore
-    user_id: UUID = Field(
-        ...,
-        description="user_id документа",
-    )  # Indexed ниже через Settings.indexes
-    film_id: UUID = Field(
-        ...,
-        description="film_id документа, (ключ шардирования)",
-    )  # Indexed ниже через Settings.indexes
+class TimestampMixin(Document):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Документ создан",
@@ -25,6 +16,18 @@ class BaseDocument(Document):
     updated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Документ обновлён",
+    )
+
+
+class BaseDocument(TimestampMixin):
+    id: UUID = Field(default_factory=uuid4)
+    user_id: UUID = Field(
+        ...,
+        description="user_id документа",
+    )
+    film_id: UUID = Field(
+        ...,
+        description="film_id документа, (ключ шардирования)",
     )
 
 
@@ -45,8 +48,44 @@ class Rating(BaseDocument):
 
 
 class Review(BaseDocument):
+    text: str = Field(
+        ..., description="Текст рецензии", min_length=5, max_length=500  # noqa: WPS432
+    )
+
     class Settings:
         name = app_config.mongodb.reviews_coll
+        use_revision = False
+        indexes = [
+            pymongo.IndexModel([("film_id", pymongo.ASCENDING)]),
+            pymongo.IndexModel([("created_at", pymongo.ASCENDING)]),
+        ]
+
+
+class ReviewLike(TimestampMixin):
+    is_like: bool = Field(
+        ..., description="Оценка рецензии пользователем True = лайк, False = дизлайк"
+    )
+    review_id: UUID = Field(..., description="Идентификатор рецензии")
+    user_id: UUID = Field(..., description="Идентификатор пользователя")
+
+    class Settings:
+        # позволяет включить кеширование заросов на уровне lru_cache
+        # первый запрос будет в бд, второй будет браться из кеша
+        use_cache = True
+        cache_expiration_time = timedelta(seconds=10)
+        cache_capacity = 5
+
+        name = app_config.mongodb.reviews_like_coll
+        use_revision = False
+        indexes = [
+            pymongo.IndexModel(
+                [
+                    ("review_id", pymongo.ASCENDING),
+                    ("user_id", pymongo.ASCENDING),
+                ],
+                unique=True,
+            ),
+        ]
 
 
 class Bookmark(BaseDocument):

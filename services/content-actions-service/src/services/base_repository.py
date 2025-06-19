@@ -3,7 +3,11 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any
 
+import backoff
 from beanie import Document
+from core.config import app_config
+from models.enum_models import SortedEnum
+from utils.decorators import mongodb_handler_exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +30,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
 
         self.collection: type[T] = model
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def get_document(self, *filters: Any) -> T | None:
         """
         Находит один документ по переданным фильтрам.
@@ -36,6 +42,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Поиск документа по фильтрам {filters}.")
         return await self.collection.find_one(*filters)
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def insert_document(self, **insert_data: Any) -> T:
         """
         Создаёт новый документ.
@@ -48,6 +56,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Создание документа с данными {insert_data}.")
         return await self.collection(**insert_data).insert()
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def update_document(self, document: T, **update_data: Any) -> T:
         """
         Обновляет поля в переданном экземпляре документа и сохраняет.
@@ -65,6 +75,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         document.updated_at = datetime.now(timezone.utc)  # type: ignore
         return await document.save()
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def upsert(self, *filters: Any, **insert_data: Any) -> T:
         """
         Если документ по фильтрам найден — обновляет его полями из insert_data,
@@ -88,6 +100,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         else:
             return await self.insert_document(**insert_data)
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def delete_document(self, *filters: Any) -> bool:
         """
         Удаляет один документ по переданным фильтрам.
@@ -105,7 +119,15 @@ class BaseRepository[T: Document]:  # noqa: WPS214
         logger.debug(f"Документ по фильтрам {filters} не найден и не может быть удалён.")
         return False
 
-    async def find(self, *filters: Any, page_size: int = 50, skip_page: int = 0):
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
+    async def find(
+        self,
+        *filters: Any,
+        page_size: int = 50,
+        skip_page: int = 0,
+        sorted: SortedEnum = SortedEnum.CREATED_DESC,
+    ) -> list[Document]:
         """
         Получает список объектов с пагинацией и сортировкой на уровне БД.
 
@@ -113,16 +135,15 @@ class BaseRepository[T: Document]:  # noqa: WPS214
                         например Model.user_id == user_id, Model.film_id == film_id.
         :param skip_page: Количество страниц, которые необходимо пропустить при выдаче.
         :param page_size: Размер одной страницы
-        :return: Список документов с учётом пагинации, отсортированных по дате создания (по убыванию).
-        """  # noqa: E501
-
+        :return: Список документов с учётом пагинации и сортировкой.
+        """
         logger.debug(f"Поиск записей в БД по критериям: {filters}, {skip_page=}, {page_size=} ")
 
         skip_count = skip_page * page_size
-        # Сортировка, пагинация применяются на уровне БД - загружаются только нужные документы
+
         result = (
             await self.collection.find(*filters)  # noqa: WPS221
-            .sort("-created_at")
+            .sort(sorted.value)
             .skip(skip_count)
             .limit(page_size)
             .to_list()
@@ -133,6 +154,8 @@ class BaseRepository[T: Document]:  # noqa: WPS214
 
         return result
 
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
+    @mongodb_handler_exceptions
     async def get_count(self, *filters: Any) -> int:
         """Возвращает количество документов в коллекции по заданным фильтрам"""
         return await self.collection.find(*filters).count()
@@ -141,6 +164,3 @@ class BaseRepository[T: Document]:  # noqa: WPS214
 @lru_cache()
 def get_rating_repository(model: type[Document]) -> BaseRepository:
     return BaseRepository(model)
-
-
-# noqa: WPS214
