@@ -62,18 +62,6 @@ fi
 echo "Отображаем статус кластера:"
 mongosh --host mongodb_router --eval "sh.status()"
 
-<<<<<<< HEAD
-mongosh mongodb_router:27017/${DB_NAME} --eval "sh.enableSharding('${DB_NAME}')
-    && db.createCollection('${LIKE_COLL}')
-    && db.createCollection('${BOOKMARK_COLL}')
-    && db.createCollection('${REVIEWS_COLL}')
-    && db.createCollection('${REVIEWS_LIKE_COLL}')
-    && sh.shardCollection('${DB_NAME}.${REVIEWS_LIKE_COLL}', {'review_id': 'hashed'})
-    && sh.shardCollection('${DB_NAME}.${LIKE_COLL}', {'film_id': 'hashed'})
-    && sh.shardCollection('${DB_NAME}.${BOOKMARK_COLL}', {'film_id': 'hashed'})
-    && sh.shardCollection('${DB_NAME}.${REVIEWS_COLL}', {'film_id': 'hashed'})
-    "
-=======
 echo "Настраиваем шардинг для базы данных и коллекций..."
 mongosh mongodb_router:27017/${DB_NAME} --eval "
     // Проверяем, включен ли уже шардинг для базы данных
@@ -118,6 +106,5 @@ mongosh mongodb_router:27017/${DB_NAME} --eval "
         }
     });
 "
->>>>>>> a3fdb52a2b86ae226dfe175bd7ee68f54cf83152
 
 echo "Кластер успешно сконфигурирован"

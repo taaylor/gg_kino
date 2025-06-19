@@ -167,8 +167,8 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-      # async-api:
-      #   condition: service_started
+      async-api:
+        condition: service_started
     restart: always
 
   admin-panel:
