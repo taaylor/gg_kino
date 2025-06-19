@@ -1,16 +1,9 @@
-from enum import StrEnum
 from http import HTTPStatus
 from typing import Any
 
 import pytest
 from tests.functional.core.settings import test_conf
-
-
-class Methods(StrEnum):
-    GET = "GET"
-    PUT = "PUT"
-    POST = "POST"
-    DELETE = "DELETE"
+from tests.functional.testdata.model_enum import Methods
 
 
 @pytest.mark.asyncio
