@@ -41,7 +41,7 @@ router = APIRouter()
     summary="Регистрация нового пользователя",
     description="Создает нового пользователя в системе на основе предоставленных данных.",
 )
-@rate_limit()
+@rate_limit(limit=200)
 async def register(
     request: Request,
     request_body: Annotated[RegisterRequest, Body()],
@@ -57,7 +57,7 @@ async def register(
     summary="Авторизация пользователя",
     description="Авторизует пользователя в системе и возвращает access и refresh токены.",
 )
-@rate_limit()
+@rate_limit(limit=200)
 async def login(
     request: Request,
     request_body: Annotated[LoginRequest, Body()],
