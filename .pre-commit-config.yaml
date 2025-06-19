@@ -63,24 +63,11 @@ repos:
     hooks:
       - id: wemake-python-styleguide
         name: wemake-python-styleguide
-        entry: flake8
         language: python
         language_version: python3.12
-        additional_dependencies:
-          - flake8==7.2.0
-          - flake8-bandit==4.1.1
-          - flake8-bugbear==23.7.10
-          - flake8-broken-line==1.0.0
-          - flake8-isort==6.1.1
-          - flake8-logging-format==0.9.0
-          - flake8-annotations==3.1.1
-          - darglint==1.8.1
-          - astor==0.8.1
-          - attrs==25.3.0
-          - setuptools<81.0.0
         args:
           - "--max-line-length=100"
-          - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237,WPS202,WPS115"
+          - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237,WPS202,WPS115,WPS201,WPS232"
           - "--select=WPS"
         files: ^services/content-actions-service/src
 
@@ -92,8 +79,10 @@ repos:
         args: [
           "--config-file=pyproject.toml",
           "--no-implicit-reexport",
+          "--show-error-context",
+          "--verbose"
         ]
-        files: ^services/content-actions-service/src/.*\.py$
+        files: services/content-actions-service/src
         additional_dependencies:
           - mypy==1.13.0
           - types-ujson

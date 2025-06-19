@@ -73,12 +73,17 @@ test-content-service-ci:
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
-	docker compose -f $(COMPOSE_FILE) --profile production up -d --build content-actions-api mongodb_router $(srv)
+	docker compose -f $(COMPOSE_FILE) --profile production up -d --build content-actions-api mongodb_router auth-api postgres pg-import jaeger $(srv)
 
 # Остановка контейнеров и удаление волуме
 content-service-down-v:
-	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)
+	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init auth-api postgres pg-import jaeger $(srv)
 
+content-api:
+	docker compose --profile production up --build -d content-actions-api
+
+content-stop:
+	docker compose --profile production down content-actions-api
 
 # Локальный запуск сервисов при разработке
 up-local-content-api:
