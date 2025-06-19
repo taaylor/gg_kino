@@ -205,7 +205,17 @@ class ReviewService:  # noqa: WPS214
     async def rate_review(
         self, review_id: UUID, user_id: UUID, mark: LikeEnum
     ) -> ReviewRateResponse:
+        """
+        Устанавливает или обновляет оценку (лайк или дизлайк) пользователя для рецензии.
 
+        Args:
+            review_id (UUID): Идентификатор рецензии, которую оценивает пользователь.
+            user_id (UUID): Идентификатор пользователя, ставящего оценку.
+            mark (LikeEnum): Тип оценки (LIKE или DISLIKE).
+
+        Returns:
+            ReviewRateResponse: Объект ответа, содержащий информацию об установленной оценке.
+        """
         is_like = True
         if mark == LikeEnum.DISLIKE:
             is_like = False
@@ -222,8 +232,16 @@ class ReviewService:  # noqa: WPS214
         return ReviewRateResponse(**review_like_model.model_dump())
 
     async def delete_rate_review(self, user_id: UUID, review_id: UUID) -> None:
+        """
+        Удаляет оценку (лайк/дизлайк) пользователя для указанной рецензии.
 
-        logger.debug("мы туту ========")
+        Args:
+            user_id (UUID): Идентификатор пользователя, чья оценка удаляется.
+            review_id (UUID): Идентификатор рецензии, с которой удаляется оценка.
+
+        Returns:
+            None: Метод не возвращает значений.
+        """
 
         del_status = await self.review_like_repository.delete_document(
             ReviewLike.user_id == user_id,

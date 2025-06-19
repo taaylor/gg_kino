@@ -34,7 +34,6 @@ class ReviewModifiedRequest(MixinTextField):
 
 
 class ReviewRateResponse(MixinTimestamp):
-    # id: UUID = Field(exclude=True, description="Идентификатор лайка")
     review_id: UUID = Field(..., description="Идентификатор рецензии")
     user_id: UUID = Field(..., description="Автор лайка")
     is_like: bool = Field(..., description="Тип оценки рецензии (True = лайк, False = Дизлайк)")

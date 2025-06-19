@@ -26,6 +26,30 @@ class ReviewRepository(BaseRepository[Review]):
     async def get_reviews(
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewScoreSchema]:
+        """
+        Получает список рецензий для фильма с пагинацией и сортировкой.
+
+        Метод выполняет агрегацию в MongoDB для получения рецензий по указанному фильму,
+        подсчитывает лайки и дизлайки, а также присоединяет оценки пользователей к рецензиям.
+
+        Args:
+            film_id (UUID): Уникальный идентификатор фильма, для которого запрашиваются рецензии.
+            page_number (int): Номер страницы для пагинации (начиная с 1).
+            page_size (int): Количество рецензий на одной странице.
+            sorted (SortedEnum): Порядок сортировки рецензий (например, по дате или рейтингу).
+
+        Returns:
+            list[ReviewScoreSchema]: Список рецензий с данными о лайках,
+            дизлайках и оценках пользователей.
+
+        Notes:
+            - Декоратор `@backoff.on_exception` автоматически повторяет попытки выполнения запроса
+            при возникновении ошибок подключения или сетевых таймаутов.
+            - Метод использует агрегационный пайплайн MongoDB для фильтрации рецензий по `film_id`,
+            применения пагинации и сортировки.
+            - Оценки пользователей запрашиваются отдельно через модель `Rating`
+            и добавляются к результату.
+        """
 
         # получаем pipline для агрегации и выполняем запрос
         pipline = self._get_pipline(
@@ -56,6 +80,30 @@ class ReviewRepository(BaseRepository[Review]):
     async def get_user_reviews(
         self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewScoreSchema]:
+        """
+        Получает рецензии пользователя с пагинацией и сортировкой.
+
+        Метод выполняет агрегацию в MongoDB (подсчет лайков и дизлайков) для получения
+        рецензий по указанному пользователю, а также запрашивает оценки пользователя для фильмов,
+        упомянутых в рецензиях. Данные преобразуются в объекты ReviewScoreSchema.
+
+        Args:
+            user_id (UUID): Идентификатор пользователя.
+            page_number (int): Номер страницы для пагинации.
+            page_size (int): Количество элементов на странице.
+            sorted (SortedEnum): Порядок сортировки.
+
+        Returns:
+            list[ReviewScoreSchema]: Список рецензий с оценками.
+
+        Notes:
+            - Декоратор `@backoff.on_exception` автоматически повторяет попытки выполнения запроса
+            при возникновении ошибок подключения или сетевых таймаутов.
+            - Метод использует агрегационный пайплайн MongoDB для фильтрации рецензий по `user_id`,
+            применения пагинации и сортировки.
+            - Оценка пользователя запрашиваются отдельно через модель `Rating`
+            и добавляются к результату.
+        """
 
         # получаем pipline для агрегации и выполняем запрос
         pipline = self._get_pipline(
@@ -79,12 +127,17 @@ class ReviewRepository(BaseRepository[Review]):
 
         storage_rating_film = {score.film_id: score.score for score in user_scores}
 
-        return self._conversion_to_reviews(reviews, storage_rating_film, "user_id")
+        return self._conversion_to_reviews(reviews, storage_rating_film, "film_id")
 
     @staticmethod
     def _conversion_to_reviews(  # noqa: WPS602
         reviews: list[ReviewRepositorySchema], storage_rating: dict[str, int], key_rating: str
     ) -> list[ReviewScoreSchema]:
+        """
+        Статический метод который приводит к общему виду полученные из репозитория рецензии,
+        оценки(у) пользователя(ей).
+        Возвращает список преобразованых рецензий.
+        """
 
         results = []
         for review in reviews:
@@ -108,7 +161,9 @@ class ReviewRepository(BaseRepository[Review]):
     def _get_pipline(  # noqa: WPS602
         match: dict[str, Any], skip: int, page_size: int, sorted: SortedEnum
     ) -> list[dict[str, Any]]:
-        """Возвращает pipline для получения рецензий по условию и агрегации по лайкам"""
+        """
+        Возвращает pipline для получения рецензий по условию и агрегации по лайкам
+        """
         sort = {"created_at": -1}
         if sorted == SortedEnum.CREATED_ASC:
             sort = {"created_at": 1}
