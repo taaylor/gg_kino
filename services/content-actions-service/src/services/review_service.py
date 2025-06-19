@@ -171,6 +171,19 @@ class ReviewService:  # noqa: WPS214
     async def get_user_reviews(
         self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewDetailResponse]:
+        """
+        Получает список рецензий пользователя с пагинацией и сортировкой, используя кэширование.
+
+        Args:
+            user_id (UUID): Идентификатор пользователя, чьи рецензии запрашиваются.
+            page_number (int): Номер страницы для пагинации (начинается с 1).
+            page_size (int): Количество рецензий на одной странице.
+            sorted (SortedEnum): Порядок сортировки рецензий (например, по дате или рейтингу).
+
+        Returns:
+            list[ReviewDetailResponse]: Список рецензий пользователя, преобразованных в объекты
+            `ReviewDetailResponse`. Если рецензии отсутствуют, возвращается пустой список.
+        """
 
         cache_key = self.CACHE_KEYS["user_review"].format(
             user_id=user_id, sorted=sorted.value, page_number=page_number, page_size=page_size
