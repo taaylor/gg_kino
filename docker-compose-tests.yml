@@ -2,6 +2,8 @@ include:
   - ./infra/kafka/docker-compose.kafka.yaml
   - ./infra/clickhouse/docker-compose.clickhouse.yml
   - ./services/metric-service/docker-compose.metric-services.yml
+  - ./infra/mongodb/docker-compose.mongodb.yml
+
 
 services:
   elasticsearch:
@@ -33,7 +35,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-container
-    profiles: ["async-api-test", "auth-api-test"]
+    profiles: ["async-api-test", "auth-api-test", "content-api-test"]
     env_file:
       - ./.env
     environment:
@@ -87,7 +89,7 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: postgres-container
-    profiles: ["async-api-test", "auth-api-test"]
+    profiles: ["async-api-test", "auth-api-test", "content-api-test"]
     env_file:
       - ./.env
     environment:
@@ -105,18 +107,35 @@ services:
       retries: 5
     restart: always
 
+  pg-import:
+    build:
+      context: .
+      dockerfile: ./backup/postgres_dump-auth/Dockerfile
+    profiles: ["content-api-test"]
+    environment:
+      - PG_HOST=${POSTGRES_HOST}
+      - PG_PORT=${POSTGRES_PORT}
+      - PG_USER=${POSTGRES_USER}
+      - PG_DB=${POSTGRES_DB}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+
   auth-api:
     build:
       context: .
       dockerfile: ./services/auth-service/src/Dockerfile
-    profiles: ["auth-api-test", "async-api-test"]
+    profiles: ["auth-api-test", "async-api-test", "content-api-test"]
     container_name: auth-api-container
     cpus: "0.5"
     mem_limit: 256M
     env_file:
       - ./.env
     ports:
-      - "8001:8001"
+      - "8001:8000"
     depends_on:
       redis:
         condition: service_healthy
@@ -129,6 +148,55 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
+
+  content-actions-api:
+    build:
+      context: .
+      dockerfile: ./services/content-actions-service/src/Dockerfile
+    profiles: ["content-api-test"]
+    container_name: content-actions-api-container
+    env_file:
+      - ./.env
+    ports:
+      - "8099:8000"
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      mongodb_init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "http://0.0.0.0:8000/content-api/openapi.json"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: always
+
+  tests-content-api:
+    build:
+      context: .
+      dockerfile: ./services/content-actions-service/tests/functional/Dockerfile
+    profiles: ["content-api-test"]
+    container_name: tests-content-api-container
+    cpus: "0.5"
+    mem_limit: 256M
+    env_file:
+      - ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      content-actions-api:
+        condition: service_healthy
 
   tests-async-api:
     build:
