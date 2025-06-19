@@ -63,7 +63,7 @@ class ReviewService:  # noqa: WPS214
             Если рецензии не найдены, возвращается пустой список.
         """
 
-        cache_key = self.CACHE_KEYS["list_review"].format(
+        cache_key = self.__class__.CACHE_KEYS["list_review"].format(
             film_id=film_id, sorted=sorted.value, page_number=page_number, page_size=page_size
         )
 
@@ -72,24 +72,24 @@ class ReviewService:  # noqa: WPS214
         if reviews_cache:
             return [ReviewDetailResponse.model_validate(obj) for obj in json.loads(reviews_cache)]
 
-        logger.debug(
+        logger.info(
             f"В кеше данных не оказалось делаю запрос по \
             рецензиям с параметрами: {film_id=}, {page_number=}, {page_size}, {sorted.value=}"
         )
 
-        await self._valid_film(film_id)
+        await self.film_validator.validate_film_id(film_id)
 
         reviews = await self.review_repository.get_reviews(film_id, page_number, page_size, sorted)
-        logger.debug(f"Получено {len(reviews)} рецензий к фильму {film_id=}")
+        logger.info(f"Получено {len(reviews)} рецензий к фильму {film_id=}")
 
         if reviews:
-            convert_data = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
+            convert_review = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
             await self.cache.background_set(
                 key=cache_key,
-                value=json.dumps([obj.model_dump(mode="json") for obj in convert_data]),
+                value=json.dumps([obj.model_dump(mode="json") for obj in convert_review]),
                 expire=app_config.cache_expire_in_seconds,
             )
-            return convert_data
+            return convert_review
         return []
 
     async def append_review(
@@ -106,13 +106,14 @@ class ReviewService:  # noqa: WPS214
         Returns:
             ReviewModifiedResponse: Объект созданной рецензии со всеми полями.
         """
-        await self._valid_film(film_id)
+        await self.film_validator.validate_film_id(film_id)
+
         review = await self.review_repository.insert_document(
             user_id=user_id, film_id=film_id, text=review_text.text
         )
-        logger.debug(f"Пользователь {user_id=} добавляет рецензию {review.id=} к фильму {film_id=}")
+        logger.info(f"Пользователь {user_id=} добавляет рецензию {review.id=} к фильму {film_id=}")
         await self.cache.background_destroy_all_by_pattern(f"review:user:{user_id}:*")
-        await self.cache.background_destroy_all_by_pattern(f"review:film:{film_id}:-created_at:*")
+        await self.cache.background_destroy_all_by_pattern(f"review:film:{film_id}:*")
         return ReviewModifiedResponse(**review.model_dump())
 
     async def update_review(
@@ -135,13 +136,15 @@ class ReviewService:  # noqa: WPS214
         )
 
         if not review:
-            logger.debug(f"Рецензия {review_id=} от пользователя {user_id=} не найдена")
+            logger.info(f"Рецензия {review_id=} от пользователя {user_id=} не найдена")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Документ не найден"
             )
 
         update_review = await self.review_repository.update_document(review, text=review_text.text)
-        logger.debug(f"Пользователь {user_id=} обновил рецензию {review_id=}")
+        logger.info(f"Пользователь {user_id=} обновил рецензию {review_id=}")
+        await self.cache.background_destroy_all_by_pattern(f"review:user:{user_id}:*")
+        await self.cache.background_destroy_all_by_pattern(f"review:film:{update_review.film_id}:*")
 
         return ReviewModifiedResponse(**update_review.model_dump())
 
@@ -166,13 +169,26 @@ class ReviewService:  # noqa: WPS214
                 status_code=status.HTTP_400_BAD_REQUEST, detail=f"Рецензия {review_id=} не найдена"
             )
         await self.cache.background_destroy_all_by_pattern(f"review:user:{user_id}:*")
-        logger.debug(f"Пользователь {user_id=} удалил рецензию {review_id=}")
+        logger.info(f"Пользователь {user_id=} удалил рецензию {review_id=}")
 
     async def get_user_reviews(
         self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewDetailResponse]:
+        """
+        Получает список рецензий пользователя с пагинацией и сортировкой, используя кэширование.
 
-        cache_key = self.CACHE_KEYS["user_review"].format(
+        Args:
+            user_id (UUID): Идентификатор пользователя, чьи рецензии запрашиваются.
+            page_number (int): Номер страницы для пагинации (начинается с 1).
+            page_size (int): Количество рецензий на одной странице.
+            sorted (SortedEnum): Порядок сортировки рецензий (например, по дате или рейтингу).
+
+        Returns:
+            list[ReviewDetailResponse]: Список рецензий пользователя, преобразованных в объекты
+            `ReviewDetailResponse`. Если рецензии отсутствуют, возвращается пустой список.
+        """
+
+        cache_key = self.__class__.CACHE_KEYS["user_review"].format(
             user_id=user_id, sorted=sorted.value, page_number=page_number, page_size=page_size
         )
 
@@ -181,7 +197,7 @@ class ReviewService:  # noqa: WPS214
         if reviews_cache:
             return [ReviewDetailResponse.model_validate(obj) for obj in json.loads(reviews_cache)]
 
-        logger.debug(
+        logger.info(
             f"В кеше данных не оказалось делаю запрос по \
             рецензиям с параметрами: {user_id=}, {page_number=}, {page_size}, {sorted.value=}"
         )
@@ -190,22 +206,32 @@ class ReviewService:  # noqa: WPS214
             user_id, page_number, page_size, sorted
         )
 
-        logger.debug(f"Получено {len(reviews)} рецензий пользователя {user_id=}")
+        logger.info(f"Получено {len(reviews)} рецензий пользователя {user_id=}")
 
         if reviews:
-            convert_data = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
+            convert_review = [ReviewDetailResponse(**obj.model_dump()) for obj in reviews]
             await self.cache.background_set(
                 key=cache_key,
-                value=json.dumps([obj.model_dump(mode="json") for obj in convert_data]),
+                value=json.dumps([obj.model_dump(mode="json") for obj in convert_review]),
                 expire=app_config.cache_expire_in_seconds,
             )
-            return convert_data
+            return convert_review
         return []
 
     async def rate_review(
         self, review_id: UUID, user_id: UUID, mark: LikeEnum
     ) -> ReviewRateResponse:
+        """
+        Устанавливает или обновляет оценку (лайк или дизлайк) пользователя для рецензии.
 
+        Args:
+            review_id (UUID): Идентификатор рецензии, которую оценивает пользователь.
+            user_id (UUID): Идентификатор пользователя, ставящего оценку.
+            mark (LikeEnum): Тип оценки (LIKE или DISLIKE).
+
+        Returns:
+            ReviewRateResponse: Объект ответа, содержащий информацию об установленной оценке.
+        """
         is_like = True
         if mark == LikeEnum.DISLIKE:
             is_like = False
@@ -217,13 +243,20 @@ class ReviewService:  # noqa: WPS214
             review_id=review_id,
             is_like=is_like,
         )
-        logger.info(review_like_model)
-        logger.debug(f"Пользователь {user_id=} оценил рецензию {review_id=} тип оценки {is_like=}")
+        logger.info(f"Пользователь {user_id=} оценил рецензию {review_id=} тип оценки {is_like=}")
         return ReviewRateResponse(**review_like_model.model_dump())
 
     async def delete_rate_review(self, user_id: UUID, review_id: UUID) -> None:
+        """
+        Удаляет оценку (лайк/дизлайк) пользователя для указанной рецензии.
 
-        logger.debug("мы туту ========")
+        Args:
+            user_id (UUID): Идентификатор пользователя, чья оценка удаляется.
+            review_id (UUID): Идентификатор рецензии, с которой удаляется оценка.
+
+        Returns:
+            None: Метод не возвращает значений.
+        """
 
         del_status = await self.review_like_repository.delete_document(
             ReviewLike.user_id == user_id,
@@ -235,13 +268,7 @@ class ReviewService:  # noqa: WPS214
                 f"Оценка рецензии {review_id=} от пользователя {user_id=} не удалена или не найдена"
             )
 
-        logger.debug(f"Оценка пользователя {user_id=} удалена с рецензии {review_id}")
-
-    async def _valid_film(self, film_id: UUID) -> None:
-        if not self.film_validator.validate_film_id(film_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Фильма с {film_id=} не существует"
-            )
+        logger.info(f"Оценка пользователя {user_id=} удалена с рецензии {review_id}")
 
 
 @lru_cache()

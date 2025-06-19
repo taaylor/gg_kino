@@ -1,11 +1,13 @@
 import logging
 import os
+from typing import Type
 from uuid import UUID
 
 import dotenv
 from core.logger_config import LoggerSettings
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pymongo.errors import ConnectionFailure, NetworkTimeout, PyMongoError
 
 ENV_FILE = dotenv.find_dotenv()
 
@@ -38,6 +40,9 @@ class MongoDB(BaseModel):
     bookmark_coll: str = "bookmarkCollection"
     reviews_coll: str = "reviewsCollection"
     reviews_like_coll: str = "reviewslikeCollection"
+    base_connect_exp: tuple[Type[Exception]] = Field(
+        (ConnectionFailure, NetworkTimeout, PyMongoError), exclude=True
+    )
 
     @property
     def ASYNC_DATABASE_URL(self):

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 
 class SortedEnum(Enum):
@@ -9,3 +9,10 @@ class SortedEnum(Enum):
 class LikeEnum(Enum):
     LIKE = "like"
     DISLIKE = "dislike"
+
+
+class FilmBookmarkState(StrEnum):
+    """Состояния закладки фильма."""
+
+    NOTWATCHED = "NOTWATCHED"
+    WATCHED = "WATCHED"

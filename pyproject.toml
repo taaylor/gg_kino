@@ -26,6 +26,10 @@ dotenv = "^0.9.9"
 ujson = "^5.10.0"
 types-ujson = "^5.10.0.20250326"
 mypy = "1.13.0"
+pytest = "^8.4.1"
+sqlalchemy = "^2.0.41"
+pytest-asyncio = ">=0.26.0,<1.0.0"
+passlib = "^1.7.4"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=4.1.0,<5.0.0"

@@ -170,6 +170,8 @@ services:
       - REVIEWS_COLL=${MONGODB_REVIEWS_COLL}
       - REVIEWS_LIKE_COLL=${MONGODB_REVIEWS_LIKE_COLL}
     depends_on:
+      mongodb_router:
+        condition: service_started
       mongodb_sh1_rep1:
         condition: service_healthy
       mongodb_sh1_rep2:

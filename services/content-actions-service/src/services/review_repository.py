@@ -9,7 +9,6 @@ from core.config import app_config
 from models.enum_models import SortedEnum
 from models.logic_models import ReviewRepositorySchema, ReviewScoreSchema
 from models.models import Rating, Review, ReviewLike
-from pymongo.errors import ConnectionFailure, NetworkTimeout, PyMongoError
 from services.base_repository import BaseRepository
 from utils.decorators import mongodb_handler_exceptions
 
@@ -21,21 +20,45 @@ class ReviewRepository(BaseRepository[Review]):
 
     __slots__ = ("collection",)
 
-    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
     @mongodb_handler_exceptions
     async def get_reviews(
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewScoreSchema]:
+        """
+        Получает список рецензий для фильма с пагинацией и сортировкой.
 
-        # получаем pipline для агрегации и выполняем запрос
-        pipline = self._get_pipline(
+        Метод выполняет агрегацию в MongoDB для получения рецензий по указанному фильму,
+        подсчитывает лайки и дизлайки, а также присоединяет оценки пользователей к рецензиям.
+
+        Args:
+            film_id (UUID): Уникальный идентификатор фильма, для которого запрашиваются рецензии.
+            page_number (int): Номер страницы для пагинации (начиная с 1).
+            page_size (int): Количество рецензий на одной странице.
+            sorted (SortedEnum): Порядок сортировки рецензий (например, по дате или рейтингу).
+
+        Returns:
+            list[ReviewScoreSchema]: Список рецензий с данными о лайках,
+            дизлайках и оценках пользователей.
+
+        Notes:
+            - Декоратор `@backoff.on_exception` автоматически повторяет попытки выполнения запроса
+            при возникновении ошибок подключения или сетевых таймаутов.
+            - Метод использует агрегационный пайплайн MongoDB для фильтрации рецензий по `film_id`,
+            применения пагинации и сортировки.
+            - Оценки пользователей запрашиваются отдельно через модель `Rating`
+            и добавляются к результату.
+        """
+
+        # получаем pipeline для агрегации и выполняем запрос
+        pipeline = self._get_pipline(
             {"film_id": film_id},
             skip=(page_number - 1) * page_size,
             page_size=page_size,
             sorted=sorted,
         )
         reviews = await self.collection.aggregate(
-            pipline, projection_model=ReviewRepositorySchema
+            pipeline, projection_model=ReviewRepositorySchema
         ).to_list()
         logger.debug(f"Получено {len(reviews)} рецензий по фильму {film_id=} из хранилища")
 
@@ -51,21 +74,45 @@ class ReviewRepository(BaseRepository[Review]):
         storage_users_score = {score.user_id: score.score for score in users_score}
         return self._conversion_to_reviews(reviews, storage_users_score, "user_id")
 
-    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
     @mongodb_handler_exceptions
     async def get_user_reviews(
         self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
     ) -> list[ReviewScoreSchema]:
+        """
+        Получает рецензии пользователя с пагинацией и сортировкой.
 
-        # получаем pipline для агрегации и выполняем запрос
-        pipline = self._get_pipline(
+        Метод выполняет агрегацию в MongoDB (подсчет лайков и дизлайков) для получения
+        рецензий по указанному пользователю, а также запрашивает оценки пользователя для фильмов,
+        упомянутых в рецензиях. Данные преобразуются в объекты ReviewScoreSchema.
+
+        Args:
+            user_id (UUID): Идентификатор пользователя.
+            page_number (int): Номер страницы для пагинации.
+            page_size (int): Количество элементов на странице.
+            sorted (SortedEnum): Порядок сортировки.
+
+        Returns:
+            list[ReviewScoreSchema]: Список рецензий с оценками.
+
+        Notes:
+            - Декоратор `@backoff.on_exception` автоматически повторяет попытки выполнения запроса
+            при возникновении ошибок подключения или сетевых таймаутов.
+            - Метод использует агрегационный пайплайн MongoDB для фильтрации рецензий по `user_id`,
+            применения пагинации и сортировки.
+            - Оценка пользователя запрашиваются отдельно через модель `Rating`
+            и добавляются к результату.
+        """
+
+        # получаем pipeline для агрегации и выполняем запрос
+        pipeline = self._get_pipline(
             {"user_id": user_id},
             skip=(page_number - 1) * page_size,
             page_size=page_size,
             sorted=sorted,
         )
         reviews = await self.collection.aggregate(
-            pipline, projection_model=ReviewRepositorySchema
+            pipeline, projection_model=ReviewRepositorySchema
         ).to_list()
         logger.debug(f"Получено {len(reviews)} рецензий пользователя {user_id=} из хранилища")
 
@@ -79,12 +126,17 @@ class ReviewRepository(BaseRepository[Review]):
 
         storage_rating_film = {score.film_id: score.score for score in user_scores}
 
-        return self._conversion_to_reviews(reviews, storage_rating_film, "user_id")
+        return self._conversion_to_reviews(reviews, storage_rating_film, "film_id")
 
     @staticmethod
     def _conversion_to_reviews(  # noqa: WPS602
         reviews: list[ReviewRepositorySchema], storage_rating: dict[str, int], key_rating: str
     ) -> list[ReviewScoreSchema]:
+        """
+        Статический метод который приводит к общему виду полученные из репозитория рецензии,
+        оценки(у) пользователя(ей).
+        Возвращает список преобразованых рецензий.
+        """
 
         results = []
         for review in reviews:
@@ -96,8 +148,8 @@ class ReviewRepository(BaseRepository[Review]):
                     user_id=review.user_id,
                     text=review.text,
                     user_score=score,
-                    count_like=review.count_like,
-                    count_dislike=review.count_dislike,
+                    like_count=review.like_count,
+                    dislike_count=review.dislike_count,
                     created_at=review.created_at,
                     updated_at=review.updated_at,
                 )
@@ -108,7 +160,9 @@ class ReviewRepository(BaseRepository[Review]):
     def _get_pipline(  # noqa: WPS602
         match: dict[str, Any], skip: int, page_size: int, sorted: SortedEnum
     ) -> list[dict[str, Any]]:
-        """Возвращает pipline для получения рецензий по условию и агрегации по лайкам"""
+        """
+        Возвращает pipeline для получения рецензий по условию и агрегации по лайкам
+        """
         sort = {"created_at": -1}
         if sorted == SortedEnum.CREATED_ASC:
             sort = {"created_at": 1}
@@ -125,7 +179,7 @@ class ReviewRepository(BaseRepository[Review]):
             },
             {
                 "$addFields": {
-                    "count_like": {
+                    "like_count": {
                         "$size": {
                             "$filter": {
                                 "input": "$likes_data",
@@ -134,7 +188,7 @@ class ReviewRepository(BaseRepository[Review]):
                             }
                         }
                     },
-                    "count_dislike": {
+                    "dislike_count": {
                         "$size": {
                             "$filter": {
                                 "input": "$likes_data",

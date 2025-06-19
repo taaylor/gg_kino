@@ -45,6 +45,11 @@ test-metrics-service:
 	docker compose -f $(COMPOSE_FILE_TEST) logs -f tests-metrics-api
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
 
+# Запуск тестов content-api-test
+test-content-service:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test up --build -d
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
 test-async-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
@@ -53,13 +58,18 @@ test-async-api-ci:
 
 test-auth-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test run --rm tests-auth-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test run --rm tests-auth-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile auth-api-test down -v
 
 test-metrics-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
-	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-test.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test run --rm tests-metrics-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile metrics-api-test down -v
+
+test-content-service-ci:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
@@ -67,8 +77,7 @@ content-service-up:
 
 # Остановка контейнеров и удаление волуме
 content-service-down-v:
-	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init $(srv)
-
+	docker compose -f $(COMPOSE_FILE) --profile production down -v content-actions-api redis mongodb_sh1_rep1 mongodb_sh1_rep2 mongodb_sh1_rep3 mongodb_sh2_rep1 mongodb_sh2_rep2 mongodb_sh2_rep3 mongodb_cfg1 mongodb_cfg2 mongodb_cfg3 mongodb_router mongodb_init auth-api postgres pg-import jaeger $(srv)
 
 content-api:
 	docker compose --profile production up --build -d content-actions-api
