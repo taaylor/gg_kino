@@ -3,8 +3,6 @@ services:
     image: postgres:17-alpine
     container_name: glitchtip-postgres
     restart: unless-stopped
-    env_file:
-      - ../../.env
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust         # Разрешает подключение к базе данных без пароля, если соединение удовлетворяет остальным условиям (IP-адрес, база данных, имя пользователя и т. д.)
       - POSTGRES_DB=${GLITCHTTIP_POSTGRES_DB}
@@ -47,7 +45,7 @@ services:
       - ENABLE_OPEN_USER_REGISTRATION=True         # Включает или отключает возможность открытой регистрации пользователей в GlitchTip.
       - GLITCHTIP_MAX_EVENT_LIFE_DAYS=90           # Задает максимальный срок хранения событий (ошибок и других логов) в базе данных GlitchTip.
     ports:
-      - 8005:8000
+      - "0.0.0.0:8005:8000"
 
   glitchtip-worker:
     image: glitchtip/glitchtip:v5.0

@@ -43,8 +43,9 @@ app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Р
 app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])
 
 
+# ------------------------------------------
 @app.get("/content-api/api/v1/error")
 async def trigger_error():
-    # Намеренно вызываем ошибку для тестирования glitchtip
+    """Тестовый эндпоинт для glitchtip"""
     division_by_zero = 1 / 0  # noqa: F841, WPS344
     return {"message": "Деление на 0"}
