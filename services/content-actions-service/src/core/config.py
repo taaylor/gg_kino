@@ -45,6 +45,7 @@ class MongoDB(BaseModel):
 
 
 class AppConfig(BaseSettings):
+    glitchtip_url: str
     project_name: str = "content-actions-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # noqa: WPS221
     docs_url: str = "/content-api/openapi"

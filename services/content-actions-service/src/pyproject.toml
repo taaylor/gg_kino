@@ -16,7 +16,8 @@ dependencies = [
     "beanie>=1.29.0,<2.0.0",
     "ujson (>=5.10.0,<6.0.0)",
     "types-ujson (>=5.10.0.20250326,<6.0.0.0)",
-    "backoff (==2.2.1)"
+    "backoff (==2.2.1)",
+    "sentry-sdk (==2.30.0)"
 ]
 
 [project.optional-dependencies]
