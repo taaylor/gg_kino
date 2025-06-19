@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from models.logic_models import FilmBookmarkState
+from models.enum_models import FilmBookmarkState
 from pydantic import BaseModel, Field
 
 

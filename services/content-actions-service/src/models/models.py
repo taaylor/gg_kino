@@ -4,11 +4,11 @@ from uuid import UUID, uuid4
 import pymongo
 from beanie import Document
 from core.config import app_config
-from models.logic_models import FilmBookmarkState
+from models.enum_models import FilmBookmarkState
 from pydantic import Field
 
 
-class MixinTimestamp(Document):
+class TimestampMixin(Document):
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Документ создан",
@@ -19,7 +19,7 @@ class MixinTimestamp(Document):
     )
 
 
-class BaseDocument(MixinTimestamp):
+class BaseDocument(TimestampMixin):
     id: UUID = Field(default_factory=uuid4)
     user_id: UUID = Field(
         ...,
@@ -48,7 +48,9 @@ class Rating(BaseDocument):
 
 
 class Review(BaseDocument):
-    text: str = Field(..., description="Текст рецензии")
+    text: str = Field(
+        ..., description="Текст рецензии", min_length=5, max_length=500  # noqa: WPS432
+    )
 
     class Settings:
         name = app_config.mongodb.reviews_coll
@@ -59,7 +61,7 @@ class Review(BaseDocument):
         ]
 
 
-class ReviewLike(MixinTimestamp):
+class ReviewLike(TimestampMixin):
     is_like: bool = Field(
         ..., description="Оценка рецензии пользователем True = лайк, False = дизлайк"
     )

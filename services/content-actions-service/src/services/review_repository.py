@@ -9,7 +9,6 @@ from core.config import app_config
 from models.enum_models import SortedEnum
 from models.logic_models import ReviewRepositorySchema, ReviewScoreSchema
 from models.models import Rating, Review, ReviewLike
-from pymongo.errors import ConnectionFailure, NetworkTimeout, PyMongoError
 from services.base_repository import BaseRepository
 from utils.decorators import mongodb_handler_exceptions
 
@@ -21,7 +20,7 @@ class ReviewRepository(BaseRepository[Review]):
 
     __slots__ = ("collection",)
 
-    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
     @mongodb_handler_exceptions
     async def get_reviews(
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
@@ -51,15 +50,15 @@ class ReviewRepository(BaseRepository[Review]):
             и добавляются к результату.
         """
 
-        # получаем pipline для агрегации и выполняем запрос
-        pipline = self._get_pipline(
+        # получаем pipeline для агрегации и выполняем запрос
+        pipeline = self._get_pipline(
             {"film_id": film_id},
             skip=(page_number - 1) * page_size,
             page_size=page_size,
             sorted=sorted,
         )
         reviews = await self.collection.aggregate(
-            pipline, projection_model=ReviewRepositorySchema
+            pipeline, projection_model=ReviewRepositorySchema
         ).to_list()
         logger.debug(f"Получено {len(reviews)} рецензий по фильму {film_id=} из хранилища")
 
@@ -75,7 +74,7 @@ class ReviewRepository(BaseRepository[Review]):
         storage_users_score = {score.user_id: score.score for score in users_score}
         return self._conversion_to_reviews(reviews, storage_users_score, "user_id")
 
-    @backoff.on_exception(backoff.expo, (ConnectionFailure, NetworkTimeout, PyMongoError))
+    @backoff.on_exception(backoff.expo, app_config.mongodb.base_connect_exp)
     @mongodb_handler_exceptions
     async def get_user_reviews(
         self, user_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
@@ -105,15 +104,15 @@ class ReviewRepository(BaseRepository[Review]):
             и добавляются к результату.
         """
 
-        # получаем pipline для агрегации и выполняем запрос
-        pipline = self._get_pipline(
+        # получаем pipeline для агрегации и выполняем запрос
+        pipeline = self._get_pipline(
             {"user_id": user_id},
             skip=(page_number - 1) * page_size,
             page_size=page_size,
             sorted=sorted,
         )
         reviews = await self.collection.aggregate(
-            pipline, projection_model=ReviewRepositorySchema
+            pipeline, projection_model=ReviewRepositorySchema
         ).to_list()
         logger.debug(f"Получено {len(reviews)} рецензий пользователя {user_id=} из хранилища")
 
@@ -149,8 +148,8 @@ class ReviewRepository(BaseRepository[Review]):
                     user_id=review.user_id,
                     text=review.text,
                     user_score=score,
-                    count_like=review.count_like,
-                    count_dislike=review.count_dislike,
+                    like_count=review.like_count,
+                    dislike_count=review.dislike_count,
                     created_at=review.created_at,
                     updated_at=review.updated_at,
                 )
@@ -162,7 +161,7 @@ class ReviewRepository(BaseRepository[Review]):
         match: dict[str, Any], skip: int, page_size: int, sorted: SortedEnum
     ) -> list[dict[str, Any]]:
         """
-        Возвращает pipline для получения рецензий по условию и агрегации по лайкам
+        Возвращает pipeline для получения рецензий по условию и агрегации по лайкам
         """
         sort = {"created_at": -1}
         if sorted == SortedEnum.CREATED_ASC:
@@ -180,7 +179,7 @@ class ReviewRepository(BaseRepository[Review]):
             },
             {
                 "$addFields": {
-                    "count_like": {
+                    "like_count": {
                         "$size": {
                             "$filter": {
                                 "input": "$likes_data",
@@ -189,7 +188,7 @@ class ReviewRepository(BaseRepository[Review]):
                             }
                         }
                     },
-                    "count_dislike": {
+                    "dislike_count": {
                         "$size": {
                             "$filter": {
                                 "input": "$likes_data",

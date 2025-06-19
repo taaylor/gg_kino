@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get(
-    path="/{film_id}/film",
+    path="/film/{film_id}",
     summary="Отдает рецензии по id фильма в зависимости от фильтрации",
     description="Отдает рецензии по id фильма в зависимости от фильтрации",
     response_model=list[ReviewDetailResponse],
@@ -47,15 +47,23 @@ async def receive_reviews_film(
 
 
 @router.get(
-    path="/{user_id}/user",
+    path="/user",
     summary="Отдает все рецензии оставленные пользователем",
     description="Отдает все рецензии оставленные пользователем",
     response_model=list[ReviewDetailResponse],
 )
 @rate_limit()
-async def receive_reviews_user_films(
-    user_id: Annotated[UUID, Path(description="Идентификатор пользователя")],
+async def receive_reviews_user_films(  # noqa: WPS211
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     review_service: Annotated[ReviewService, Depends(get_review_service)],
+    user_id: Annotated[
+        UUID | None,
+        Query(
+            description="Опциональный идентификатор пользователя, \
+            позволяет получить рецензии конкретного пользователя. "
+            "По умолчанию идентификатор берется из JWT"
+        ),
+    ] = None,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы рецензий")] = 1,
     page_size: Annotated[
         int,
@@ -69,6 +77,10 @@ async def receive_reviews_user_films(
         SortedEnum, Query(description="Сортировка по параметру")
     ] = SortedEnum.CREATED_DESC,
 ) -> list[ReviewDetailResponse]:
+    await authorize.jwt_required()
+    if not user_id:
+        decrypted_token = await authorize.get_raw_jwt()
+        user_id = UUID(decrypted_token.get("user_id"))
     return await review_service.get_user_reviews(user_id, page_number, page_size, sorted)
 
 
@@ -91,7 +103,7 @@ async def append_review_film(
     return await review_service.append_review(film_id, user_id, review_text)
 
 
-@router.patch(
+@router.put(
     path="/{review_id}",
     summary="Позволяет обновить текст рецензии",
     description="Позволяет обновить текст рецензии пользователя к фильму",
@@ -125,11 +137,11 @@ async def delete_review_film(
     await authorize.jwt_required()
     decrypted_token = await authorize.get_raw_jwt()
     user_id = UUID(decrypted_token.get("user_id"))
-    return await review_service.delete_review(review_id, user_id)
+    await review_service.delete_review(review_id, user_id)
 
 
 @router.post(
-    path="/{review_id}/rate",
+    path="/rate/{review_id}",
     summary="Позволяет пользователю оценить рецензию",
     description="Позволяет пользователю оценить и изменить оценку рецензию (лайк/дизлайк)",
     response_model=ReviewRateResponse,
@@ -148,7 +160,7 @@ async def rate_review_film(
 
 
 @router.delete(
-    path="/{review_id}/rate",
+    path="/rate/{review_id}",
     summary="Позволяет пользователю удалить оценку с рецензии",
     description="Позволяет пользователю удалить оценку с рецензии по id",
     status_code=status.HTTP_204_NO_CONTENT,

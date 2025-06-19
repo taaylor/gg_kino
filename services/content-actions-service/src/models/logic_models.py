@@ -1,15 +1,7 @@
 from datetime import datetime
-from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
-
-
-class FilmBookmarkState(StrEnum):
-    """Состояния закладки фильма."""
-
-    NOTWATCHED = "NOTWATCHED"
-    WATCHED = "WATCHED"
 
 
 class AvgRatingSchema(BaseModel):
@@ -27,8 +19,8 @@ class ReviewRepositorySchema(BaseModel):
     film_id: UUID
     user_id: UUID
     text: str
-    count_like: int
-    count_dislike: int
+    like_count: int
+    dislike_count: int
     created_at: datetime
     updated_at: datetime
 
