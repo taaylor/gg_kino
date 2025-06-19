@@ -74,7 +74,7 @@ class TestGenres:
         ids=[
             "Test valid genre",
             "Test valid genre",
-            "Test unknow genre",
+            "Test unknown genre",
             "Test invalid uuid genre",
         ],
     )

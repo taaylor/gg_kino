@@ -113,7 +113,7 @@ async def fetch_watchlist(
     return result
 
 
-@router.post(
+@router.put(
     path="/watch-status/{film_id}",
     response_model=ChangeBookmarkResponse,
     summary="Изменяет статус просмотра фильма и/или комментарий",

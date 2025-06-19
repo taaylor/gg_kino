@@ -14,7 +14,7 @@ class FilmBookmarkState(StrEnum):
 class AvgRatingSchema(BaseModel):
     film_id: UUID = Field(..., alias="_id")
     rating: float = Field(..., alias="avg_rating")
-    count_votes: int
+    votes_count: int
 
     @field_validator("rating")
     def round_rating(cls, rating: float) -> float:

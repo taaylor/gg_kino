@@ -2,7 +2,6 @@ from json.decoder import JSONDecodeError
 
 import aiohttp
 import pytest_asyncio
-from tests.functional.core.settings import test_conf
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -57,12 +56,11 @@ async def make_post_request(aiohttp_session: aiohttp.ClientSession):
 @pytest_asyncio.fixture(name="make_put_request")
 async def make_put_request(aiohttp_session: aiohttp.ClientSession):
     async def inner(
-        uri: str,
+        url: str,
         data: dict | None = None,
         params: dict | None = None,
         headers: dict | None = None,
     ) -> tuple[list | dict, int]:
-        url = test_conf.authapi.host_service + uri
         async with aiohttp_session.put(
             url,
             json=data,
@@ -82,11 +80,10 @@ async def make_put_request(aiohttp_session: aiohttp.ClientSession):
 @pytest_asyncio.fixture(name="make_delete_request")
 async def make_delete_request(aiohttp_session: aiohttp.ClientSession):
     async def inner(
-        uri: str,
+        url: str,
         params: dict | None = None,
         headers: dict | None = None,
     ) -> tuple[list | dict, int]:
-        url = test_conf.authapi.host_service + uri
         async with aiohttp_session.delete(
             url,
             params=params,
