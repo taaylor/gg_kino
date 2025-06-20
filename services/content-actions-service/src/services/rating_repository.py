@@ -22,7 +22,7 @@ class RatingRepository(BaseRepository):
         :return: Список объектов `AvgRatingSchema`, каждый содержащий:
                  - film_id (_id из агрегации)
                  - avg_rating (среднее арифметическое)
-                 - count_votes (число голосов);
+                 - votes_count (число голосов);
                  или None, если по фильтрам нет документов.
         """
         document = (
@@ -33,7 +33,7 @@ class RatingRepository(BaseRepository):
                         "$group": {
                             "_id": "$film_id",
                             "avg_rating": {"$avg": "$score"},
-                            "count_votes": {"$sum": 1},
+                            "votes_count": {"$sum": 1},
                         }
                     }
                 ],

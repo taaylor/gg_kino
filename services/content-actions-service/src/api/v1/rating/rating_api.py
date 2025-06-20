@@ -59,7 +59,7 @@ async def set_score(
 
 
 @router.get(
-    path="/{film_id}/rating",
+    path="/{film_id}",
     summary="Показывает рейтинг фильма (сумма оценок / кол-во оценок)",
     description="Рейтинг фильма",
     response_description="Статус операции показа рейтинга фильма с сообщением о результате",
@@ -83,8 +83,7 @@ async def get_avg_rating(
 
 
 @router.post(
-    path="/test-directory/{film_id}/{user_id}",
-    status_code=status.HTTP_200_OK,
+    path="/test-directory/{film_id}/{user_id}", status_code=status.HTTP_200_OK, deprecated=True
 )
 async def set_score_test(
     rating_service: Annotated[RatingService, Depends(get_rating_service)],

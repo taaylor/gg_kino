@@ -40,18 +40,13 @@ class BookmarkService:
 
         await self.film_id_validator.validate_film_id(film_id)
 
-        await self.repository.upsert(
+        inserted_bookmark = await self.repository.upsert(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
             user_id=user_id,
             film_id=film_id,
             comment=request_body.comment,
             status=FilmBookmarkState.NOTWATCHED,
-        )
-
-        inserted_bookmark = await self.repository.get_document(
-            self.repository.collection.user_id == user_id,
-            self.repository.collection.film_id == film_id,
         )
 
         if inserted_bookmark:
@@ -106,8 +101,8 @@ class BookmarkService:
         )
         watchlist_result = FetchBookmarkList(
             user_id=user_id,
-            count_total=total_count_user_bookmarks,
-            count_on_page=len(fetched_watchlist),
+            total_count=total_count_user_bookmarks,
+            on_page_count=len(fetched_watchlist),
             watchlist_page=[
                 BookmarkObj(
                     film_id=bookmark.film_id,
@@ -138,7 +133,7 @@ class BookmarkService:
 
         await self.film_id_validator.validate_film_id(film_id)
 
-        await self.repository.upsert(
+        updated_bookmark = await self.repository.upsert(
             self.repository.collection.user_id == user_id,
             self.repository.collection.film_id == film_id,
             user_id=user_id,
@@ -147,20 +142,16 @@ class BookmarkService:
             status=request_body.status,
         )
 
-        inserted_bookmark = await self.repository.get_document(
-            self.repository.collection.user_id == user_id,
-            self.repository.collection.film_id == film_id,
-        )
-        if inserted_bookmark:
+        if updated_bookmark:
 
             await self._invalidate_user_bookmark_cache(user_id)
 
             return ChangeBookmarkResponse(
-                film_id=inserted_bookmark.film_id,
-                comment=inserted_bookmark.comment,
-                status=inserted_bookmark.status,
-                created_at=inserted_bookmark.created_at,
-                updated_at=inserted_bookmark.updated_at,
+                film_id=updated_bookmark.film_id,
+                comment=updated_bookmark.comment,
+                status=updated_bookmark.status,
+                created_at=updated_bookmark.created_at,
+                updated_at=updated_bookmark.updated_at,
             )
 
         raise HTTPException(

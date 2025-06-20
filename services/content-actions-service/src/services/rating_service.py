@@ -46,7 +46,7 @@ class RatingService:
         :return: Экземпляр AvgRatingResponse с полями:
                  - film_id: UUID фильма
                  - avg_rating: среднее арифметическое оценок (float)
-                 - count_votes: количество голосов (int);
+                 - votes_count: количество голосов (int);
                  или None, если для фильма нет оценок.
         """
         str_film_id = str(film_id)
@@ -60,7 +60,7 @@ class RatingService:
             logger.debug(f"Рейтинг фильма {str_film_id} получен из кеша по ключу: {cache_key}")
             return AvgRatingResponse(
                 **json.loads(avg_rating_cache),
-                user_score=user_score,
+                user_score=int(user_score) if user_score is not None else None,  # noqa: WPS504
             )
 
         avg_rating = await self.repository.calculate_average_rating(
@@ -79,7 +79,7 @@ class RatingService:
         logger.debug(f"Рейтинг фильма {str_film_id} будет сохранён в кеш по ключу {cache_key}.")
         return AvgRatingResponse(
             **avg_rating[0].model_dump(),
-            user_score=user_score,
+            user_score=int(user_score) if user_score is not None else None,  # noqa: WPS504
         )
 
     async def get_user_score(  # noqa: WPS615

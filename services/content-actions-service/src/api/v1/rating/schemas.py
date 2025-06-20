@@ -24,5 +24,5 @@ class ScoreResponse(BaseModel):
 class AvgRatingResponse(BaseModel):
     film_id: UUID = Field(..., description="id пользователя поставившего оценку")
     rating: float = Field(..., description="Средняя оценка фильма")
-    count_votes: int = Field(..., description="Количество оценивших")
+    votes_count: int = Field(..., description="Количество оценивших")
     user_score: int | None

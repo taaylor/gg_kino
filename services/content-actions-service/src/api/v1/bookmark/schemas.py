@@ -35,8 +35,8 @@ class BookmarkObj(FilmIdField, DateFields, CommentField, StatusField):  # noqa: 
 
 
 class WatchListPage(BaseModel):
-    count_total: int = Field(..., description="Общее количество фильмов в списке для просмотра")
-    count_on_page: int = Field(
+    total_count: int = Field(..., description="Общее количество фильмов в списке для просмотра")
+    on_page_count: int = Field(
         ..., description="Количество фильмов в списке для просмотра на текущей странице"
     )
     watchlist_page: list[BookmarkObj] = Field(

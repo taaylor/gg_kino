@@ -26,7 +26,7 @@ router = APIRouter()
     description="Отдает рецензии по id фильма в зависимости от фильтрации",
     response_model=list[ReviewDetailResponse],
 )
-@rate_limit()
+@rate_limit(limit=100)
 async def receive_reviews_film(
     film_id: Annotated[UUID, Path(description="Идентификатор фильма")],
     review_service: Annotated[ReviewService, Depends(get_review_service)],
@@ -52,7 +52,7 @@ async def receive_reviews_film(
     description="Отдает все рецензии оставленные пользователем",
     response_model=list[ReviewDetailResponse],
 )
-@rate_limit()
+@rate_limit(limit=100)
 async def receive_reviews_user_films(  # noqa: WPS211
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     review_service: Annotated[ReviewService, Depends(get_review_service)],
