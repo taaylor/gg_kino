@@ -1,6 +1,7 @@
 import logging
 
 from api.v1.bookmark import bookmark_api
+from api.v1.private import private_api
 from api.v1.rating import rating_api
 from api.v1.review import review_api
 from core.config import app_config
@@ -49,10 +50,6 @@ SERVICE_PATH = "/content-api/api/v1/"
 app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}films-rating", tags=["Рейтинг"])
 app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])
 app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])
-
-
-# @app.get("/content-api/api/v1/error")
-# async def trigger_error():
-#     """Тестовый эндпоинт для glitchtip"""
-#     division_by_zero = 1 / 0  # noqa: F841, WPS344
-#     return {"message": "Деление на 0"}
+app.include_router(
+    private_api.router, prefix=f"{SERVICE_PATH}private", tags=["API для тестирования утилит"]
+)
