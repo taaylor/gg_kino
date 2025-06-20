@@ -31,14 +31,3 @@ CREATE TABLE IF NOT EXISTS bookmark (
 CREATE UNIQUE INDEX IF NOT EXISTS bookmark_user_id_film_id_idx ON bookmark (film_id, user_id);
 CREATE INDEX IF NOT EXISTS bookmark_user_id_idx ON bookmark (user_id);
 CREATE INDEX IF NOT EXISTS bookmark_film_id_idx ON bookmark (film_id);
-CREATE TABLE IF NOT EXISTS review (
-  id uuid PRIMARY KEY,
-  user_id uuid NOT NULL,
-  film_id uuid NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  text TEXT NOT NULL
-);
-CREATE UNIQUE INDEX IF NOT EXISTS review_user_id_film_id_idx ON review (film_id, user_id);
-CREATE INDEX IF NOT EXISTS review_user_id_idx ON review (user_id);
-CREATE INDEX IF NOT EXISTS review_film_id_idx ON review (film_id);
