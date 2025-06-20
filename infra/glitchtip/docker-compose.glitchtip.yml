@@ -1,0 +1,88 @@
+services:
+  glitchtip-postgres:
+    image: postgres:17-alpine
+    container_name: glitchtip-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust         # Разрешает подключение к базе данных без пароля, если соединение удовлетворяет остальным условиям (IP-адрес, база данных, имя пользователя и т. д.)
+      - POSTGRES_DB=${GLITCHTTIP_POSTGRES_DB}
+      - POSTGRES_USER=${GLITCHTTIP_POSTGRES_NAME}
+      - POSTGRES_PASSWORD=${GLITCHTTIP_POSTGRES_PASSWORD}
+    volumes:
+      - glitchtip-postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+
+  glitchtip-redis:
+    image: redis:7-alpine
+    container_name: glitchtip-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+
+  glitchtip-web:
+    image: glitchtip/glitchtip:v5.0
+    container_name: glitchtip-web
+    restart: unless-stopped
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=${GLITCHTTIP_URL_DB}          # Подключение к PostgreSQL для хранения данных.
+      - REDIS_URL=${GLITCHTIP_URL_REDIS}           # Подключение к Redis для кэша и фоновых задач.
+      - SECRET_KEY=${GLITCHTIP_SECRET_KEY}         # Криптографическая защита данных.
+      - PORT=8000                                  # Порт веб-сервера внутри контейнера.
+      - EMAIL_URL=${GLITCHTIP_URL_EMAIL}           # Настройки отправки email.
+      - DEFAULT_FROM_EMAIL=${GLITCHTIP_EMAIL}      # Адрес отправителя для email.
+      - GLITCHTIP_DOMAIN=${GLITCHTIP_URL_DOMAIN}   # Базовый URL для ссылок и SDK.
+      - ENABLE_OPEN_USER_REGISTRATION=True         # Включает или отключает возможность открытой регистрации пользователей в GlitchTip.
+      - GLITCHTIP_MAX_EVENT_LIFE_DAYS=90           # Задает максимальный срок хранения событий (ошибок и других логов) в базе данных GlitchTip.
+    ports:
+      - "0.0.0.0:8005:8000"
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip:v5.0
+    container_name: glitchtip-worker
+    restart: unless-stopped
+    command: celery -A glitchtip worker -B -l INFO
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=${GLITCHTTIP_URL_DB}
+      - REDIS_URL=${GLITCHTIP_URL_REDIS}
+      - SECRET_KEY=${GLITCHTIP_SECRET_KEY}
+      - PORT=8000
+      - EMAIL_URL=${GLITCHTIP_URL_EMAIL}
+      - DEFAULT_FROM_EMAIL=${GLITCHTIP_EMAIL}
+      - GLITCHTIP_DOMAIN=${GLITCHTIP_URL_DOMAIN}
+
+  glitchtip-migrate:
+    image: glitchtip/glitchtip:v5.0
+    container_name: glitchtip-migrate
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
+    command: "./manage.py migrate"
+    environment:
+      - DATABASE_URL=${GLITCHTTIP_URL_DB}
+      - REDIS_URL=${GLITCHTIP_URL_REDIS}
+      - SECRET_KEY=${GLITCHTIP_SECRET_KEY}
+      - PORT=8000
+      - EMAIL_URL=${GLITCHTIP_URL_EMAIL}
+      - DEFAULT_FROM_EMAIL=${GLITCHTIP_EMAIL}
+      - GLITCHTIP_DOMAIN=${GLITCHTIP_URL_DOMAIN}
+
+volumes:
+  glitchtip-postgres_data:
