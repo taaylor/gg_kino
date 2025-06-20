@@ -1,4 +1,5 @@
-# import sentry_sdk
+import logging
+
 from api.v1.bookmark import bookmark_api
 from api.v1.rating import rating_api
 from api.v1.review import review_api
@@ -6,21 +7,27 @@ from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from rate_limite_utils import RequestContextMiddleware
-
-# from sentry_sdk.integrations.fastapi import FastApiIntegration
-# from sentry_sdk.integrations.starlette import StarletteIntegration
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
 
-# sentry_sdk.init(
-#     dsn=app_config.glitchtip_url,
-#     integrations=[
-#         StarletteIntegration(),
-#         FastApiIntegration(),
-#     ],
-#     traces_sample_rate=1.0,  # Отслеживает 100% транзакций
-#     environment="development",
-# )
+logger = logging.getLogger(__name__)
+
+if app_config.is_glitchtip_enabled:
+    logger.info("GlitchTip Включен")
+
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+
+    sentry_sdk.init(
+        dsn=app_config.glitchtip_url,
+        integrations=[
+            StarletteIntegration(),
+            FastApiIntegration(),
+        ],
+        traces_sample_rate=1.0,  # Отслеживает 100% транзакций
+        environment="development",
+    )
 
 app = FastAPI(
     title="Content-actions API для онлайн-кинотеатра",

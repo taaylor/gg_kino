@@ -1,0 +1,135 @@
+# Более простая и надёжная конфигурация без upstream'ов
+# Resolver для динамического разрешения имён (127.0.0.11 - Docker DNS)
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+server {
+    listen       80 default_server;
+    listen       [::]:80 default_server;
+    server_name  _;
+
+    # Общие таймауты для всех проксируемых запросов
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 10s;
+    proxy_read_timeout 10s;
+    proxy_buffering off;
+
+    # Общий обработчик ошибок
+    error_page 502 503 504 @service_unavailable;
+
+    location /async/ {
+        # Динамическое разрешение имени - не вызывает ошибку при запуске nginx
+        set $backend "async-api:8000";
+        proxy_pass http://$backend/async/;
+
+        # Обработка недоступности сервиса
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @async_unavailable;
+    }
+
+    location /auth/ {
+        set $backend "auth-api:8000";
+        proxy_pass http://$backend/auth/;
+
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @auth_unavailable;
+    }
+
+    location /admin/ {
+        set $backend "admin-panel:8000";
+        proxy_pass http://$backend/admin/;
+
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @admin_unavailable;
+    }
+
+    location /about/ {
+        set $backend "admin-panel:8000";
+        proxy_pass http://$backend/about/;
+
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @admin_unavailable;
+    }
+
+    location /metrics/ {
+        set $backend "metric-api:8000";
+        proxy_pass http://$backend/metrics/;
+
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @metrics_unavailable;
+    }
+
+    location /content-api/ {
+        set $backend "content-actions-api:8000";
+        proxy_pass http://$backend/content-api/;
+
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @content_unavailable;
+    }
+
+    location /static/ {
+        alias /var/www/static/;
+        try_files $uri =404;
+    }
+
+    # Специфичные обработчики для каждого сервиса
+    location @async_unavailable {
+        return 503 '{"error": "Async API temporarily unavailable", "service": "async-api", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    location @auth_unavailable {
+        return 503 '{"error": "Auth service temporarily unavailable", "service": "auth-api", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    location @admin_unavailable {
+        return 503 '{"error": "Admin panel temporarily unavailable", "service": "admin-panel", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    location @metrics_unavailable {
+        return 503 '{"error": "Metrics service temporarily unavailable", "service": "metric-api", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    location @content_unavailable {
+        return 503 '{"error": "Content service temporarily unavailable", "service": "content-actions-api", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    # Общий обработчик для неспецифичных ошибок
+    location @service_unavailable {
+        return 503 '{"error": "Service temporarily unavailable", "retry_after": 30}';
+        add_header Content-Type application/json;
+        add_header Retry-After 30;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 '{"status": "ok", "timestamp": "$time_iso8601"}';
+        add_header Content-Type application/json;
+    }
+
+    # Возвращать 404 для всех остальных запросов
+    location / {
+        return 404 '{"error": "Not found", "request_uri": "$request_uri"}';
+        add_header Content-Type application/json;
+    }
+
+    error_page  404              /404.html;
+    error_page   500 502 503 504  /50x.html;
+
+    location = /50x.html {
+        root   html;
+    }
+
+    location = /404.html {
+        root   html;
+    }
+}

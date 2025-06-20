@@ -1,5 +1,6 @@
 import logging
 import os
+from collections.abc import Sequence
 from typing import Type
 from uuid import UUID
 
@@ -40,7 +41,7 @@ class MongoDB(BaseModel):
     bookmark_coll: str = "bookmarkCollection"
     reviews_coll: str = "reviewsCollection"
     reviews_like_coll: str = "reviewslikeCollection"
-    base_connect_exp: tuple[Type[Exception]] = Field(
+    base_connect_exp: Sequence[Type[Exception]] = Field(
         (ConnectionFailure, NetworkTimeout, PyMongoError), exclude=True
     )
 
@@ -50,7 +51,8 @@ class MongoDB(BaseModel):
 
 
 class AppConfig(BaseSettings):
-    glitchtip_url: str
+    glitchtip_url: str = "url"
+    is_glitchtip_enabled: bool = False
     project_name: str = "content-actions-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # noqa: WPS221
     docs_url: str = "/content-api/openapi"
@@ -81,7 +83,7 @@ class AppConfig(BaseSettings):
     }
 
     redis: Redis = Redis()
-    mongodb: MongoDB = MongoDB()
+    mongodb: MongoDB = MongoDB()  # type: ignore
     server: Server = Server()
 
     model_config = SettingsConfigDict(
