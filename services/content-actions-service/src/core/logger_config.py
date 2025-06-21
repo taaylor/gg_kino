@@ -1,16 +1,34 @@
-from logging import config
+import logging
+from logging import config as logging_config
 from typing import Any
 
 import dotenv
+from opentelemetry import context as context_api
+from opentelemetry.baggage import get_baggage
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = dotenv.find_dotenv()
 
 
+factory = logging.getLogRecordFactory()
+
+
+def record_factory(*args, **kwargs):
+    record = factory(*args, **kwargs)
+    context = context_api.get_current()
+    record.request_id = get_baggage("request_id", context) or "N/A"
+    return record
+
+
+logging.setLogRecordFactory(record_factory)
+
+
 class LoggerSettings(BaseSettings):
     log_level: str = "DEBUG"
-    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_format: str = (
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s - request_id: %(request_id)s"
+    )
     log_default_handlers: list[str] = [
         "console",
     ]
@@ -92,4 +110,4 @@ class LoggerSettings(BaseSettings):
 
     def apply(self) -> None:
         """Применить настройки логирования один раз при старте приложения."""
-        config.dictConfig(self.logger_config)
+        logging_config.dictConfig(self.logger_config)

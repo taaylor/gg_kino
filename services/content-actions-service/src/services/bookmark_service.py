@@ -15,6 +15,7 @@ from db.cache import Cache, get_cache
 from fastapi import Depends, HTTPException, status
 from models.enum_models import FilmBookmarkState
 from services.bookmark_repository import BookmarkRepository, get_bookmark_repository
+from tracer_utils import traced
 from utils.film_id_validator import FilmIdValidator, get_film_id_validator
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class BookmarkService:
         self.repository: BookmarkRepository = repository
         self.film_id_validator: FilmIdValidator = film_id_validator
 
+    @traced("add_now_bookmark_service_action")
     async def add_bookmark_by_film_id(
         self, user_id: UUID, film_id: UUID, request_body: CreateBookmarkRequest
     ) -> CreateBookmarkResponse:
