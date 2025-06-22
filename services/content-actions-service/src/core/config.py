@@ -31,7 +31,8 @@ class Redis(BaseModel):
 
 
 class MongoDB(BaseModel):
-    host: str = "localhost"
+    # host: str = "localhost"
+    host: str = "mongodb_router"
     port: int = 27017
     name: str = "kinoservice"
     like_coll: str = "likeCollection"

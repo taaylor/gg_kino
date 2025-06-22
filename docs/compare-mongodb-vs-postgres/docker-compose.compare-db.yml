@@ -122,9 +122,9 @@ services:
     container_name: mongodb_init
     environment:
       DB_NAME: "kinoservice"
-      REVIEW_COLL: "reviewCollection"
+      RATING_COLL: "ratingCollection"
       BOOKMARK_COLL: "bookmarkCollection"
-      REVIEWS_COLL: "reviewsCollection"
+      # REVIEWS_COLL: "reviewsCollection"
     depends_on:
       mongodb_sh1:
         condition: service_healthy
