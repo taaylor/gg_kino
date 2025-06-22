@@ -27,9 +27,11 @@ import logging
 import random
 import time
 from typing import List, Optional, Union
+from uuid import UUID
 
 import psycopg
 from bson import ObjectId
+from bson.binary import Binary, UuidRepresentation
 from motor.motor_asyncio import AsyncIOMotorClient
 
 # Настройка логирования для отладки
@@ -51,8 +53,10 @@ MONGO_CONFIG = {
 
     # *** ПАРАМЕТРЫ АВТОРИЗАЦИИ MONGODB ***
     # Если ваша MongoDB требует авторизации, замените None на ваши данные:
-    'username': None,                 # Замените на ваш логин (например: 'myuser')
-    'password': None,                 # Замените на ваш пароль (например: 'mypassword')
+    # Замените на ваш логин (например: 'myuser')
+    'username': None,
+    # Замените на ваш пароль (например: 'mypassword')
+    'password': None,
     # 'authSource': 'admin',          # Раскомментируйте и укажите БД для авторизации
 }
 
@@ -66,10 +70,12 @@ POSTGRES_CONFIG = {
 
     # *** ПАРАМЕТРЫ АВТОРИЗАЦИИ POSTGRESQL ***
     # Если требуется пароль, замените None на ваш пароль:
-    'password': "postgres",                 # Замените на ваш пароль (например: 'mypassword')
+    # Замените на ваш пароль (например: 'mypassword')
+    'password': "postgres",
 
     'table_name': 'rating',       # УКАЖИТЕ имя таблицы для тестирования
 }
+
 
 def build_mongo_connection_string() -> str:
     """
@@ -110,7 +116,6 @@ def build_postgres_connection_string() -> str:
     return " ".join(conn_parts)
 
 
-
 async def mongo_queries(client: AsyncIOMotorClient, mongo_ids: List[ObjectId], num_queries: int) -> float:
     """
     Выполняет серию запросов к MongoDB по заранее подготовленным ID и измеряет среднее время выполнения.
@@ -133,10 +138,12 @@ async def mongo_queries(client: AsyncIOMotorClient, mongo_ids: List[ObjectId], n
 
         # Проверяем подключение и наличие данных
         document_count = await collection.count_documents({})
-        logger.info(f"MongoDB: найдено {document_count} документов в коллекции")
+        logger.info(
+            f"MongoDB: найдено {document_count} документов в коллекции")
 
         if document_count == 0:
-            logger.warning("MongoDB: коллекция пуста, тест может быть неинформативным")
+            logger.warning(
+                "MongoDB: коллекция пуста, тест может быть неинформативным")
 
         if len(mongo_ids) == 0:
             raise ValueError("Список MongoDB ID пуст")
@@ -164,11 +171,13 @@ async def mongo_queries(client: AsyncIOMotorClient, mongo_ids: List[ObjectId], n
 
             # Логируем прогресс каждые 20 запросов
             if (i + 1) % 20 == 0:
-                logger.info(f"MongoDB: выполнено {i + 1}/{num_queries} запросов")
+                logger.info(
+                    f"MongoDB: выполнено {i + 1}/{num_queries} запросов")
 
         average_time = sum(times) / len(times)
         success_rate = (successful_queries / num_queries) * 100
-        logger.info(f"MongoDB: успешно найдено документов: {successful_queries}/{num_queries} ({success_rate:.1f}%)")
+        logger.info(
+            f"MongoDB: успешно найдено документов: {successful_queries}/{num_queries} ({success_rate:.1f}%)")
 
         return average_time
 
@@ -203,14 +212,17 @@ async def postgres_queries(conn: psycopg.AsyncConnection, postgres_ids: List[int
             try:
                 # Используем SQL-композитор для безопасного выполнения запроса
                 from psycopg import sql
-                query = sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name))
+                query = sql.SQL(
+                    "SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name))
                 await cur.execute(query)
                 result = await cur.fetchone()
                 row_count = result[0] if result else 0
-                logger.info(f"PostgreSQL: найдено {row_count} строк в таблице {table_name}")
+                logger.info(
+                    f"PostgreSQL: найдено {row_count} строк в таблице {table_name}")
 
                 if row_count == 0:
-                    logger.warning("PostgreSQL: таблица пуста, тест может быть неинформативным")
+                    logger.warning(
+                        "PostgreSQL: таблица пуста, тест может быть неинформативным")
 
             except psycopg.Error as e:
                 logger.error(f"Ошибка при проверке таблицы {table_name}: {e}")
@@ -230,7 +242,8 @@ async def postgres_queries(conn: psycopg.AsyncConnection, postgres_ids: List[int
                 if table_name:
                     # Выполняем запрос по конкретному ID
                     from psycopg import sql
-                    query = sql.SQL("SELECT film_id, AVG(score) FROM {} WHERE film_id = %s GROUP BY film_id").format(sql.Identifier(table_name))
+                    query = sql.SQL("SELECT film_id, AVG(score) FROM {} WHERE film_id = %s GROUP BY film_id").format(
+                        sql.Identifier(table_name))
                     await cur.execute(query, (selected_id,))
                     rows = await cur.fetchall()
 
@@ -249,11 +262,13 @@ async def postgres_queries(conn: psycopg.AsyncConnection, postgres_ids: List[int
 
                 # Логируем прогресс каждые 20 запросов
                 if (i + 1) % 20 == 0:
-                    logger.info(f"PostgreSQL: выполнено {i + 1}/{num_queries} запросов")
+                    logger.info(
+                        f"PostgreSQL: выполнено {i + 1}/{num_queries} запросов")
 
         average_time = sum(times) / len(times)
         success_rate = (successful_queries / num_queries) * 100
-        logger.info(f"PostgreSQL: успешно найдено записей: {successful_queries}/{num_queries} ({success_rate:.1f}%)")
+        logger.info(
+            f"PostgreSQL: успешно найдено записей: {successful_queries}/{num_queries} ({success_rate:.1f}%)")
 
         return average_time
 
@@ -276,7 +291,8 @@ async def test_database_connections():
         # Тестируем подключение к MongoDB
         logger.info("Тестирование подключения к MongoDB...")
         mongo_connection_string = build_mongo_connection_string()
-        mongo_client = AsyncIOMotorClient(mongo_connection_string, serverSelectionTimeoutMS=5000)
+        mongo_client = AsyncIOMotorClient(
+            mongo_connection_string, serverSelectionTimeoutMS=5000)
 
         # Проверяем подключение
         await mongo_client.admin.command('ping')
@@ -310,7 +326,8 @@ async def main():
     # Количество запросов для тестирования (увеличено для более точной статистики)
     num_queries = 200
 
-    logger.info(f"Начинаем тестирование производительности БД ({num_queries} запросов)")
+    logger.info(
+        f"Начинаем тестирование производительности БД ({num_queries} запросов)")
     logger.info("Тестируем получение записей по заранее подготовленным ID")
     logger.info("=" * 70)
 
@@ -319,13 +336,17 @@ async def main():
         logger.info("Загружаем списки ID из файлов...")
         with open("mongo_user_film_ids.json", "r") as f:
             data = json.load(f)
-            mongo_ids = [pair["film_id"] for pair in data]
+            mongo_ids = [
+                Binary.from_uuid(
+                    UUID(pair["film_id"]),
+                    UuidRepresentation.STANDARD
+                ) for pair in data]
         with open("user_film_ids.json", "r") as f:
             data = json.load(f)
             postgres_ids = [pair["film_id"] for pair in data]
 
-
-        logger.info(f"Доступно {len(mongo_ids)} MongoDB ID и {len(postgres_ids)} PostgreSQL ID")
+        logger.info(
+            f"Доступно {len(mongo_ids)} MongoDB ID и {len(postgres_ids)} PostgreSQL ID")
 
     except Exception as e:
         return
@@ -335,7 +356,8 @@ async def main():
 
     if not mongo_client or not pg_conn:
         logger.error("Не удалось подключиться к одной или обеим базам данных")
-        logger.error("Проверьте параметры подключения в переменных MONGO_CONFIG и POSTGRES_CONFIG")
+        logger.error(
+            "Проверьте параметры подключения в переменных MONGO_CONFIG и POSTGRES_CONFIG")
         return
 
     try:
@@ -344,12 +366,14 @@ async def main():
         # Тест для MongoDB
         logger.info("Начинаем тест MongoDB...")
         mongo_avg_time = await mongo_queries(mongo_client, mongo_ids, num_queries)
-        logger.info(f"✓ MongoDB: среднее время запроса: {mongo_avg_time:.4f} секунд")
+        logger.info(
+            f"✓ MongoDB: среднее время запроса: {mongo_avg_time:.4f} секунд")
 
         # Тест для PostgreSQL
         logger.info("Начинаем тест PostgreSQL...")
         pg_avg_time = await postgres_queries(pg_conn, postgres_ids, num_queries)
-        logger.info(f"✓ PostgreSQL: среднее время запроса: {pg_avg_time:.4f} секунд")
+        logger.info(
+            f"✓ PostgreSQL: среднее время запроса: {pg_avg_time:.4f} секунд")
 
         # Вывод результатов сравнения
         logger.info("=" * 60)
