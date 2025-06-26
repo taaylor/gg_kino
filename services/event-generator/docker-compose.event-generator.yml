@@ -2,9 +2,7 @@
 services:
   event-generator:
     build:
-      # context: .
       context: ../..
-      # dockerfile: ./src/Dockerfile
       dockerfile: services/event-generator/src/Dockerfile
     env_file:
       - ../../.env
