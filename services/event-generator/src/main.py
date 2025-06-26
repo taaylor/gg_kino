@@ -30,9 +30,9 @@ if app_config.is_glitchtip_enabled:
     )
 
 app = FastAPI(
-    title="Content-actions API для онлайн-кинотеатра",
+    title="Генератор событий для создания переодических уведомлений",
     version="1.0.0",
-    description="Сервис пользовательских действий с контентом",
+    description="Сервис генератора событий для уведомлений",
     docs_url=app_config.docs_url,
     openapi_url=app_config.openapi_url,
     default_response_class=ORJSONResponse,
@@ -54,11 +54,3 @@ setup_exception_handlers(app)
 
 # Добавляю миддлвар для доступа Request во всех эндпоинтах
 app.add_middleware(RequestContextMiddleware)
-
-SERVICE_PATH = "/content-api/api/v1/"
-app.include_router(rating_api.router, prefix=f"{SERVICE_PATH}films-rating", tags=["Рейтинг"])
-app.include_router(review_api.router, prefix=f"{SERVICE_PATH}reviews", tags=["Рецензии"])
-app.include_router(bookmark_api.router, prefix=f"{SERVICE_PATH}bookmarks", tags=["Закладки"])
-app.include_router(
-    private_api.router, prefix=f"{SERVICE_PATH}private", tags=["API для тестирования утилит"]
-)
