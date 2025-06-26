@@ -1,9 +1,5 @@
 import logging
 
-from api.v1.bookmark import bookmark_api
-from api.v1.private import private_api
-from api.v1.rating import rating_api
-from api.v1.review import review_api
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
