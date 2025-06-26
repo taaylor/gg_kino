@@ -1,0 +1,34 @@
+[project]
+name = "content-actions-service"
+version = "0.1.0"
+description = "Content actions microservice"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "fastapi[all]>=0.115.12,<1.0.0",
+    "uvicorn>=0.34.1,<1.0.0",
+    "python-dotenv>=1.1.0,<2.0.0",
+    "pydantic-settings>=2.8.1,<3.0.0",
+    "redis>=5.2.1,<6.0.0",
+    "async-fastapi-jwt-auth[asymmetric]>=0.6.6,<1.0.0",
+    "gunicorn>=23.0.0,<24.0.0",
+    "aiohttp (>=3.11.18,<4.0.0)",
+    "motor>=3.7.1,<3.8.0",
+    "beanie>=1.29.0,<2.0.0",
+    "ujson (>=5.10.0,<6.0.0)",
+    "types-ujson (>=5.10.0.20250326,<6.0.0.0)",
+    "backoff (==2.2.1)",
+    "sentry-sdk (==2.30.0)"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
