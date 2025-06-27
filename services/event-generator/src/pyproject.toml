@@ -12,7 +12,10 @@ dependencies = [
     "gunicorn>=23.0.0,<24.0.0",
     "aiohttp (>=3.11.18,<4.0.0)",
     "backoff (==2.2.1)",
-    "sentry-sdk (==2.30.0)"
+    "sentry-sdk (==2.30.0)",
+    "celery>=5.5.3",
+    "flower>=2.0.1"
+
 ]
 
 [project.optional-dependencies]

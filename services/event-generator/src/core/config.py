@@ -21,6 +21,14 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
+class Redis(BaseModel):
+    host: str = "localhost"
+    port: int = 6379
+    user: str = "redis_user"
+    password: str = "Parol123"
+    db: int = 0
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
@@ -29,8 +37,10 @@ class AppConfig(BaseSettings):
     docs_url: str = "/event-generator/openapi"
     openapi_url: str = "/event-generator/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
+    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
 
+    redis: Redis = Redis()
     server: Server = Server()
 
     model_config = SettingsConfigDict(
