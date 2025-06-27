@@ -4,6 +4,7 @@ include:
   - ./infra/elk/docker-compose.elk.yml
   - ./infra/clickhouse/docker-compose.clickhouse.yml
   - ./infra/mongodb/docker-compose.mongodb.yml
+  - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
 
 services:

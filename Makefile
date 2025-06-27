@@ -88,3 +88,16 @@ content-stop:
 # Локальный запуск сервисов при разработке
 up-local-content-api:
 	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload
+
+
+# Rabbit only
+up-rabbit:
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx && \
+	echo "ui on: http://localhost/rabbitmq/"
+
+up-rabbit-logs:
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx && \
+	docker compose logs -f rabbitmq-1
+
+down-rabbit:
+	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx

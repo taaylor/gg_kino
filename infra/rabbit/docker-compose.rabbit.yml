@@ -1,0 +1,69 @@
+
+services:
+  rabbitmq-1:
+    container_name: rabbitmq-1
+    image: rabbitmq:4.1.1-management
+    hostname: rabbitmq-1
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq-1
+      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_1_data:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+  rabbitmq-2:
+    container_name: rabbitmq-2
+    image: rabbitmq:4.1.1-management
+    hostname: rabbitmq-2
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq-2
+      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
+    volumes:
+      - rabbitmq_2_data:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+  rabbitmq-3:
+    container_name: rabbitmq-3
+    image: rabbitmq:4.1.1-management
+    hostname: rabbitmq-3
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq-3
+      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
+    volumes:
+      - rabbitmq_3_data:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+volumes:
+  rabbitmq_1_data:
+  rabbitmq_2_data:
+  rabbitmq_3_data:
