@@ -125,8 +125,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    ports:
-      - 8000:8000
     cpus: "1"
     mem_limit: 256M
     healthcheck:
@@ -230,15 +228,13 @@ services:
         condition: service_healthy
     restart: "no"
 
-  notifications-api:
-    container_name: notifications-api-container
+  notification-api:
+    container_name: notification-api-container
     env_file:
       - .env
     build:
       context: .
       dockerfile: services/notification-service/src/Dockerfile
-    ports:
-      - 8001:8000
     depends_on:
       postgres:
         condition: service_healthy
