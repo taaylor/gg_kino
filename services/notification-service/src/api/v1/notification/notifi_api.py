@@ -4,5 +4,5 @@ router = APIRouter()
 
 
 @router.get(path="")
-async def test():
+async def test() -> str:
     return "Succsess"
