@@ -88,3 +88,9 @@ content-stop:
 # Локальный запуск сервисов при разработке
 up-local-content-api:
 	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload
+
+notifications-api-start:
+	docker compose --profile production up --build -d notifications-api postgres pg-import auth-api redis jaeger
+
+notifications-api-down:
+	docker compose --profile production down notifications-api postgres pg-import auth-api redis jaeger

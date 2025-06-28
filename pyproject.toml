@@ -77,7 +77,8 @@ exclude = [
     "migrations",
     "services/auth-service/src/migration",
     "services/auth-service/src/migrations",
-    "services/admin-panel/src/accounts/migrations"
+    "services/admin-panel/src/accounts/migrations",
+    "services/notification-service/src/migration"
 ]
 
 [tool.mypy]
