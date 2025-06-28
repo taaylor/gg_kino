@@ -4,10 +4,12 @@ services:
     container_name: rabbitmq-1
     image: rabbitmq:4.1.1-management
     hostname: rabbitmq-1
+    env_file:
+      - ../../.env
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-1
-      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
-    ports:
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    expose:
       - "5672:5672"
       - "15672:15672"
     volumes:
@@ -25,9 +27,14 @@ services:
     container_name: rabbitmq-2
     image: rabbitmq:4.1.1-management
     hostname: rabbitmq-2
+    env_file:
+      - ../../.env
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-2
-      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    expose:
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - rabbitmq_2_data:/var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
@@ -46,9 +53,14 @@ services:
     container_name: rabbitmq-3
     image: rabbitmq:4.1.1-management
     hostname: rabbitmq-3
+    env_file:
+      - ../../.env
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-3
-      - RABBITMQ_ERLANG_COOKIE=rabbitmq-cluster-cookie
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    expose:
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - rabbitmq_3_data:/var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
