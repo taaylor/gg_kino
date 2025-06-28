@@ -1,8 +1,8 @@
-"""create schema notifi
+"""create schemes
 
-Revision ID: 340d0fb5ba5d
+Revision ID: 14449df71b25
 Revises:
-Create Date: 2025-06-27 19:11:06.585662
+Create Date: 2025-06-28 20:40:48.474814+00:00
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "340d0fb5ba5d"
+revision: str = "14449df71b25"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
