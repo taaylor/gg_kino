@@ -92,12 +92,12 @@ up-local-content-api:
 
 # Rabbit only
 up-rabbit:
-	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx && \
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
 	echo "ui on: http://localhost/rabbitmq/"
 
 up-rabbit-logs:
-	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx && \
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
 	docker compose logs -f rabbitmq-1
 
 down-rabbit:
-	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 nginx
+	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx

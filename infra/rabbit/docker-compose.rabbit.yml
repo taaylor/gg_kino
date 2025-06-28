@@ -75,6 +75,18 @@ services:
       start_period: 30s
     restart: always
 
+  rabbit-init:
+    container_name: rabbit-init
+    env_file:
+      - ../../.env
+    build:
+      context: ./queue_builder
+      dockerfile: Dockerfile
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+    restart: no
+
 volumes:
   rabbitmq_1_data:
   rabbitmq_2_data:
