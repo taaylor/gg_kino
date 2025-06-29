@@ -101,3 +101,10 @@ up-rabbit-logs:
 
 down-rabbit:
 	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx
+
+# Notification service
+notifications-api-start:
+	docker compose --profile production up --build -d notification-api postgres pg-import auth-api redis jaeger nginx
+
+notifications-api-down:
+	docker compose --profile production down notification-api postgres pg-import auth-api redis jaeger nginx
