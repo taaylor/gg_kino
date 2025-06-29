@@ -89,6 +89,20 @@ content-stop:
 up-local-content-api:
 	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload
 
+
+# Rabbit only
+up-rabbit:
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
+	echo "ui on: http://localhost/rabbitmq/"
+
+up-rabbit-logs:
+	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
+	docker compose logs -f rabbitmq-1
+
+down-rabbit:
+	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx
+
+# Notification service
 notifications-api-start:
 	docker compose --profile production up --build -d notification-api postgres pg-import auth-api redis jaeger nginx
 

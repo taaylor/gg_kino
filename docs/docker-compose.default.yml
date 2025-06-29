@@ -1,0 +1,23 @@
+services:
+  name:
+    container_name:
+    build:
+      context: .
+      dockerfile:
+    env_file:
+      - ./.env
+    image:
+    environment:
+      -
+    expose:
+      -
+    volumes:
+      -
+    cpus: "2"
+    mem_limit: 1024M
+    healthcheck:
+      test:
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
