@@ -15,7 +15,9 @@ class ProfileRepository:
     __slots__ = ()
 
     @sqlalchemy_universal_decorator
-    async def fetch_user_profile_by_id(self, session: AsyncSession, user_id: str) -> dict[str, Any]:
+    async def fetch_user_profile_by_id(
+        self, session: AsyncSession, user_id: str
+    ) -> dict[str, Any] | None:
         stmt = (
             select(
                 User.id.label("user_id"),
@@ -37,8 +39,10 @@ class ProfileRepository:
         )
 
         result = (await session.execute(stmt)).one_or_none()
-        logger.info("------------------------------------")
-        logger.info(dict(result._mapping))
+
+        if not result:
+            return None
+        return dict(result._mapping)
 
 
 @lru_cache

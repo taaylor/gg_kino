@@ -3,7 +3,7 @@ from uuid import UUID
 
 from api.v1.profile.schemas import ProfileResponse
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, status
 from services.profile_service import ProfileService, get_profile_service
 from utils.state_manager import validate_apikey_service
 
@@ -14,10 +14,9 @@ router = APIRouter()
     path="/{user_id}",
     description="Возвращает профиль пользователя по id пользователя",
     summary="Получить профиль пользователя",
-    response_model=ProfileResponse,
+    response_model=ProfileResponse | None,
 )
 async def get_user_profile_info(
-    request: Request,
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
     user_id: Annotated[UUID, Path(description="Идентификатор пользователя для получения профиля")],
@@ -25,7 +24,7 @@ async def get_user_profile_info(
     x_service_name: Annotated[
         str | None, Header(description="НАименование сервиса, от которого идет запрос")
     ] = None,
-) -> ProfileResponse:
+) -> ProfileResponse | None:
 
     if validate_apikey_service(x_api_key, x_service_name):
         target_user_id = user_id
