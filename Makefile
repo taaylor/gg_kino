@@ -104,7 +104,7 @@ down-rabbit:
 
 # Notification service
 notifications-api-start:
-	docker compose --profile production up --build -d notification-api postgres pg-import auth-api redis jaeger nginx
+	docker compose --profile production up --build -d postgres pg-import auth-api redis jaeger nginx
 
 notifications-api-down:
 	docker compose --profile production down notification-api postgres pg-import auth-api redis jaeger nginx

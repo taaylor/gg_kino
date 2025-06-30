@@ -60,6 +60,10 @@ class JWTSettings(BaseModel):
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
 
+class ApiKeys(BaseModel):
+    notification_service: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
+
+
 class AppConfig(BaseSettings):
     auth_secret_key: str
     project_name: str = "auth-service"
@@ -74,6 +78,7 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     server: Server = Server()
     jwt: JWTSettings = JWTSettings()
+    apikey: ApiKeys = ApiKeys()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

@@ -1,10 +1,13 @@
 import hashlib
 import hmac
+import logging
 import random
 import string
 
 from core.config import app_config
 from fastapi import HTTPException, status
+
+logger = logging.getLogger(__name__)
 
 
 class SignedStateManager:
@@ -41,3 +44,29 @@ class SignedStateManager:
 
 def get_signed_state_manager() -> SignedStateManager:
     return SignedStateManager(secret_key=app_config.auth_secret_key)
+
+
+def validate_apikey_service(x_api_key: str | None, x_service_name: str | None) -> bool:
+    if x_api_key is None and x_service_name is None:
+        logger.debug("Отсутствует API Key или Service Name")
+        return False
+
+    logger.info(f"Получен запрос от сервиса {x_service_name} с APIKEY: {x_api_key[:5]}***")
+
+    if not hasattr(app_config.apikey, x_service_name):
+        logger.warning(f"Попытка доступа от неизвестного сервиса: {x_service_name}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Сервис {x_service_name} не зарегистрирован",
+        )
+
+    valid_key = getattr(app_config.apikey, x_service_name)
+
+    if not hmac.compare_digest(x_api_key, valid_key):
+        logger.warning(f"Неверный ключ от сервиса {x_service_name}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Переданного APIKEY не существует"
+        )
+
+    logger.info(f"Успешная аутентификация сервиса {x_service_name}")
+    return True
