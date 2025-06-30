@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Base(AsyncAttrs, DeclarativeBase):
     )
 
 
-async_session_maker: sessionmaker | None = None
+async_session_maker: async_sessionmaker | None = None
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

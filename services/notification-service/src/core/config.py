@@ -33,8 +33,8 @@ class Postgres(BaseSettings):
 class AppConfig(BaseSettings):
     tracing: bool = False
     project_name: str = "notification-service"
-    docs_url: str = "/notification-api/openapi"
-    openapi_url: str = "/notification-api/openapi.json"
+    docs_url: str = "/notification/openapi"
+    openapi_url: str = "/notification/openapi.json"
 
     server: Server = Server()
     postgres: Postgres = Postgres()

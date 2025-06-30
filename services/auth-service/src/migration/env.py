@@ -4,6 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from core.config import app_config
 from db.postgres import Base
+from models import models
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -24,11 +25,17 @@ target_metadata = Base.metadata
 
 
 def include_object(object, name, type_, reflected, compare_to):
+    # Включаем только объекты из схемы 'profile или session'
+    if hasattr(object, "schema"):
+        if object.schema not in {"profile", "session"}:
+            return False
+
     if type_ == "table" and name in {
         "user_sessions_hist_p0",
         "user_sessions_hist_p1",
         "user_sessions_hist_p2",
         "user_sessions_hist_p3",
+        "alembic_version_notify_service",
     }:
         return False
     return True
