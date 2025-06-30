@@ -9,6 +9,7 @@ from models.models import (
     SocialAccount,
     User,
     UserCred,
+    UserMailConfirmation,
     UserProfileSettings,
     UserSession,
     UserSessionsHist,
@@ -63,6 +64,26 @@ class AuthRepository:
         return result.scalar_one_or_none()
 
     @sqlalchemy_universal_decorator
+    async def fetch_usercred_by_id(
+        self,
+        session: AsyncSession,
+        user_id: str,
+    ) -> UserCred | None:
+        stmt = select(UserCred).where(UserCred.user_id == user_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @sqlalchemy_universal_decorator
+    async def fetch_user_mail_conf_by_id(
+        self,
+        session: AsyncSession,
+        user_id: str,
+    ) -> UserMailConfirmation | None:
+        stmt = select(UserMailConfirmation).where(UserMailConfirmation.user_id == user_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @sqlalchemy_universal_decorator
     async def fetch_permissions_for_role(
         self,
         session: AsyncSession,
@@ -94,8 +115,11 @@ class AuthRepository:
         user_session: UserSession,
         user_session_hist: UserSessionsHist,
         user_settings: UserProfileSettings,
+        user_confirm_email: UserMailConfirmation,
     ):
-        session.add_all([user, user_cred, user_session, user_session_hist, user_settings])
+        session.add_all(
+            [user, user_cred, user_session, user_session_hist, user_settings, user_confirm_email]
+        )
 
     @traced()
     @sqlalchemy_universal_decorator
