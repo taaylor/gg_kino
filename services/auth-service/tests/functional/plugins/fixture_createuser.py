@@ -3,7 +3,13 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.functional.core.config_log import get_logger
 from tests.functional.testdata.model_enum import PermissionEnum
-from tests.functional.testdata.model_orm import DictRoles, RolesPermissions, User, UserCred
+from tests.functional.testdata.model_orm import (
+    DictRoles,
+    RolesPermissions,
+    User,
+    UserCred,
+    UserProfileSettings,
+)
 from tests.functional.testdata.schemes import LoginRequest
 
 logger = get_logger(__name__)
@@ -37,7 +43,9 @@ def create_user(pg_session: AsyncSession, make_post_request):
         pg_session.add_all(permissions)
 
         # создаем пользователя
-        user = User(username="user", role_code=role.role)
+        user = User(
+            username="user", role_code=role.role, first_name="user", last_name="user", gender="MALE"
+        )
         pg_session.add(user)
         await pg_session.flush()
 
@@ -47,6 +55,10 @@ def create_user(pg_session: AsyncSession, make_post_request):
             password=pwd_context.hash("12345678"),
         )
         pg_session.add(user_cred)
+
+        user_settings = UserProfileSettings(user_id=user.id, user_timezone="America/New_York")
+        pg_session.add(user_settings)
+
         await pg_session.commit()
 
         login, uri = (

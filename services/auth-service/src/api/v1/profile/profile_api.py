@@ -30,7 +30,7 @@ async def get_user_profile_info(
         target_user_id = user_id
     else:
         await authorize.jwt_required()
-        user_jwt_id = UUID((await authorize.get_raw_jwt()).get("user_id"))
+        user_jwt_id = UUID((await authorize.get_raw_jwt()).get("user_id"))  # type: ignore
 
         if user_jwt_id != user_id:
             raise HTTPException(
