@@ -78,6 +78,13 @@ class UserCred(Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password: Mapped[str] = mapped_column(String(255))
+    is_fictional_email: Mapped[bool] = mapped_column(
+        default=False,
+        server_default=text("'false'"),
+    )
+    is_verification_email: Mapped[bool] = mapped_column(
+        default=False, server_default=text("'false'"), comment="Подтвеждение email"
+    )
 
     # обратная orm связь с user (one-to-one)
     user: Mapped["User"] = relationship(
@@ -194,15 +201,12 @@ class UserSessionsHist(Base):
 
 
 class UserProfileSettings(Base):
-    __tablename__ = "profile_settings"
+    __tablename__ = "user_profile_settings"
     __table_args__ = {"schema": "profile"}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("profile.user.id", ondelete="CASCADE"),
         primary_key=True,
-    )
-    is_verification_email: Mapped[bool] = mapped_column(
-        default=False, server_default=text("'false'"), comment="Подтвеждение email"
     )
     user_timezone: Mapped[str] = mapped_column(String(50), default="UTC")
     is_notification_email: Mapped[bool] = mapped_column(

@@ -69,6 +69,9 @@ class UserCred(Base):
         default=False,
         server_default=text("'false'"),
     )
+    is_verification_email: Mapped[bool] = mapped_column(
+        default=False, server_default=text("'false'"), comment="Подтвеждение email"
+    )
 
     # обратная orm связь с user (one-to-one)
     user: Mapped["User"] = relationship(
@@ -215,15 +218,12 @@ class UserSessionsHist(Base):
 
 
 class UserProfileSettings(Base):
-    __tablename__ = "profile_settings"
+    __tablename__ = "user_profile_settings"
     __table_args__ = {"schema": "profile"}
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("profile.user.id", ondelete="CASCADE"),
         primary_key=True,
-    )
-    is_verification_email: Mapped[bool] = mapped_column(
-        default=False, server_default=text("'false'"), comment="Подтвеждение email"
     )
     user_timezone: Mapped[str] = mapped_column(String(50), default="UTC")
     is_notification_email: Mapped[bool] = mapped_column(
@@ -243,3 +243,14 @@ class UserProfileSettings(Base):
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(user_id={self.user_id})"
+
+
+class UserMailConfirmation(Base):
+    __tablename__ = "user_mail_confirmation"
+    __table_args__ = {"schema": "profile"}
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profile.user.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    mail_verify_token: Mapped[str | None] = mapped_column(String(255))

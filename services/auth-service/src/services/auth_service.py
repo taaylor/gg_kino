@@ -148,7 +148,7 @@ class RegisterService(BaseAuthService):
             session=user_tokens,
             is_notification_email=user_settings.is_notification_email,
             user_timezone=user_settings.user_timezone,
-            is_verification_email=user_settings.is_verification_email,
+            is_verification_email=user_cred.is_verification_email,
         )
 
 
