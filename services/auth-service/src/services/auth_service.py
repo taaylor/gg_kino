@@ -151,7 +151,7 @@ class RegisterService(BaseAuthService):
         # вынести его в отдельный метод и реализовать через create_tasks в фоне
         logger.info(
             f"Ссылка для подтверждения почты пользователя {user.id}: "
-            f"http://localhost/auth/api/v1/sessions/verify-email?{token=}&user_id={user.id}"
+            f"http://localhost/auth/api/v1/sessions/verify-email?token={token}&user_id={user.id}"
         )
 
         return RegisterResponse(
@@ -661,9 +661,9 @@ class OAuthSocialService(BaseAuthService):
 
 class EmailVerifyService(MixinAuthRepository):
 
-    # __slots__ = ("repository", "session")
+    __slots__ = ("repository", "session")
 
-    async def confirm_email_user(self, user_id: uuid.UUID, token: str) -> MessageResponse:
+    async def confirm_email_user(self, user_id: uuid.UUID, token: str) -> bool:
 
         usercred = await self.repository.fetch_usercred_by_id(self.session, str(user_id))
 
@@ -683,7 +683,7 @@ class EmailVerifyService(MixinAuthRepository):
             self.session, str(user_id)
         )
 
-        if user_mail_conf.mail_verify_token != pwd_context.hash(token):
+        if not pwd_context.verify(token, user_mail_conf.mail_verify_token):
             logger.warning(
                 f"Пользователь с {user_id=} предоставил неверный токен при подтверждении email"
             )
@@ -693,10 +693,10 @@ class EmailVerifyService(MixinAuthRepository):
             )
 
         usercred.is_verification_email = True
-        await self.repository.make_commit(usercred)
+        await self.repository.make_commit(self.session, usercred)
         logger.info(f"Пользователь {user_id=} успешно подтвердил email")
 
-        return MessageResponse(message="Вы успешно подтвердили почту!")
+        return True
 
 
 @lru_cache

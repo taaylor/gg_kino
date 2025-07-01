@@ -13,7 +13,8 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Query, Request
+from core.config import app_config
+from fastapi import APIRouter, Body, Depends, Query, Request, responses
 from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
@@ -235,11 +236,11 @@ async def disconnect_provider(
         "Подтверждает email пользователя по уникальному токену. "
         "После успешной верификации аккаунт пользователя помечается как подтверждённый. "
     ),
-    response_model=MessageResponse,
 )
 async def verify_email(
     token: Annotated[str, Query(..., description="Уникальный токен подтверждения")],
     user_id: Annotated[UUID, Query(..., description="Идентификатор пользователя")],
     mail_service: Annotated[EmailVerifyService, Depends(get_email_veryfi_service)],
-) -> MessageResponse:
-    return await mail_service.confirm_email_user(user_id, token)
+):
+    await mail_service.confirm_email_user(user_id, token)
+    return responses.RedirectResponse(url=app_config.docs_url)
