@@ -37,7 +37,7 @@ class TestProfile:
         user_id = jwt_tokens.get("user_id")
 
         response_body, status = await make_get_request(
-            f"/{self.URL_PATH}/{user_id}",
+            f"/{self.__class__.URL_PATH}/{user_id}",
             headers=headers,
         )
         logger.info(response_body)
@@ -55,7 +55,7 @@ class TestProfile:
         headers = self._get_headers_apikey()
 
         response_body, status = await make_get_request(
-            f"/{self.URL_PATH}/{user_id}",
+            f"/{self.__class__.URL_PATH}/{user_id}",
             headers=headers,
         )
 
@@ -72,7 +72,7 @@ class TestProfile:
         non_existent_user_id = str(uuid.uuid4())
 
         _, status = await make_get_request(
-            f"/{self.URL_PATH}/{non_existent_user_id}",
+            f"/{self.__class__.URL_PATH}/{non_existent_user_id}",
             headers=headers,
         )
 
@@ -83,7 +83,7 @@ class TestProfile:
         non_existent_user_id = str(uuid.uuid4())
 
         response_body, status = await make_get_request(
-            f"/{self.URL_PATH}/{non_existent_user_id}",
+            f"/{self.__class__.URL_PATH}/{non_existent_user_id}",
             headers=headers,
         )
 
@@ -96,7 +96,7 @@ class TestProfile:
         headers = self._get_invalid_apikey_headers()
 
         _, status = await make_get_request(
-            f"/{self.URL_PATH}/{user_id}",
+            f"/{self.__class__.URL_PATH}/{user_id}",
             headers=headers,
         )
 
