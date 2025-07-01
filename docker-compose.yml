@@ -4,6 +4,7 @@ include:
   - ./infra/elk/docker-compose.elk.yml
   - ./infra/clickhouse/docker-compose.clickhouse.yml
   - ./infra/mongodb/docker-compose.mongodb.yml
+  - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
 
 services:
@@ -227,6 +228,20 @@ services:
       auth-api:
         condition: service_healthy
     restart: "no"
+
+  notification-api:
+    container_name: notification-api-container
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/notification-service/src/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+    restart: "on-failure"
 
   nginx:
     container_name: nginx
