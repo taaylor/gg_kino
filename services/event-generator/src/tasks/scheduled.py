@@ -3,13 +3,13 @@ import asyncio
 from tasks.celery_config import celery_engine
 
 
+def mock_sync_task():
+    return {"status": "ok", "broker": "rabbitmq", "detail": "SYNC executing"}
+
+
 async def mock_async_task():
     await asyncio.sleep(1)
     return {"status": "ok", "broker": "rabbitmq", "detail": "ASYNC executing"}
-
-
-async def mock_sync_task():
-    return {"status": "ok", "broker": "rabbitmq", "detail": "SYNC executing"}
 
 
 @celery_engine.task(name="issue.reminder_1day")
