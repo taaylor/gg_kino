@@ -1,3 +1,4 @@
+import uuid
 from http import HTTPStatus
 
 import pytest
@@ -20,6 +21,13 @@ class TestProfile:
     def _get_headers_apikey() -> dict:
         return {
             "X-Api-Key": test_conf.api_key_notifi_service,
+            "X-Service-Name": test_conf.api_key_notifi_service_name,
+        }
+
+    @staticmethod
+    def _get_invalid_apikey_headers() -> dict:
+        return {
+            "X-Api-Key": "invalid_api_key_123",
             "X-Service-Name": test_conf.api_key_notifi_service_name,
         }
 
@@ -57,3 +65,39 @@ class TestProfile:
             and response_body.get("email") == "user@mail.ru"
             and response_body.get("first_name") == "user"
         )
+
+    async def test_get_profile_forbidden_user_jwt(self, create_user, make_get_request):
+        jwt_tokens = await create_user()
+        headers = self._get_headers_jwt(jwt_tokens)
+        non_existent_user_id = str(uuid.uuid4())
+
+        _, status = await make_get_request(
+            f"/{self.URL_PATH}/{non_existent_user_id}",
+            headers=headers,
+        )
+
+        assert status == HTTPStatus.FORBIDDEN
+
+    async def test_get_profile_nonexistent_user_apikey(self, make_get_request):
+        headers = self._get_headers_apikey()
+        non_existent_user_id = str(uuid.uuid4())
+
+        response_body, status = await make_get_request(
+            f"/{self.URL_PATH}/{non_existent_user_id}",
+            headers=headers,
+        )
+
+        assert status == HTTPStatus.OK
+        assert response_body is None
+
+    async def test_get_profile_invalid_apikey(self, create_user, make_get_request):
+        user_payload = await create_user()
+        user_id = user_payload.get("user_id")
+        headers = self._get_invalid_apikey_headers()
+
+        _, status = await make_get_request(
+            f"/{self.URL_PATH}/{user_id}",
+            headers=headers,
+        )
+
+        assert status == HTTPStatus.BAD_REQUEST
