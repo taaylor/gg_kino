@@ -104,14 +104,14 @@ class RegisterService(BaseAuthService):
         user_settings = UserProfileSettings(
             user_id=user.id,
             user_timezone=user_data.user_timezone,
-            is_notification_email=user_data.is_notification_email,
+            is_email_notify_allowed=user_data.is_email_notify_allowed,
         )
 
-        token = secrets.token_hex(16)
+        token = secrets.token_hex(32)
         user_confirm_email = UserMailConfirmation(
             user_id=user.id, mail_verify_token=pwd_context.hash(token)
         )
-        logger.debug("")
+
         logger.debug(
             f"Для пользователя {user.username=} с ролью: {user.role_code}, получены разрешения: {user_permissions=}",  # noqa: E501
         )
@@ -146,6 +146,14 @@ class RegisterService(BaseAuthService):
         logger.info(
             f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}",
         )
+
+        # Тут необходимо будет отправить событие в сервис нотификации о регистрации пользователя
+        # вынести его в отдельный метод и реализовать через create_tasks в фоне
+        logger.info(
+            f"Ссылка для подтверждения почты пользователя {user.id}: "
+            f"http://localhost/auth/api/v1/sessions/verify-email?{token=}&user_id={user.id}"
+        )
+
         return RegisterResponse(
             user_id=user.id,
             username=user.username,
@@ -154,7 +162,7 @@ class RegisterService(BaseAuthService):
             last_name=user.last_name,
             gender=user.gender,
             session=user_tokens,
-            is_notification_email=user_settings.is_notification_email,
+            is_email_notify_allowed=user_settings.is_email_notify_allowed,
             user_timezone=user_settings.user_timezone,
             is_verification_email=user_cred.is_verification_email,
         )
@@ -653,7 +661,7 @@ class OAuthSocialService(BaseAuthService):
 
 class EmailVerifyService(MixinAuthRepository):
 
-    __slots__ = ("repository", "session")
+    # __slots__ = ("repository", "session")
 
     async def confirm_email_user(self, user_id: uuid.UUID, token: str) -> MessageResponse:
 
@@ -685,7 +693,7 @@ class EmailVerifyService(MixinAuthRepository):
             )
 
         usercred.is_verification_email = True
-        await self.session.add(usercred)
+        await self.repository.make_commit(usercred)
         logger.info(f"Пользователь {user_id=} успешно подтвердил email")
 
         return MessageResponse(message="Вы успешно подтвердили почту!")

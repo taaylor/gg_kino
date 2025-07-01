@@ -48,9 +48,6 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
-
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(id={self.id}, username={self.username})"
 
@@ -79,9 +76,6 @@ class UserCred(Base):
         back_populates="user_cred",
         uselist=False,
     )
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(user_id={self.user_id})>"
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(user_id={self.user_id})"
@@ -129,9 +123,6 @@ class DictRoles(Base):
         passive_deletes=True,  # БД сама удаляет связанные данные
     )
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(role={self.role})>"
-
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(role={self.role})"
 
@@ -151,9 +142,6 @@ class RolesPermissions(Base):
 
     # обратная связь с role
     role: Mapped["DictRoles"] = relationship("DictRoles", back_populates="permissions")
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(permission={self.permission})>"
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(permission={self.permission})>"
@@ -226,7 +214,7 @@ class UserProfileSettings(Base):
         primary_key=True,
     )
     user_timezone: Mapped[str] = mapped_column(String(50), default="UTC")
-    is_notification_email: Mapped[bool] = mapped_column(
+    is_email_notify_allowed: Mapped[bool] = mapped_column(
         default=True,
         server_default=text("'true'"),
         comment="Разрешить отправку уведомлений на почту да/нет",
@@ -237,9 +225,6 @@ class UserProfileSettings(Base):
         back_populates="user_settings",
         uselist=False,
     )
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(user_id={self.user_id})>"
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(user_id={self.user_id})"

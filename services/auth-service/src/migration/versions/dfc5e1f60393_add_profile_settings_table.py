@@ -36,7 +36,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("user_timezone", sa.String(length=50), nullable=False),
         sa.Column(
-            "is_notification_email",
+            "is_email_notify_allowed",
             sa.Boolean(),
             server_default=sa.text("'true'"),
             nullable=False,

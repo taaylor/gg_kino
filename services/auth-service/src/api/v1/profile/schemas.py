@@ -14,7 +14,7 @@ class ProfileResponse(BaseModel):
     role: str = Field(..., description="Код уровня доступа")
     email: str = Field(..., description="Основной email адрес пользователя")
     is_fictional_email: bool = Field(..., description="Признак временного/технического email")
-    is_notification_email: bool = Field(
+    is_email_notify_allowed: bool = Field(
         ..., description="Разрешение на отправку уведомлений на этот email"
     )
     is_verification_email: bool = Field(
@@ -38,7 +38,7 @@ class ProfileResponse(BaseModel):
                 "role": "user",
                 "email": "john.doe@example.com",
                 "is_fictional_email": False,
-                "is_notification_email": True,
+                "is_email_notify_allowed": True,
                 "is_verification_email": True,
                 "user_timezone": "America/New_York",
                 "date_create_account": "2023-01-15T14:30:00Z",

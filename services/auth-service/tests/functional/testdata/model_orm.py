@@ -209,7 +209,7 @@ class UserProfileSettings(Base):
         primary_key=True,
     )
     user_timezone: Mapped[str] = mapped_column(String(50), default="UTC")
-    is_notification_email: Mapped[bool] = mapped_column(
+    is_email_notify_allowed: Mapped[bool] = mapped_column(
         default=True,
         server_default=text("'true'"),
         comment="Разрешить отправку уведомлений на почту да/нет",

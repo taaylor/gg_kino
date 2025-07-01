@@ -13,7 +13,7 @@ class Gender(StrEnum):
 
 
 class ProfileSettingsFields(BaseModel):
-    is_notification_email: bool = Field(
+    is_email_notify_allowed: bool = Field(
         default=True, description="Разрешить отправку рассылок на почту"
     )
     user_timezone: str = Field(default="Europe/Moscow", description="Таймзона пользователя")

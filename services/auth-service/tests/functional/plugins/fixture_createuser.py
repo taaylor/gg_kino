@@ -54,10 +54,10 @@ def create_user(pg_session: AsyncSession, make_post_request):
             email="user@mail.ru",
             password=pwd_context.hash("12345678"),
         )
-        pg_session.add(user_cred)
 
         user_settings = UserProfileSettings(user_id=user.id, user_timezone="America/New_York")
-        pg_session.add(user_settings)
+
+        pg_session.add_all([user_settings, user_cred])
 
         await pg_session.commit()
 

@@ -253,6 +253,10 @@ class AuthRepository:
     ):
         session.add(social_account)
 
+    @sqlalchemy_universal_decorator
+    async def make_commit(self, session: AsyncSession, *args):
+        session.add_all(args)
+
 
 @lru_cache
 def get_auth_repository():

@@ -31,7 +31,7 @@ class ProfileRepository:
                 UserCred.is_fictional_email,
                 UserCred.is_verification_email,
                 UserProfileSettings.user_timezone,
-                UserProfileSettings.is_notification_email,
+                UserProfileSettings.is_email_notify_allowed,
             )
             .join(UserCred, User.id == UserCred.user_id)
             .join(UserProfileSettings, User.id == UserProfileSettings.user_id)
