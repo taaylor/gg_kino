@@ -1,19 +1,19 @@
 """init_notification_tables
 
-Revision ID: 5e8e6979a5cb
+Revision ID: 7569d233ede2
 Revises: 14449df71b25
-Create Date: 2025-06-30 20:40:30.997386+00:00
+Create Date: 2025-07-01 20:30:36.387300+00:00
 
 """
 
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "5e8e6979a5cb"
+revision: str = "7569d233ede2"
 down_revision: Union[str, None] = "14449df71b25"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -50,19 +50,19 @@ def upgrade() -> None:
         ),
         sa.Column(
             "target_start_sending_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=False,
             comment="Планируемое время начала рассылки",
         ),
         sa.Column(
             "start_sending_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=True,
             comment="Фактическое время начала рассылки",
         ),
         sa.Column(
             "actual_sent_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=True,
             comment="Фактическое время завершения рассылки",
         ),
@@ -133,19 +133,19 @@ def upgrade() -> None:
         ),
         sa.Column(
             "target_sent_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=False,
             comment="Планируемое время отправки уведомления",
         ),
         sa.Column(
             "actual_sent_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=True,
             comment="Фактическое время отправки уведомления",
         ),
         sa.Column(
             "added_queue_at",
-            sa.DateTime(),
+            sa.TIMESTAMP(timezone=True),
             nullable=True,
             comment="Время постановки уведомления в очередь на отправку",
         ),
@@ -154,6 +154,12 @@ def upgrade() -> None:
             sa.String(length=50),
             nullable=False,
             comment="Приоритет уведомления",
+        ),
+        sa.Column(
+            "event_type",
+            sa.String(length=100),
+            nullable=False,
+            comment="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
         ),
         sa.Column(
             "event_data",
@@ -176,7 +182,7 @@ def upgrade() -> None:
         sa.Column(
             "mass_notification_id",
             sa.Uuid(),
-            nullable=False,
+            nullable=True,
             comment="ID массовой рассылки, если уведомление массовое",
         ),
         sa.Column(

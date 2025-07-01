@@ -1,3 +1,4 @@
+import asyncio
 from api.v1.notification import notify_api
 from core.config import app_config
 from fastapi import FastAPI, responses
