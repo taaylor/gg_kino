@@ -226,3 +226,14 @@ class UserProfileSettings(Base):
 
     def __str__(self):
         return f"Модель: {self.__class__.__name__}(user_id={self.user_id})"
+
+
+class UserMailConfirmation(Base):
+    __tablename__ = "user_mail_confirmation"
+    __table_args__ = {"schema": "profile"}
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("profile.user.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    mail_verify_token: Mapped[str | None] = mapped_column(String(255))

@@ -1,17 +1,26 @@
+import secrets
 from http import HTTPStatus
 
 import pytest
+from passlib.context import CryptContext
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from tests.functional.core.config_log import get_logger
 from tests.functional.testdata.model_enum import GenderEnum, PermissionEnum
 from tests.functional.testdata.model_orm import (
     DictRoles,
     RolesPermissions,
     User,
     UserCred,
+    UserMailConfirmation,
     UserSession,
 )
 from tests.functional.testdata.schemes import LoginRequest, RegisterRequest
+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.asyncio
@@ -147,3 +156,26 @@ class TestSessions:
 
         assert status == HTTPStatus.OK
         assert len(body.get("history")) == 2
+
+    async def test_email_verify(
+        self,
+        make_get_request,
+        create_user,
+        pg_session: AsyncSession,
+    ):
+
+        user_id = (await create_user(superuser_flag=False)).get("user_id")
+        token_create = secrets.token_hex(32)
+        pg_session.add(
+            UserMailConfirmation(user_id=user_id, mail_verify_token=pwd_context.hash(token_create))
+        )
+        await pg_session.commit()
+
+        body, status = await make_get_request(
+            uri="/sessions/verify-email", params={"user_id": str(user_id), "token": token_create}
+        )
+        usercred = await pg_session.get(UserCred, user_id)
+
+        assert status == HTTPStatus.OK
+        assert not body
+        assert usercred.is_verification_email is True
