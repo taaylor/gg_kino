@@ -40,3 +40,10 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")
     async with async_session_maker() as session:
         yield session
+
+
+def get_session_context():
+    """Возвращает контекстный менеджер для использования вне FastAPI"""
+    if async_session_maker is None:
+        raise ValueError("[PostgreSQL] sessionmaker не инициализирован")
+    return async_session_maker()

@@ -11,7 +11,7 @@ from services.repository.notification_repository import (
     get_notification_repository,
 )
 from services.base_service import BaseService
-from db.postgres import get_session
+from db.postgres import get_session_context
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,10 @@ class NewNotificationProcessor:
         while True:
             logger.info("Запущен процесс обработки нотификаций в статусе NEW")
             
-            async for session in get_session():
+            async with get_session_context() as session:
                 records = await self.repository.fetch_new_notifications(session)
                 if records:
                     logger.info(f"Из БД получено: {len(records)} новых уведомлений")
-                break  # выходим из генератора после одной итерации
                 
             await asyncio.sleep(10)
 
