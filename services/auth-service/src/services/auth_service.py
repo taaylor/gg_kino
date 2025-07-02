@@ -1,5 +1,6 @@
 import logging
 import random
+import secrets
 import string
 import uuid
 from functools import lru_cache
@@ -25,7 +26,7 @@ from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.logic_models import OAuthUserInfo, SessionUserData
-from models.models import SocialAccount, User, UserCred
+from models.models import SocialAccount, User, UserCred, UserMailConfirmation, UserProfileSettings
 from models.models_types import ProvidersEnum
 from services.auth_repository import AuthRepository, get_auth_repository
 from services.base_service import BaseAuthService, MixinAuthRepository
@@ -100,6 +101,17 @@ class RegisterService(BaseAuthService):
             session=self.session,
             role_code=user.role_code,
         )
+        user_settings = UserProfileSettings(
+            user_id=user.id,
+            user_timezone=user_data.user_timezone,
+            is_email_notify_allowed=user_data.is_email_notify_allowed,
+        )
+
+        token = secrets.token_hex(32)
+        user_confirm_email = UserMailConfirmation(
+            user_id=user.id, mail_verify_token=pwd_context.hash(token)
+        )
+
         logger.debug(
             f"Для пользователя {user.username=} с ролью: {user.role_code}, получены разрешения: {user_permissions=}",  # noqa: E501
         )
@@ -126,12 +138,22 @@ class RegisterService(BaseAuthService):
             user_cred=user_cred,
             user_session=user_session,
             user_session_hist=user_session_hist,
+            user_settings=user_settings,
+            user_confirm_email=user_confirm_email,
         )
 
         logger.info(f"Создан пользователь: {user.id=}, {user.username=}")
         logger.info(
             f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}",
         )
+
+        # Тут необходимо будет отправить событие в сервис нотификации о регистрации пользователя
+        # вынести его в отдельный метод и реализовать через create_tasks в фоне
+        logger.info(
+            f"Ссылка для подтверждения почты пользователя {user.id}: "
+            f"http://localhost/auth/api/v1/sessions/verify-email?token={token}&user_id={user.id}"
+        )
+
         return RegisterResponse(
             user_id=user.id,
             username=user.username,
@@ -140,6 +162,9 @@ class RegisterService(BaseAuthService):
             last_name=user.last_name,
             gender=user.gender,
             session=user_tokens,
+            is_email_notify_allowed=user_settings.is_email_notify_allowed,
+            user_timezone=user_settings.user_timezone,
+            is_verified_email=user_cred.is_verified_email,
         )
 
 
@@ -632,6 +657,52 @@ class OAuthSocialService(BaseAuthService):
         return MessageResponse(
             message=f"Вы успешно отвязали {provider_name.capitalize()} сервис",
         )
+
+
+class EmailVerifyService(MixinAuthRepository):
+
+    async def confirm_email_user(self, user_id: uuid.UUID, token: str) -> bool:
+
+        usercred = await self.repository.fetch_usercred_by_id(self.session, str(user_id))
+
+        if not usercred:
+            logger.warning(f"Пользователь с {user_id=} не найден, при подтверждении почты")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Пользователь не найден"
+            )
+
+        if usercred.is_verified_email:
+            logger.warning(f"Пользователь с {user_id=} уже подтвердил email ранее")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Почта уже подтверждена"
+            )
+
+        user_mail_conf = await self.repository.fetch_user_mail_conf_by_id(
+            self.session, str(user_id)
+        )
+
+        if not pwd_context.verify(token, user_mail_conf.mail_verify_token):
+            logger.warning(
+                f"Пользователь с {user_id=} предоставил неверный токен при подтверждении email"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный токен, для подтверждения почты",
+            )
+
+        usercred.is_verified_email = True
+        await self.repository.make_commit(self.session, usercred)
+        logger.info(f"Пользователь {user_id=} успешно подтвердил email")
+
+        return True
+
+
+@lru_cache
+def get_email_veryfi_service(
+    session: AsyncSession = Depends(get_session),
+    repository: AuthRepository = Depends(get_auth_repository),
+) -> EmailVerifyService:
+    return EmailVerifyService(session=session, repository=repository)
 
 
 @lru_cache

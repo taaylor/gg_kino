@@ -1,4 +1,5 @@
 from api.v1.auth import auth_api
+from api.v1.profile import profile_api
 from api.v1.role import role
 from api.v1.update_user_data import routers
 from core.config import app_config
@@ -38,3 +39,6 @@ SERVICE_PATH = "/auth/api/v1/"
 app.include_router(role.router, prefix=f"{SERVICE_PATH}roles", tags=["Роли"])
 app.include_router(routers.router, prefix=f"{SERVICE_PATH}users", tags=["Пользователи"])
 app.include_router(auth_api.router, prefix=f"{SERVICE_PATH}sessions", tags=["Сессии"])
+app.include_router(
+    profile_api.router, prefix=f"{SERVICE_PATH}profile", tags=["Профиль пользователя"]
+)
