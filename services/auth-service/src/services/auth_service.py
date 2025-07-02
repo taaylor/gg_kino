@@ -164,7 +164,7 @@ class RegisterService(BaseAuthService):
             session=user_tokens,
             is_email_notify_allowed=user_settings.is_email_notify_allowed,
             user_timezone=user_settings.user_timezone,
-            is_verification_email=user_cred.is_verification_email,
+            is_verified_email=user_cred.is_verified_email,
         )
 
 
@@ -661,8 +661,6 @@ class OAuthSocialService(BaseAuthService):
 
 class EmailVerifyService(MixinAuthRepository):
 
-    __slots__ = ("repository", "session")
-
     async def confirm_email_user(self, user_id: uuid.UUID, token: str) -> bool:
 
         usercred = await self.repository.fetch_usercred_by_id(self.session, str(user_id))
@@ -673,7 +671,7 @@ class EmailVerifyService(MixinAuthRepository):
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Пользователь не найден"
             )
 
-        if usercred.is_verification_email:
+        if usercred.is_verified_email:
             logger.warning(f"Пользователь с {user_id=} уже подтвердил email ранее")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Почта уже подтверждена"
@@ -692,7 +690,7 @@ class EmailVerifyService(MixinAuthRepository):
                 detail="Неверный токен, для подтверждения почты",
             )
 
-        usercred.is_verification_email = True
+        usercred.is_verified_email = True
         await self.repository.make_commit(self.session, usercred)
         logger.info(f"Пользователь {user_id=} успешно подтвердил email")
 

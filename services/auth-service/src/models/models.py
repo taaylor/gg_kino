@@ -66,7 +66,7 @@ class UserCred(Base):
         default=False,
         server_default=text("'false'"),
     )
-    is_verification_email: Mapped[bool] = mapped_column(
+    is_verified_email: Mapped[bool] = mapped_column(
         default=False, server_default=text("'false'"), comment="Подтвеждение email"
     )
 

@@ -53,7 +53,9 @@ class ApiKeyValidate:
     @classmethod
     def validate_apikey_service(cls, api_key: str, service_name: str) -> bool:
         if api_key is None and service_name is None:
-            logger.debug("Отсутствует API Key или Service Name")
+            logger.debug(
+                "Отсутствуют заголовки ключей, пропускаем проверку API ключа и имени сервиса"
+            )
             return False
 
         logger.info(f"Получен запрос от сервиса {service_name} с APIKEY: {api_key[:5]}***")

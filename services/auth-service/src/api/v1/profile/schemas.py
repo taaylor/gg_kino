@@ -17,9 +17,7 @@ class ProfileResponse(BaseModel):
     is_email_notify_allowed: bool = Field(
         ..., description="Разрешение на отправку уведомлений на этот email"
     )
-    is_verification_email: bool = Field(
-        ..., description="Подтверждён ли email (верификация пройдена)"
-    )
+    is_verified_email: bool = Field(..., description="Подтверждён ли email (верификация пройдена)")
     user_timezone: str = Field(
         ..., description="Часовой пояс пользователя в формате 'Europe/Moscow'"
     )

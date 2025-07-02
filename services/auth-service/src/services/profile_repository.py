@@ -29,7 +29,7 @@ class ProfileRepository:
                 User.created_at,
                 UserCred.email,
                 UserCred.is_fictional_email,
-                UserCred.is_verification_email,
+                UserCred.is_verified_email,
                 UserProfileSettings.user_timezone,
                 UserProfileSettings.is_email_notify_allowed,
             )

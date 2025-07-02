@@ -90,7 +90,7 @@ class RegisterRequest(ProfileSettingsFields, UserFields):
 class RegisterResponse(ProfileSettingsFields, UserFields):
     user_id: UUID = Field(..., description="Уникальный идентификатор пользователя")
     session: Session = Field(..., description="Сессия пользователя")
-    is_verification_email: bool = Field(..., description="Статус подтверждения почты")
+    is_verified_email: bool = Field(..., description="Статус подтверждения почты")
 
 
 class LoginRequest(BaseModel):

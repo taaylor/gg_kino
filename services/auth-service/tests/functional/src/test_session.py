@@ -178,4 +178,4 @@ class TestSessions:
 
         assert status == HTTPStatus.OK
         assert not body
-        assert usercred.is_verification_email is True
+        assert usercred.is_verified_email is True
