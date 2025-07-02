@@ -18,7 +18,7 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
-class Postgres(BaseSettings):
+class Postgres(BaseModel):
     host: str = "localhost"
     port: int = 5432
     user: str = "postgres"
@@ -30,6 +30,19 @@ class Postgres(BaseSettings):
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"  # noqa: WPS221, E501
 
 
+class ProfileApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8000
+    auth_header: str = "x-api-key"
+    api_key: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
+    service_name: str = "notification_service"
+    profile_path: str = "/auth/api/v1/profile/{user_id}"
+
+    @property
+    def get_profile_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class AppConfig(BaseSettings):
     tracing: bool = False
     project_name: str = "notification-service"
@@ -38,6 +51,7 @@ class AppConfig(BaseSettings):
 
     server: Server = Server()
     postgres: Postgres = Postgres()
+    profile_api: ProfileApi = ProfileApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

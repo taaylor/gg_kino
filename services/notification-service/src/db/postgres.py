@@ -31,6 +31,17 @@ class Base(AsyncAttrs, DeclarativeBase):
         onupdate=func.now(),
     )
 
+    repr_cols_num = 3
+    repr_cols = ()
+
+    def __repr__(self):
+        cols = []
+        for idx, col in enumerate(self.__table__.columns.keys()):
+            if col in self.repr_cols or idx < self.repr_cols_num:
+                cols.append(f"{col}={getattr(self, col)}")
+
+        return f"<{self.__class__.__name__} {', '.join(cols)}>"
+
 
 async_session_maker: async_sessionmaker | None = None
 
@@ -42,7 +53,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-def get_session_context():
+def get_session_context() -> AsyncSession:
     """Возвращает контекстный менеджер для использования вне FastAPI"""
     if async_session_maker is None:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")

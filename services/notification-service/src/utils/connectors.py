@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     engine = create_async_engine(
         url=app_config.postgres.ASYNC_DATABASE_URL,
-        echo=True,
+        echo=False,
         future=True,
     )
     postgres.async_session_maker = async_sessionmaker(

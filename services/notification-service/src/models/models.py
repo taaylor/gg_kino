@@ -1,4 +1,3 @@
-# noqa: WPS432
 import logging
 import uuid
 from datetime import datetime, timezone
