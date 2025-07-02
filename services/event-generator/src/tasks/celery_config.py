@@ -1,9 +1,14 @@
+import os
+
 from celery import Celery
 from celery.schedules import crontab
 
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
+RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "pass")
+
 celery_engine = Celery(
     "tasks",
-    broker="amqp://user:pass@rabbitmq-1:5672//",
+    broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq-1:5672//",
     include=[
         "tasks.scheduled",
     ],
