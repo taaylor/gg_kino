@@ -1,22 +1,9 @@
 from celery import Celery
 from celery.schedules import crontab
 
-# celery -A tasks.celery_config:celery_engine flower
-# redis://<USER>:<PASSWORD>@<HOST>:<PORT>/<DB>
-"""
-amqp://<USER>:<PASSWORD>@<HOST>:<PORT>/<VHOST>
-amqp://rabbit:rabbit@rabbitmq:5672//
-rabbit — логин
-rabbit — пароль
-rabbitmq — имя сервиса в Docker Compose
-5672 — порт RabbitMQ
-!   // — это корневой виртуальный хост (vhost). Одна косая черта — путь, вторая — пустой vhost
-"""
 celery_engine = Celery(
     "tasks",
-    # broker="redis://redis:6379",
-    # broker="redis://redis_user:Parol123@redis:6379/0",
-    broker="amqp://rabbit:rabbit@rabbitmq:5672//",
+    broker="amqp://user:pass@rabbitmq-1:5672//",
     include=[
         "tasks.scheduled",
     ],
