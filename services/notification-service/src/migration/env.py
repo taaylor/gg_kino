@@ -61,9 +61,9 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
+        include_schemas=True,
         # изменяем наименование таблицы для хранения миграций чтобы не было конфликтов с auth-api
         version_table="alembic_version_notify_service",
-        include_schemas=True,
         include_object=include_object,
     )
 

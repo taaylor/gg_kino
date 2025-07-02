@@ -1,0 +1,44 @@
+include:
+  - ../../infra/rabbit/docker-compose.rabbit.yml
+services:
+
+  event-generator:
+    build:
+      context: ../..
+      dockerfile: services/event-generator/src/Dockerfile
+    image: event-generator:latest
+    env_file:
+      - ../../.env
+    ports:
+      - 8077:8000
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+      # rabbitmq:
+      #   condition: service_healthy
+
+    restart: always
+
+
+  celery-beat:
+    image: event-generator:latest   # <— и здесь тоже
+    # command: ["services/event-generator/src/scripts/run_celery.sh", "celery_beat"] # Второй аргумен для if/elif в скрипте
+    # command: ["/opt/app/scripts/run_celery.sh", "celery_beat"]
+    command: ["./scripts/run_celery.sh", "celery_beat"]
+    working_dir: /opt/app          # на всякий случай
+    env_file:
+      - ../../.env
+    # depends_on:
+    #   rabbitmq:
+    #     condition: service_healthy
+    restart: always
+
+volumes:
+  # redis_data:
+  rabbitmq_data:
