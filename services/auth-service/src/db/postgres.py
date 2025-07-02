@@ -32,8 +32,11 @@ class Base(AsyncAttrs, DeclarativeBase):
         onupdate=func.now(),
     )
 
+    # указывает на то сколько показывать первых полей модели в логах (в строковом виде)
     repr_cols_num = 3
-    repr_cols = tuple()
+    # представляет из себя кортеж, в который можно передать
+    # определенные поля, для отображения в строковом виде.
+    repr_cols = ()
 
     def __repr__(self):
         cols = []

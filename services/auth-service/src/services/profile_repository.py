@@ -26,7 +26,7 @@ class ProfileRepository:
                 User.last_name,
                 User.gender,
                 User.role_code.label("role"),
-                User.created_at.label("date_create_account"),
+                User.created_at,
                 UserCred.email,
                 UserCred.is_fictional_email,
                 UserCred.is_verification_email,

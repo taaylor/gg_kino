@@ -3,9 +3,9 @@ from uuid import UUID
 
 from api.v1.profile.schemas import ProfileResponse
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, security, status
 from services.profile_service import ProfileService, get_profile_service
-from utils.state_manager import validate_apikey_service
+from utils.state_manager import ApiKeyValidate
 
 router = APIRouter()
 
@@ -20,13 +20,20 @@ async def get_user_profile_info(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
     user_id: Annotated[UUID, Path(description="Идентификатор пользователя для получения профиля")],
-    x_api_key: Annotated[str | None, Header(description="Ключ для доступа к API")] = None,
+    x_api_key: Annotated[
+        str | None,
+        Depends(
+            security.APIKeyHeader(
+                name="X-Api-Key", description="Ключ для достпа к API", auto_error=False
+            )
+        ),
+    ] = None,
     x_service_name: Annotated[
-        str | None, Header(description="НАименование сервиса, от которого идет запрос")
+        str | None, Header(description="Наименование сервиса отправившего запрос")
     ] = None,
 ) -> ProfileResponse | None:
 
-    if validate_apikey_service(x_api_key, x_service_name):
+    if ApiKeyValidate.validate_apikey_service(x_api_key, x_service_name):
         target_user_id = user_id
     else:
         await authorize.jwt_required()

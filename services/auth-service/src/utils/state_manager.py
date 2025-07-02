@@ -46,27 +46,33 @@ def get_signed_state_manager() -> SignedStateManager:
     return SignedStateManager(secret_key=app_config.auth_secret_key)
 
 
-def validate_apikey_service(x_api_key: str | None, x_service_name: str | None) -> bool:
-    if x_api_key is None and x_service_name is None:
-        logger.debug("Отсутствует API Key или Service Name")
-        return False
+class ApiKeyValidate:
 
-    logger.info(f"Получен запрос от сервиса {x_service_name} с APIKEY: {x_api_key[:5]}***")
+    __slots__ = ()
 
-    if not hasattr(app_config.apikey, x_service_name):
-        logger.warning(f"Попытка доступа от неизвестного сервиса: {x_service_name}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Сервис {x_service_name} не зарегистрирован",
-        )
+    @classmethod
+    def validate_apikey_service(cls, api_key: str, service_name: str) -> bool:
+        if api_key is None and service_name is None:
+            logger.debug("Отсутствует API Key или Service Name")
+            return False
 
-    valid_key = getattr(app_config.apikey, x_service_name)
+        logger.info(f"Получен запрос от сервиса {service_name} с APIKEY: {api_key[:5]}***")
 
-    if not hmac.compare_digest(x_api_key, valid_key):
-        logger.warning(f"Неверный ключ от сервиса {x_service_name}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Переданного APIKEY не существует"
-        )
+        if not hasattr(app_config.apikey, service_name):
+            logger.warning(f"Попытка доступа от неизвестного сервиса: {service_name}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Сервис {service_name} не зарегистрирован или неверный API ключ",
+            )
 
-    logger.info(f"Успешная аутентификация сервиса {x_service_name}")
-    return True
+        valid_key = getattr(app_config.apikey, service_name)
+
+        if not hmac.compare_digest(api_key, valid_key):
+            logger.warning(f"Неверный ключ от сервиса {service_name}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Сервис {service_name} не зарегистрирован или неверный API ключ",
+            )
+
+        logger.info(f"Успешная аутентификация сервиса {service_name}")
+        return True

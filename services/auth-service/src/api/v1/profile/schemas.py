@@ -23,9 +23,7 @@ class ProfileResponse(BaseModel):
     user_timezone: str = Field(
         ..., description="Часовой пояс пользователя в формате 'Europe/Moscow'"
     )
-    date_create_account: datetime = Field(
-        ..., description="Дата и время регистрации аккаунта в UTC"
-    )
+    created_at: datetime = Field(..., description="Дата и время регистрации аккаунта в UTC")
 
     class Config:
         json_schema_extra = {
