@@ -82,9 +82,23 @@ repos:
           "--config-file=pyproject.toml",
           "--no-implicit-reexport",
           "--show-error-context",
-          "--verbose"
+          "--verbose",
+          "--explicit-package-bases"
         ]
-        files: ^(services/content-actions-service/src|services/notification-service/src)/
+        files: ^services/content-actions-service/src/
+        additional_dependencies:
+          - mypy==1.13.0
+          - types-ujson
+      - id: mypy
+        name: mypy-notification-service
+        args: [
+          "--config-file=pyproject.toml",
+          "--no-implicit-reexport",
+          "--show-error-context",
+          "--verbose",
+          "--explicit-package-bases"
+        ]
+        files: ^services/notification-service/src/
         additional_dependencies:
           - mypy==1.13.0
           - types-ujson

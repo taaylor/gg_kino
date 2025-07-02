@@ -1,11 +1,10 @@
 import logging
 from functools import lru_cache
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-from models.models import Notification
 from models.enums import NotificationStatus
+from models.models import Notification
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
 
 logger = logging.getLogger(__name__)

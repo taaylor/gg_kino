@@ -1,17 +1,11 @@
-import logging
 import asyncio
-from functools import lru_cache
+import logging
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from fastapi import Depends
-
+from db.postgres import get_session_context
 from services.repository.notification_repository import (
     NotificationRepository,
     get_notification_repository,
 )
-from services.base_service import BaseService
-from db.postgres import get_session_context
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +16,14 @@ class NewNotificationProcessor:
         self.repository = repository
 
     async def process_new_notifications(self):
-        while True:
+        while True:  # noqa: WPS457
             logger.info("Запущен процесс обработки нотификаций в статусе NEW")
-            
+
             async with get_session_context() as session:
                 records = await self.repository.fetch_new_notifications(session)
                 if records:
                     logger.info(f"Из БД получено: {len(records)} новых уведомлений")
-                
+
             await asyncio.sleep(10)
 
 

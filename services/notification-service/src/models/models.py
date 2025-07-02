@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from db.postgres import Base
 from models.enums import MassNotificationStatus, NotificationMethod, NotificationStatus, Priority
-from sqlalchemy import TIMESTAMP, String, TIMESTAMP
+from sqlalchemy import TIMESTAMP, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -47,7 +47,10 @@ class Notification(Base):
     priority: Mapped[Priority] = mapped_column(
         String(50), default=Priority.LOW, comment="Приоритет уведомления"
     )
-    event_type: Mapped[str] = mapped_column(String(100), comment="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)")
+    event_type: Mapped[str] = mapped_column(
+        String(100),
+        comment="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
+    )
     event_data: Mapped[dict | None] = mapped_column(
         JSONB, comment="Дополнительные данные события для шаблона уведомления"
     )

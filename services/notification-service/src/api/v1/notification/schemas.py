@@ -1,10 +1,8 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from models.enums import Priority
+from models.enums import NotificationMethod, Priority
 from pydantic import BaseModel, Field
-
-from models.enums import MassNotificationStatus, NotificationMethod, NotificationStatus, Priority
 
 
 class SingleNotificationRequest(BaseModel):
@@ -29,7 +27,9 @@ class SingleNotificationRequest(BaseModel):
     event_data: dict | None = Field(
         ..., description="Контекст события, которое привело к запросу на нотификацию"
     )
-    target_sent_at: datetime = Field(datetime.now(timezone.utc), description="Желаемое время отправки уведомления")
+    target_sent_at: datetime = Field(
+        datetime.now(timezone.utc), description="Желаемое время отправки уведомления"
+    )
 
 
 class SingleNotificationResponse(BaseModel):

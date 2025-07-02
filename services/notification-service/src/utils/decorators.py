@@ -19,19 +19,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 logger = logging.getLogger(__name__)
 
 
-def backoff[**P, R](
+def backoff[**P, R](  # noqa: WPS211, WPS231, WPS234
     exception: tuple[Type[Exception], ...],
     start_sleep_time: float = 0.1,
     factor: float = 2,
     border_sleep_time: float = 10,
     jitter: bool = True,
     max_attempts: int = 5,
-) -> Callable[[Callable[P, Coroutine[Any, Any, R]]], Callable[P, Coroutine[Any, Any, R]]]:
-    def func_wrapper(
+) -> Callable[
+    [Callable[P, Coroutine[Any, Any, R]]], Callable[P, Coroutine[Any, Any, R]]  # noqa: WPS221
+]:
+    def func_wrapper(  # noqa: WPS430, WPS231
         func: Callable[P, Coroutine[Any, Any, R]],
-    ) -> Callable[P, Coroutine[Any, Any, R]]:
+    ) -> Callable[P, Coroutine[Any, Any, R]]:  # noqa: WPS221
         @wraps(func)
-        async def wrapper(
+        async def wrapper(  # noqa: WPS231
             *args: P.args,
             **kwargs: P.kwargs,
         ) -> R:
@@ -79,7 +81,7 @@ def backoff[**P, R](
     return func_wrapper
 
 
-def sqlalchemy_handler_400_exceptions[**P, R](
+def sqlalchemy_handler_400_exceptions[**P, R](  # noqa: WPS231, WPS114
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @wraps(func)

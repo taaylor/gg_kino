@@ -1,8 +1,7 @@
 from typing import Annotated
 
 from api.v1.notification.schemas import SingleNotificationRequest, SingleNotificationResponse
-from fastapi import APIRouter, Depends, Body
-
+from fastapi import APIRouter, Body, Depends
 from services.notification_service import NotificationService, get_notification_service
 
 router = APIRouter()

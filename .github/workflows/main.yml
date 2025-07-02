@@ -31,8 +31,8 @@ jobs:
           --exclude=services/notification-service/src/migration/*,services/notification-service/src/alembic/* \
           --format=html \
           --htmldir=flake-report
-          mypy services/content-actions-service/src --config-file=pyproject.toml --no-implicit-reexport
-          mypy services/notification-service/src --config-file=pyproject.toml --no-implicit-reexport
+          mypy services/content-actions-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
+          mypy services/notification-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
 
       - name: Upload flake8 report  # выгружает отчеты по flake8
         if: always()
