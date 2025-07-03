@@ -65,7 +65,6 @@ class TestProfile:
                     "test_valid": True,
                     "api_key": test_conf.api_key,
                     "cached_data": False,
-                    "cnt_user": 5,
                     "unknow_ids": [
                         "b2f453fb-e12c-42ca-98b5-183f4881c30e",
                         "59cf9199-4d7b-4cc8-a0ff-b86d2c32e214",

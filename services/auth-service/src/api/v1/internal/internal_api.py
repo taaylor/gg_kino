@@ -20,7 +20,7 @@ router = APIRouter()
 )
 async def fetch_users_profiles(
     x_api_key: Annotated[
-        str | None,
+        str,
         Depends(
             security.APIKeyHeader(
                 name="X-Api-Key", description="Ключ для достпа к API", auto_error=True
