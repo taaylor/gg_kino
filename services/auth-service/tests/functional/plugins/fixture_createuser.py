@@ -1,5 +1,6 @@
 import pytest_asyncio
 from passlib.context import CryptContext
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tests.functional.core.config_log import get_logger
 from tests.functional.testdata.model_enum import PermissionEnum
@@ -17,7 +18,9 @@ logger = get_logger(__name__)
 
 @pytest_asyncio.fixture(name="create_user")
 def create_user(pg_session: AsyncSession, make_post_request):
-    async def inner(superuser_flag: bool = False) -> dict[str, str]:
+    async def inner(
+        superuser_flag: bool = False, username: str = "user", email: str = "user@mail.ru"
+    ) -> dict[str, str]:
         """Отдает токены авторизации, для запросов в API
 
         : superuser: bool = False - создается администратор/пользователь сервиса
@@ -25,33 +28,43 @@ def create_user(pg_session: AsyncSession, make_post_request):
         pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
         if superuser_flag:
-            role_user = "ADMIN"
-            permissions_user = [perm for perm in PermissionEnum]
+            role_code = "ADMIN"
+            permissions = [perm for perm in PermissionEnum]
         else:
-            role_user = "UNSUB_USER"
-            permissions_user = [PermissionEnum.FREE_FILMS]
+            role_code = "UNSUB_USER"
+            permissions = [PermissionEnum.FREE_FILMS]
 
-        # создаем роль и права для суперпользователя
-        role = DictRoles(role=role_user)
-        pg_session.add(role)
-        await pg_session.flush()
+        role_exists = await pg_session.scalar(
+            select(DictRoles).where(DictRoles.role == role_code).limit(1)
+        )
 
-        permissions = [
-            RolesPermissions(role_code=role.role, permission=perm.value)
-            for perm in permissions_user
-        ]
-        pg_session.add_all(permissions)
+        if not role_exists:
+            role = DictRoles(role=role_code)
+            pg_session.add(role)
+            await pg_session.flush()
+
+            permission_objects = [
+                RolesPermissions(role_code=role.role, permission=perm.value) for perm in permissions
+            ]
+            pg_session.add_all(permission_objects)
+            await pg_session.flush()
+        else:
+            role = role_exists
 
         # создаем пользователя
         user = User(
-            username="user", role_code=role.role, first_name="user", last_name="user", gender="MALE"
+            username=username,
+            role_code=role.role,
+            first_name="user",
+            last_name="user",
+            gender="MALE",
         )
         pg_session.add(user)
         await pg_session.flush()
 
         user_cred = UserCred(
             user_id=user.id,
-            email="user@mail.ru",
+            email=email,
             password=pwd_context.hash("12345678"),
         )
 
