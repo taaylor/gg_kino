@@ -3,15 +3,14 @@ from uuid import UUID
 
 from api.v1.profile.schemas import ProfileResponse
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Depends, Header, HTTPException, Path, security, status
+from fastapi import APIRouter, Depends
 from services.profile_service import ProfileService, get_profile_service
-from utils.state_manager import ApiKeyValidate
 
 router = APIRouter()
 
 
 @router.get(
-    path="/{user_id}",
+    path="/",
     description="Возвращает профиль пользователя по id пользователя",
     summary="Получить профиль пользователя",
     response_model=ProfileResponse | None,
@@ -19,32 +18,7 @@ router = APIRouter()
 async def get_user_profile_info(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
-    user_id: Annotated[UUID, Path(description="Идентификатор пользователя для получения профиля")],
-    x_api_key: Annotated[
-        str | None,
-        Depends(
-            security.APIKeyHeader(
-                name="X-Api-Key", description="Ключ для достпа к API", auto_error=False
-            )
-        ),
-    ] = None,
-    x_service_name: Annotated[
-        str | None, Header(description="Наименование сервиса отправившего запрос")
-    ] = None,
 ) -> ProfileResponse | None:
-
-    if ApiKeyValidate.validate_apikey_service(x_api_key, x_service_name):
-        target_user_id = user_id
-    else:
-        await authorize.jwt_required()
-        user_jwt_id = UUID((await authorize.get_raw_jwt()).get("user_id"))
-
-        if user_jwt_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="У вас недостаточно прав для просмотра этого профиля",
-            )
-
-        target_user_id = user_jwt_id
-
-    return await profile_service.get_user_data_profile(target_user_id)
+    await authorize.jwt_required()
+    user_jwt_id = UUID((await authorize.get_raw_jwt()).get("user_id"))
+    return await profile_service.get_user_data_profile(user_jwt_id)

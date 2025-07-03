@@ -1,7 +1,9 @@
-import uuid
+import hashlib
 from http import HTTPStatus
+from typing import Any
 
 import pytest
+from faker import Faker
 from tests.functional.core.config_log import get_logger
 from tests.functional.core.settings import test_conf
 
@@ -10,7 +12,6 @@ logger = get_logger(__name__)
 
 @pytest.mark.asyncio
 class TestProfile:
-    URL_PATH = "profile"
 
     @staticmethod
     def _get_headers_jwt(jwt_tokens: dict) -> dict:
@@ -18,86 +19,101 @@ class TestProfile:
         return {"Authorization": f"Bearer {access_token}"}
 
     @staticmethod
-    def _get_headers_apikey() -> dict:
-        return {
-            "X-Api-Key": test_conf.api_key_notifi_service,
-            "X-Service-Name": test_conf.api_key_notifi_service_name,
-        }
+    async def _fill_database_users(cnt_user: int, create_user) -> list[str]:
+        faker = Faker()
+        user_ids = []
+        for _ in range(cnt_user):
+            user = await create_user(
+                superuser_flag=False, username=faker.user_name(), email=faker.email()
+            )
+            user_ids.append(str(user.get("user_id")))
+        return user_ids
 
-    @staticmethod
-    def _get_invalid_apikey_headers() -> dict:
-        return {
-            "X-Api-Key": "invalid_api_key_123",
-            "X-Service-Name": test_conf.api_key_notifi_service_name,
-        }
-
-    async def test_get_profile_user_jwt(self, create_user, make_get_request):
+    async def test_get_profile_user_jwt(self, create_user, make_get_request, redis_test):
         jwt_tokens = await create_user()
         headers = self._get_headers_jwt(jwt_tokens)
         user_id = jwt_tokens.get("user_id")
+        key_cache = f"profile:user:{user_id}"
 
         response_body, status = await make_get_request(
-            f"/{self.__class__.URL_PATH}/{user_id}",
+            "/profile",
             headers=headers,
         )
-        logger.info(response_body)
+        cache = await redis_test(key=key_cache, cached_data=True)
 
         assert status == HTTPStatus.OK
         assert (
             response_body.get("user_id") == str(user_id)
-            and response_body.get("email") == "user@mail.ru"
             and response_body.get("first_name") == "user"
         )
+        assert cache is not None
 
-    async def test_get_profile_user_apikey(self, create_user, make_get_request):
-        user_payload = await create_user()
-        user_id = user_payload.get("user_id")
-        headers = self._get_headers_apikey()
+    @pytest.mark.parametrize(
+        "query_data, expected_answer",
+        [
+            (
+                {
+                    "test_valid": True,
+                    "api_key": test_conf.api_key,
+                    "cached_data": True,
+                    "cnt_user": 5,
+                },
+                {"status": HTTPStatus.OK, "cnt_response_profile": 5},
+            ),
+            (
+                {
+                    "test_valid": True,
+                    "api_key": test_conf.api_key,
+                    "cached_data": False,
+                    "cnt_user": 5,
+                    "unknow_ids": [
+                        "b2f453fb-e12c-42ca-98b5-183f4881c30e",
+                        "59cf9199-4d7b-4cc8-a0ff-b86d2c32e214",
+                        "730c230f-6eed-44da-8bf9-03d6b3c973e4",
+                    ],
+                },
+                {"status": HTTPStatus.OK, "cnt_response_profile": 0},
+            ),
+            (
+                {
+                    "test_valid": False,
+                    "api_key": "mega_ultra_kluch_ot_vsego",
+                    "cached_data": False,
+                    "cnt_user": 5,
+                },
+                {
+                    "status": HTTPStatus.BAD_REQUEST,
+                },
+            ),
+        ],
+        ids=["Test valid", "Test valid null profiles", "Test invalid api key"],
+    )
+    async def test_get_profiles_users_apikey(
+        self,
+        create_user,
+        make_post_request,
+        redis_test,
+        query_data: dict[str, Any],
+        expected_answer: dict[str, Any],
+    ):
 
-        response_body, status = await make_get_request(
-            f"/{self.__class__.URL_PATH}/{user_id}",
-            headers=headers,
+        if res := query_data.get("unknow_ids"):
+            user_ids = sorted(res)
+        else:
+            user_ids = sorted(
+                await self._fill_database_users(query_data.get("cnt_user"), create_user)
+            )
+        key_cache = f"profile:users:{hashlib.sha256("".join(user_ids).encode()).hexdigest()}"
+        headers = {"X-Api-Key": query_data.get("api_key")}
+
+        response_body, status = await make_post_request(
+            "/internal/fetch-profiles", headers=headers, data={"user_ids": user_ids}
         )
+        await redis_test(key=key_cache, cached_data=query_data.get("cached_data"))
 
-        assert status == HTTPStatus.OK
-        assert (
-            response_body.get("user_id") == str(user_id)
-            and response_body.get("email") == "user@mail.ru"
-            and response_body.get("first_name") == "user"
-        )
+        if query_data.get("test_valid"):
+            assert status == expected_answer.get("status")
+            assert len(response_body) == expected_answer.get("cnt_response_profile")
 
-    async def test_get_profile_forbidden_user_jwt(self, create_user, make_get_request):
-        jwt_tokens = await create_user()
-        headers = self._get_headers_jwt(jwt_tokens)
-        non_existent_user_id = str(uuid.uuid4())
-
-        _, status = await make_get_request(
-            f"/{self.__class__.URL_PATH}/{non_existent_user_id}",
-            headers=headers,
-        )
-
-        assert status == HTTPStatus.FORBIDDEN
-
-    async def test_get_profile_nonexistent_user_apikey(self, make_get_request):
-        headers = self._get_headers_apikey()
-        non_existent_user_id = str(uuid.uuid4())
-
-        response_body, status = await make_get_request(
-            f"/{self.__class__.URL_PATH}/{non_existent_user_id}",
-            headers=headers,
-        )
-
-        assert status == HTTPStatus.OK
-        assert response_body is None
-
-    async def test_get_profile_invalid_apikey(self, create_user, make_get_request):
-        user_payload = await create_user()
-        user_id = user_payload.get("user_id")
-        headers = self._get_invalid_apikey_headers()
-
-        _, status = await make_get_request(
-            f"/{self.__class__.URL_PATH}/{user_id}",
-            headers=headers,
-        )
-
-        assert status == HTTPStatus.BAD_REQUEST
+        elif not query_data.get("test_valid"):
+            assert status == expected_answer.get("status")

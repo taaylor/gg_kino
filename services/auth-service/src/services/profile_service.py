@@ -1,13 +1,16 @@
+import hashlib
 import logging
 from functools import lru_cache
 from typing import Annotated
 from uuid import UUID
 
+from api.v1.internal.schemes import ProfileInternalResponse
 from api.v1.profile.schemas import ProfileResponse
 from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends
+from pydantic import TypeAdapter
 from services.profile_repository import ProfileRepository, get_profile_repository
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ProfileService:
     KEY_CACHE_PROFILE = "profile:user:{user_id}"
+    KEY_CACHE_PROFILES = "profile:users:{user_ids}"
 
     __slots__ = ("session_db", "cache", "repository")
 
@@ -48,6 +52,30 @@ class ProfileService:
             )
             return profile_response
         return None
+
+    async def get_users_data_profiles(self, user_ids: list[UUID]) -> list[ProfileInternalResponse]:
+        # подготавливаем ключ для кеша, используем хеш чтобы значительно сократить длину ключа
+        sorted_ids = sorted(str(user_id) for user_id in user_ids)
+        ids_hash = hashlib.sha256("".join(sorted_ids).encode()).hexdigest()
+        key_cache = self.__class__.KEY_CACHE_PROFILES.format(user_ids=ids_hash)
+
+        adapter = TypeAdapter(list[ProfileResponse])
+        if profiles_cache := await self.cache.get(key_cache):
+            logger.info(f"Найдены профили пользователей в кеше по ключу {key_cache=}")
+            return adapter.validate_json(profiles_cache)
+
+        profiles = await self.repository.fetch_list_profiles_by_ids(self.session_db, sorted_ids)
+
+        if profiles:
+            profiles_response = adapter.validate_python(profiles)
+            logger.info(f"Получены профили пользователей {len(profiles_response)}")
+            await self.cache.background_set(
+                key=key_cache,
+                value=adapter.dump_json(profiles_response),
+                expire=app_config.cache_expire_in_seconds,
+            )
+            return profiles_response
+        return []
 
 
 @lru_cache()
