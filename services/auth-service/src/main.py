@@ -1,4 +1,5 @@
 from api.v1.auth import auth_api
+from api.v1.internal import internal_api
 from api.v1.profile import profile_api
 from api.v1.role import role
 from api.v1.update_user_data import routers
@@ -42,3 +43,4 @@ app.include_router(auth_api.router, prefix=f"{SERVICE_PATH}sessions", tags=["С�
 app.include_router(
     profile_api.router, prefix=f"{SERVICE_PATH}profile", tags=["Профиль пользователя"]
 )
+app.include_router(internal_api.router, prefix=f"{SERVICE_PATH}internal", tags=["Межсервисный API"])

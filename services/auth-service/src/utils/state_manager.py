@@ -51,30 +51,16 @@ class ApiKeyValidate:
     __slots__ = ()
 
     @classmethod
-    def validate_apikey_service(cls, api_key: str, service_name: str) -> bool:
-        if api_key is None and service_name is None:
-            logger.debug(
-                "Отсутствуют заголовки ключей, пропускаем проверку API ключа и имени сервиса"
-            )
-            return False
+    def validate_apikey_service(cls, api_key: str) -> bool:
+        api_logs = api_key[:5]
+        logger.info(f"Получен запрос от сервиса с APIKEY: {api_logs}***")
 
-        logger.info(f"Получен запрос от сервиса {service_name} с APIKEY: {api_key[:5]}***")
-
-        if not hasattr(app_config.apikey, service_name):
-            logger.warning(f"Попытка доступа от неизвестного сервиса: {service_name}")
+        if not (api_key in app_config.api_keys):
+            logger.warning(f"Полученый APIKEY невалидный: {api_logs}***")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Сервис {service_name} не зарегистрирован или неверный API ключ",
+                detail="Переданный API ключ невалидный",
             )
 
-        valid_key = getattr(app_config.apikey, service_name)
-
-        if not hmac.compare_digest(api_key, valid_key):
-            logger.warning(f"Неверный ключ от сервиса {service_name}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Сервис {service_name} не зарегистрирован или неверный API ключ",
-            )
-
-        logger.info(f"Успешная аутентификация сервиса {service_name}")
+        logger.info(f"Успешная аутентификация по APIKEY: {api_logs}***")
         return True
