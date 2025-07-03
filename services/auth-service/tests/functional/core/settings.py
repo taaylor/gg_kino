@@ -1,5 +1,3 @@
-import os
-
 from dotenv import find_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -41,8 +39,7 @@ class AuthAPICong(BaseModel):
 
 
 class TestConfig(BaseSettings):
-    api_key_notifi_service: str | None = os.getenv("APIKEY_NOTIFICATION_SERVICE")
-    api_key_notifi_service_name: str | None = os.getenv("APIKEY_NOTIFICATION_SERVICE_NAME")
+    api_key: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
 
     redis: RedisConf = Field(
         default_factory=RedisConf,
