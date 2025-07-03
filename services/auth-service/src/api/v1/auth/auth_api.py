@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+from uuid import UUID
 
 from api.v1.auth.schemas import (
     LoginRequest,
@@ -12,16 +13,19 @@ from api.v1.auth.schemas import (
     SessionsHistory,
 )
 from auth_utils import LibAuthJWT, auth_dep
-from fastapi import APIRouter, Body, Depends, Query, Request
+from core.config import app_config
+from fastapi import APIRouter, Body, Depends, Query, Request, responses
 from models.models_types import ProvidersEnum
 from rate_limite_utils import rate_limit, rate_limit_leaky_bucket
 from services.auth_service import (
+    EmailVerifyService,
     LoginService,
     LogoutService,
     OAuthSocialService,
     RefreshService,
     RegisterService,
     SessionService,
+    get_email_veryfi_service,
     get_login_service,
     get_logout_service,
     get_oauth_social_service,
@@ -223,3 +227,20 @@ async def disconnect_provider(
         provider_name=provider_name.value,
     )
     return result
+
+
+@router.get(
+    path="/verify-email",
+    summary="Подтверждение email пользователя",
+    description=(
+        "Подтверждает email пользователя по уникальному токену. "
+        "После успешной верификации аккаунт пользователя помечается как подтверждённый. "
+    ),
+)
+async def verify_email(
+    token: Annotated[str, Query(..., description="Уникальный токен подтверждения")],
+    user_id: Annotated[UUID, Query(..., description="Идентификатор пользователя")],
+    mail_service: Annotated[EmailVerifyService, Depends(get_email_veryfi_service)],
+):
+    await mail_service.confirm_email_user(user_id, token)
+    return responses.RedirectResponse(url=app_config.docs_url)

@@ -38,6 +38,9 @@ class BaseService:
 
 
 class MixinAuthRepository:
+
+    __slots__ = ("repository", "session")
+
     def __init__(self, repository: AuthRepository, session: AsyncSession):
         self.repository = repository
         self.session = session
