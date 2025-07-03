@@ -93,6 +93,11 @@ class LoggerSettings(BaseSettings):
                     "level": "ERROR",
                     "propagate": False,
                 },
+                "httpcore": {
+                    "handlers": ["console"],
+                    "level": "ERROR",
+                    "propagate": False,
+                },
             },
             "root": {
                 "level": self.log_level,

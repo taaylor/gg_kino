@@ -4,48 +4,55 @@ from uuid import UUID
 import httpx
 from core.config import app_config
 from models.logic_models import UserProfile
+from pydantic import TypeAdapter
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
 
 logger = logging.getLogger(__name__)
 
 
 class ProfileSupplier:
-    def __init__(self, timeout: int = 30):
+    def __init__(self, timeout: int = 30) -> None:
         self.timeout = timeout
 
     @handle_http_errors(service_name=app_config.profile_api.host)
-    async def fetch_profile(self, user_id: UUID) -> UserProfile:  # noqa: WPS210
+    async def fetch_profiles(self, user_ids: list[UUID]) -> list[UserProfile]:  # noqa: WPS210
         logger.info(
-            f"Получение профиля пользователя: {user_id} от сервиса {app_config.profile_api.host}"
+            f"Получение профилей: {len(user_ids)}"
+            f"пользователей от сервиса {app_config.profile_api.host}"
         )
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
-            headers = {
-                "x-api-key": app_config.profile_api.api_key,
-                "x-service-name": app_config.profile_api.service_name,
-            }
-            url = app_config.profile_api.get_profile_url.format(user_id=user_id)
+            headers = {"x-api-key": app_config.profile_api.api_key}
+            data = {"user_ids": [str(user_id) for user_id in user_ids]}
+            url = app_config.profile_api.get_profile_url
 
             logger.debug(f"Сформирована строка запроса профиля: {url}")
+            logger.debug(f"Сформирована data запроса профиля: {data}")
 
-            response = await client.get(url=url, headers=headers)
+            response = await client.post(url=url, headers=headers, json=data)
             # Все HTTP ошибки обработает декоратор через raise_for_status()
             response.raise_for_status()
 
             # Проверяем наличие контента
             if not response.content:
-                logger.error(f"Пустой ответ от сервиса профилей для пользователя {user_id}")
+                logger.error(
+                    f"Пустой ответ от сервиса {app_config.profile_api.host} "
+                    f"для пользователей {user_ids}"
+                )
                 raise EmptyServerResponse("Получен пустой ответ от сервиса профилей")
 
-            # Валидируем JSON и данные через Pydantic
             response_data = response.json()
 
-            logger.info(f"Получен ответ от сервиса профилей: {response_data}")
+            logger.debug(
+                f"Получен ответ от сервиса {app_config.profile_api.host}: "
+                f"{len(response_data)} профилей"
+            )
 
-            user_profile = UserProfile.model_validate(response_data)
+            adapter = TypeAdapter(list[UserProfile])
+            user_profiles = adapter.validate_python(response_data)
 
-            logger.info(f"Профиль пользователя {user_id} успешно получен")
-            return user_profile
+            logger.info(f"Профили: {len(user_profiles)} успешно получены")
+            return user_profiles
 
 
 def get_profile_supplier() -> ProfileSupplier:

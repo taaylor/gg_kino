@@ -21,8 +21,12 @@ class NotificationRepository:
         return notification
 
     @sqlalchemy_universal_decorator
-    async def fetch_new_notifications(self, session: AsyncSession) -> list[Notification]:
-        stmt = select(Notification).where(Notification.status == NotificationStatus.NEW)
+    async def fetch_new_notifications(
+        self, session: AsyncSession, limit: int = 10
+    ) -> list[Notification]:
+        stmt = (
+            select(Notification).where(Notification.status == NotificationStatus.NEW).limit(limit)
+        )
         result = await session.execute(stmt)
         return list(result.scalars().all())
 

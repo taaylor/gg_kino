@@ -35,8 +35,7 @@ class ProfileApi(BaseModel):
     port: int = 8000
     auth_header: str = "x-api-key"
     api_key: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
-    service_name: str = "notification_service"
-    profile_path: str = "/auth/api/v1/profile/{user_id}"
+    profile_path: str = "/auth/api/v1/internal/fetch-profiles"
 
     @property
     def get_profile_url(self) -> str:
@@ -48,6 +47,7 @@ class AppConfig(BaseSettings):
     project_name: str = "notification-service"
     docs_url: str = "/notification/openapi"
     openapi_url: str = "/notification/openapi.json"
+    single_notify_batch: int = 10
 
     server: Server = Server()
     postgres: Postgres = Postgres()

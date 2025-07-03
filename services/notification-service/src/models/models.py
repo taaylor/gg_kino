@@ -50,10 +50,12 @@ class Notification(Base):
         String(100),
         comment="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
     )
-    event_data: Mapped[dict | None] = mapped_column(
+    event_data: Mapped[dict] = mapped_column(
         JSONB, comment="Дополнительные данные события для шаблона уведомления"
     )
-    user_timezone: Mapped[str] = mapped_column(String(50), comment="Часовой пояс пользователя")
+    user_timezone: Mapped[str | None] = mapped_column(
+        String(50), comment="Часовой пояс пользователя"
+    )
     template_id: Mapped[uuid.UUID | None] = mapped_column(comment="ID шаблона уведомления")
     mass_notification_id: Mapped[uuid.UUID | None] = mapped_column(
         comment="ID массовой рассылки, если уведомление массовое"
