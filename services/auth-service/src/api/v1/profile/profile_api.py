@@ -21,4 +21,4 @@ async def get_user_profile_info(
 ) -> ProfileResponse | None:
     await authorize.jwt_required()
     user_jwt_id = UUID((await authorize.get_raw_jwt()).get("user_id"))
-    return await profile_service.get_user_data_profile(user_jwt_id)
+    return await profile_service.fetch_user_profile(user_jwt_id)

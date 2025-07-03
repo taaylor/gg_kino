@@ -1,4 +1,3 @@
-import hashlib
 import logging
 from functools import lru_cache
 from typing import Annotated
@@ -19,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 class ProfileService:
     KEY_CACHE_PROFILE = "profile:user:{user_id}"
-    KEY_CACHE_PROFILES = "profile:users:{user_ids}"
 
     __slots__ = ("session_db", "cache", "repository")
 
@@ -33,14 +31,14 @@ class ProfileService:
         self.cache = cache
         self.repository = repository
 
-    async def get_user_data_profile(self, user_id: UUID) -> ProfileResponse | None:
+    async def fetch_user_profile(self, user_id: UUID) -> ProfileResponse | None:
         key_cache = self.__class__.KEY_CACHE_PROFILE.format(user_id=user_id)
 
         if profile_cache := await self.cache.get(key_cache):
             logger.info(f"Найден профиль пользователя в кеше по ключу {key_cache=}")
             return ProfileResponse.model_validate_json(profile_cache)
 
-        profile = await self.repository.fetch_user_profile_by_id(self.session_db, str(user_id))
+        profile = await self.repository.fetch_user_profile_by_id(self.session_db, user_id)
 
         if profile:
             profile_response = ProfileResponse(**profile)
@@ -53,29 +51,19 @@ class ProfileService:
             return profile_response
         return None
 
-    async def get_users_data_profiles(self, user_ids: list[UUID]) -> list[ProfileInternalResponse]:
-        # подготавливаем ключ для кеша, используем хеш чтобы значительно сократить длину ключа
-        sorted_ids = sorted(str(user_id) for user_id in user_ids)
-        ids_hash = hashlib.sha256("".join(sorted_ids).encode()).hexdigest()
-        key_cache = self.__class__.KEY_CACHE_PROFILES.format(user_ids=ids_hash)
-
+    async def fetch_users_profiles_list(
+        self, user_ids: list[UUID]
+    ) -> list[ProfileInternalResponse]:
         adapter = TypeAdapter(list[ProfileResponse])
-        if profiles_cache := await self.cache.get(key_cache):
-            logger.info(f"Найдены профили пользователей в кеше по ключу {key_cache=}")
-            return adapter.validate_json(profiles_cache)
+        profiles = await self.repository.fetch_list_profiles_by_ids(self.session_db, user_ids)
 
-        profiles = await self.repository.fetch_list_profiles_by_ids(self.session_db, sorted_ids)
+        if not profiles:
+            logger.info("Не найдено профилей для запрошенных user_ids")
+            return []
 
-        if profiles:
-            profiles_response = adapter.validate_python(profiles)
-            logger.info(f"Получены профили пользователей {len(profiles_response)}")
-            await self.cache.background_set(
-                key=key_cache,
-                value=adapter.dump_json(profiles_response),
-                expire=app_config.cache_expire_in_seconds,
-            )
-            return profiles_response
-        return []
+        logger.info(f"Получены профили {len(profiles)} пользователей")
+        profiles_response = adapter.validate_python(profiles)
+        return profiles_response
 
 
 @lru_cache()

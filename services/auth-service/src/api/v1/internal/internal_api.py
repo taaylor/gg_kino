@@ -31,4 +31,4 @@ async def fetch_users_profiles(
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> list[ProfileInternalResponse]:
     ApiKeyValidate.validate_apikey_service(x_api_key)
-    return await profile_service.get_users_data_profiles(request_body.user_ids)
+    return await profile_service.fetch_users_profiles_list(request_body.user_ids)

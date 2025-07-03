@@ -1,4 +1,3 @@
-import hashlib
 from http import HTTPStatus
 from typing import Any
 
@@ -55,7 +54,6 @@ class TestProfile:
                 {
                     "test_valid": True,
                     "api_key": test_conf.api_key,
-                    "cached_data": True,
                     "cnt_user": 5,
                 },
                 {"status": HTTPStatus.OK, "cnt_response_profile": 5},
@@ -64,7 +62,6 @@ class TestProfile:
                 {
                     "test_valid": True,
                     "api_key": test_conf.api_key,
-                    "cached_data": False,
                     "unknow_ids": [
                         "b2f453fb-e12c-42ca-98b5-183f4881c30e",
                         "59cf9199-4d7b-4cc8-a0ff-b86d2c32e214",
@@ -77,7 +74,6 @@ class TestProfile:
                 {
                     "test_valid": False,
                     "api_key": "mega_ultra_kluch_ot_vsego",
-                    "cached_data": False,
                     "cnt_user": 5,
                 },
                 {
@@ -91,28 +87,21 @@ class TestProfile:
         self,
         create_user,
         make_post_request,
-        redis_test,
         query_data: dict[str, Any],
         expected_answer: dict[str, Any],
     ):
 
-        if res := query_data.get("unknow_ids"):
-            user_ids = sorted(res)
-        else:
-            user_ids = sorted(
-                await self._fill_database_users(query_data.get("cnt_user"), create_user)
-            )
-        key_cache = f"profile:users:{hashlib.sha256("".join(user_ids).encode()).hexdigest()}"
+        user_ids = query_data.get("unknow_ids")
+        if not user_ids:
+            user_ids = await self._fill_database_users(query_data.get("cnt_user"), create_user)
         headers = {"X-Api-Key": query_data.get("api_key")}
 
         response_body, status = await make_post_request(
             "/internal/fetch-profiles", headers=headers, data={"user_ids": user_ids}
         )
-        await redis_test(key=key_cache, cached_data=query_data.get("cached_data"))
 
         if query_data.get("test_valid"):
             assert status == expected_answer.get("status")
             assert len(response_body) == expected_answer.get("cnt_response_profile")
-
         elif not query_data.get("test_valid"):
             assert status == expected_answer.get("status")

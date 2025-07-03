@@ -1,4 +1,5 @@
 import logging
+import uuid
 from functools import lru_cache
 from typing import Any
 
@@ -38,7 +39,7 @@ class ProfileRepository:
 
     @sqlalchemy_universal_decorator
     async def fetch_user_profile_by_id(
-        self, session: AsyncSession, user_id: str
+        self, session: AsyncSession, user_id: uuid.UUID
     ) -> dict[str, Any] | None:
         stmt = self._base_profile_query().where(User.id == user_id)
         result = (await session.execute(stmt)).one_or_none()
@@ -50,7 +51,7 @@ class ProfileRepository:
 
     @sqlalchemy_universal_decorator
     async def fetch_list_profiles_by_ids(
-        self, session: AsyncSession, user_ids: list[str]
+        self, session: AsyncSession, user_ids: list[uuid.UUID]
     ) -> list[dict[str, Any]]:
         stmt = self._base_profile_query().where(User.id.in_(user_ids))
         result = (await session.execute(stmt)).all()
