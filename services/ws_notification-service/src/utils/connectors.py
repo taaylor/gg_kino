@@ -1,13 +1,13 @@
-from typing import AsyncIterator
-
 from aiohttp import web
 from core.config import app_config
-from db import cache
 from redis.asyncio import Redis
+from storage import cache
 
 
-async def lifespan(app: web.Application) -> AsyncIterator[None]:
-
+async def setup_cache(app: web.Application):
+    """
+    Устанавливает соединение с хранилищем кеша при инициализации приложения
+    """
     cache.cache_conn = Redis(
         host=app_config.redis.host,
         port=app_config.redis.port,
@@ -20,8 +20,19 @@ async def lifespan(app: web.Application) -> AsyncIterator[None]:
         retry_on_error=False,
         retry_on_timeout=False,
     )
-    app["cache"] = cache.get_cache()
+    app.setdefault("cache_conn", cache.cache_conn)
+    app.setdefault(
+        "cache", cache.get_cache()
+    )  # Позволяет сразу инициализировать экземпляр класса с кешем некий аналог Depends в FastAPI
 
-    yield
 
-    await cache.cache_conn.close()
+async def cleanup_cache(app: web.Application):
+    """
+    Закрывает соединение с хранилищем кеша при инициализации приложения
+    """
+    if cache_conn := app.get("cache_conn"):
+        await cache_conn.close()
+
+
+async def setup_rabbitmq(app: web.Application):
+    pass

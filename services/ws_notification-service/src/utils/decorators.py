@@ -1,10 +1,10 @@
 import functools
+import logging
 from typing import Any, Callable, Coroutine
 
-from core.logger_conf import get_logger
 from redis.asyncio import ConnectionError, RedisError, TimeoutError
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def redis_handler_exceptions[**P, R](

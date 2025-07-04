@@ -1,13 +1,13 @@
 import asyncio
+import logging
 from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import Coroutine
 
-from core.logger_conf import get_logger
 from redis.asyncio import Redis
 from utils.decorators import redis_handler_exceptions
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 cache_conn: Redis | None = None
@@ -81,7 +81,6 @@ class RedisCache(Cache):
         cursor = 0
 
         while True:
-            # SCAN возвращает курсор и список ключей
             cursor, keys = await self.redis.scan(
                 cursor=cursor, match=pattern, count=100
             )  # noqa: WPS221
