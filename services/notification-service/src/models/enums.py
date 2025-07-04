@@ -14,10 +14,12 @@ class NotificationMethod(StrEnum):
 
 class NotificationStatus(StrEnum):
     NEW = "NEW"
+    PROCESSING = "PROCESSING"
     SENDING = "SENDING"
     SENT = "SENT"
     SENDING_FORBIDDEN = "SENDING_FORBIDDEN"
     DELAYED = "DELAYED"
+    PROCESSING_ERROR = "PROCESSING_ERROR"
     SENDING_ERROR = "SENDING_ERROR"
 
 

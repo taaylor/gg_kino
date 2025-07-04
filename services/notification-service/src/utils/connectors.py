@@ -6,7 +6,7 @@ from typing import Any, AsyncGenerator
 from core.config import app_config
 from db import postgres
 from fastapi import FastAPI
-from services.single_notification_processor import get_new_notification_processor
+from services.processors.single_notification_processor import get_new_notification_processor
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 logger = logging.getLogger(__name__)
