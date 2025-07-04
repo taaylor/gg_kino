@@ -43,7 +43,7 @@ class NotificationRepository:
         return notifications
 
     @sqlalchemy_universal_decorator
-    async def update_delayed_notifications(  # noqa: WPS210
+    async def update_notifications(  # noqa: WPS210
         self, session: AsyncSession, notifications: list[Notification]
     ) -> None:
         notify_ids = [notify.id for notify in notifications]
@@ -59,7 +59,7 @@ class NotificationRepository:
             for attr_name in updated_notify.__table__.columns.keys():
                 if attr_name != "id":  # id не обновляем
                     setattr(db_notify, attr_name, getattr(updated_notify, attr_name))
-                updated_count += 1
+            updated_count += 1
 
             # Принудительно помечаем JSON поле как измененное иначе sqlalchemy его не обновит
             flag_modified(db_notify, "event_data")

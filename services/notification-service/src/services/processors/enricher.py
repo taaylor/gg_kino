@@ -1,6 +1,7 @@
 import logging
 from uuid import UUID
 
+from models.enums import NotificationStatus
 from models.logic_models import UserProfile
 from models.models import Notification
 from suppliers.user_profile_supplier import ProfileSupplier, get_profile_supplier
@@ -33,6 +34,7 @@ class NotificationEnricher:
 
             if not user_profile:
                 logger.warning(f"Не удалось обогатить нотификацию {notify.id}")
+                notify.status = NotificationStatus.PROCESSING_ERROR
                 enrich_failed_notifications.append(notify)
                 continue
 

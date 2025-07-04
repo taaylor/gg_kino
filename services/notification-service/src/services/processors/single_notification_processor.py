@@ -5,31 +5,32 @@ from core.config import app_config
 from db.postgres import get_session_context
 from models.models import Notification
 from services.processors.enricher import NotificationEnricher, get_notification_enricher
+from services.processors.priority_manager import PriorityManager, get_priority_manager
 from services.processors.sender import NotificationSender, get_notification_sender
-from services.processors.timezone_manager import TimeZoneManager, get_timezone_manager
 from services.repository.notification_repository import (
     NotificationRepository,
     get_notification_repository,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
 
 class NewNotificationProcessor:  # noqa: WPS214
 
-    __slots__ = ("repository", "supplier", "enricher", "sender", "tz_manager")
+    __slots__ = ("repository", "supplier", "enricher", "sender", "pr_manager")
 
     def __init__(
         self,
         repository: NotificationRepository,
         enricher: NotificationEnricher,
         sender: NotificationSender,
-        tz_manager: TimeZoneManager,
+        pr_manager: PriorityManager,
     ):
         self.repository = repository
         self.enricher = enricher
         self.sender = sender
-        self.tz_manager = tz_manager
+        self.pr_manager = pr_manager
 
     async def process_new_notifications(self):  # noqa: WPS210, WPS217
         while True:  # noqa: WPS457
@@ -54,39 +55,56 @@ class NewNotificationProcessor:  # noqa: WPS214
                     )
 
                     # Сортируем уведомления по времени отправки
-                    send_now, send_later = await self.tz_manager.sort_by_sending_time(
-                        enriched_notifications
+                    send_now, send_later, sending_forbidden = (
+                        await self.pr_manager.sort_by_priority(enriched_notifications)
                     )
 
-                    # Отправляем уведомления, которые можно отправить сейчас
-                    if send_now:
-                        await self.sender._push_to_queue(send_now)  # noqa: WPS220
-
-                    # Возвращаем в БД уведомления для отложенной отправки
-                    if send_later:
-                        await self.repository.update_delayed_notifications(  # noqa: WPS220
-                            session=session, notifications=send_later
-                        )
-                        logger.info(  # noqa: WPS220
-                            f"Уведомлений отложено для будущей отправки: {len(send_later)}"
-                        )
-
-                    # Устанавливаем статус "неудачно" для уведомлений, которые не удалось обогатить
-                    if enrich_failed_notifications:
-                        await self._set_failed_status(enrich_failed_notifications)  # noqa: WPS220
+                    await self._allocate_notifications(
+                        session=session,
+                        send_now=send_now,
+                        send_later=send_later,
+                        sending_forbidden=sending_forbidden,
+                        processing_failed_notifications=enrich_failed_notifications,
+                    )
 
             await asyncio.sleep(10)
 
-    async def _set_failed_status(self, notifications: list[Notification]):
-        """Функция возвращает уведомление БД в результате ошибки обогащения"""
-        await asyncio.sleep(2)
+    async def _allocate_notifications(
+        self,
+        session: AsyncSession,
+        send_now: list[Notification],
+        send_later: list[Notification],
+        sending_forbidden: list[Notification],
+        processing_failed_notifications: list[Notification],
+    ):
+        """Функция распределяет уведомления в зависимости от категории"""
+        # Отправляем уведомления, которые можно отправить сейчас
+        if send_now:
+            await self.sender._push_to_queue(send_now)
+
+        # Возвращаем в БД уведомления для отложенной отправки
+        if send_later:
+            await self.repository.update_notifications(session=session, notifications=send_later)
+            logger.info(f"Уведомлений отложено для будущей отправки: {len(send_later)}")
+
+        if sending_forbidden:
+            await self.repository.update_notifications(
+                session=session, notifications=sending_forbidden
+            )
+            logger.info(f"Уведомлений не разрешено отправлять: {len(sending_forbidden)}")
+        # Устанавливаем статус "неудачно" для уведомлений, которые не удалось обогатить
+        if processing_failed_notifications:
+            await self.repository.update_notifications(
+                session=session, notifications=processing_failed_notifications
+            )
+            logger.info(f"Уведомлений не удалось обогатить: {len(processing_failed_notifications)}")
 
 
 def get_new_notification_processor() -> NewNotificationProcessor:
     repository = get_notification_repository()
     enricher = get_notification_enricher()
     sender = get_notification_sender()
-    tz_manager = get_timezone_manager()
+    pr_manager = get_priority_manager()
     return NewNotificationProcessor(
-        repository=repository, enricher=enricher, sender=sender, tz_manager=tz_manager
+        repository=repository, enricher=enricher, sender=sender, pr_manager=pr_manager
     )
