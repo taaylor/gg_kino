@@ -33,7 +33,6 @@ class NotificationService(BaseService):
             priority=request_body.priority,
             event_type=request_body.event_type,
             event_data=request_body.event_data,
-            user_timezone="UTC",
         )
 
         crated_notify = await self.repository.create_new_notification(

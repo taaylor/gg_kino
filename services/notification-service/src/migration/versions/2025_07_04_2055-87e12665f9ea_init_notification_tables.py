@@ -1,8 +1,8 @@
 """init_notification_tables
 
-Revision ID: 7569d233ede2
+Revision ID: 87e12665f9ea
 Revises: 14449df71b25
-Create Date: 2025-07-01 20:30:36.387300+00:00
+Create Date: 2025-07-04 20:55:03.528685+00:00
 
 """
 
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "7569d233ede2"
+revision: str = "87e12665f9ea"
 down_revision: Union[str, None] = "14449df71b25"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -164,13 +164,13 @@ def upgrade() -> None:
         sa.Column(
             "event_data",
             postgresql.JSONB(astext_type=sa.Text()),
-            nullable=True,
+            nullable=False,
             comment="Дополнительные данные события для шаблона уведомления",
         ),
         sa.Column(
             "user_timezone",
             sa.String(length=50),
-            nullable=False,
+            nullable=True,
             comment="Часовой пояс пользователя",
         ),
         sa.Column(

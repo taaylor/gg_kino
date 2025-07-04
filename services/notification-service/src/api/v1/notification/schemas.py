@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from models.enums import NotificationMethod, Priority
+from models.enums import EventType, NotificationMethod, Priority
 from pydantic import BaseModel, Field
 
 
@@ -9,10 +9,8 @@ class SingleNotificationRequest(BaseModel):
     user_id: UUID = Field(
         ..., description="Уникальный идентификатор пользователя, которому предназначено уведомление"
     )
-    event_type: str = Field(
-        ...,
-        min_length=5,
-        max_length=500,  # noqa: WPS432
+    event_type: EventType = Field(
+        EventType.TEST,
         description="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
     )
     source: str = Field(..., description="Сервис запрашивающий уведомление")
@@ -27,7 +25,7 @@ class SingleNotificationRequest(BaseModel):
     event_data: dict | None = Field(
         ..., description="Контекст события, которое привело к запросу на нотификацию"
     )
-    target_sent_at: datetime = Field(
+    target_sent_at: datetime | None = Field(
         datetime.now(timezone.utc), description="Желаемое время отправки уведомления"
     )
 

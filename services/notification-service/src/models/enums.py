@@ -1,6 +1,12 @@
 from enum import StrEnum
 
 
+class EventType(StrEnum):
+    TEST = "TEST"
+    USER_REVIEW_LIKED = "USER_REVIEW_LIKED"
+    USER_REGISTERED = "USER_REGISTERED"
+
+
 class Priority(StrEnum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
