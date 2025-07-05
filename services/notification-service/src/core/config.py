@@ -52,6 +52,30 @@ class FilmApi(BaseModel):
         return f"http://{self.host}:{self.port}{self.profile_path}"
 
 
+class RabbitMQ(BaseModel):
+    review_like_queue: str = "user-review.liked.notification.websocket-sender"
+    registered_queue: str = "user.registered.notification.email-sender"
+    manager_mailing_queue: str = "manager-mailing.launched.notification.email-sender"
+    auto_mailing_queue: str = "auto-mailing.launched.notification.email-sender"
+
+    host1: str = "localhost"
+    host2: str = "localhost"
+    host3: str = "localhost"
+    port: int = 5672
+
+    user: str = "user"
+    password: str = "pass"
+
+    def get_host(self, host_number: int = 1) -> str:
+        if host_number == 1:
+            return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}/"
+        if host_number == 2:
+            return f"amqp://{self.user}:{self.password}@{self.host2}:{self.port}/"
+        if host_number == 3:
+            return f"amqp://{self.user}:{self.password}@{self.host3}:{self.port}/"
+        return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}/"
+
+
 class AppConfig(BaseSettings):
     tracing: bool = False
     project_name: str = "notification-service"
@@ -66,6 +90,7 @@ class AppConfig(BaseSettings):
     postgres: Postgres = Postgres()
     profile_api: ProfileApi = ProfileApi()
     film_api: FilmApi = FilmApi()
+    rabbit: RabbitMQ = RabbitMQ()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
