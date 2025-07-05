@@ -2,8 +2,9 @@ import logging
 from uuid import UUID
 
 from models.enums import EventType, NotificationStatus
-from models.logic_models import UserProfile
+from models.logic_models import Film, UserProfile
 from models.models import Notification
+from suppliers.film_supplier import FilmSupplier, get_film_supplier
 from suppliers.user_profile_supplier import ProfileSupplier, get_profile_supplier
 
 logger = logging.getLogger(__name__)
@@ -15,10 +16,11 @@ class NotificationEnricher:  # noqa: WPS214
 
     # TODO: Добавить разное обогащение для разных типов уведомлений
 
-    __slots__ = ("supplier",)
+    __slots__ = ("prof_supplier", "film_supplier")
 
-    def __init__(self, supplier: ProfileSupplier) -> None:
-        self.supplier = supplier
+    def __init__(self, prof_supplier: ProfileSupplier, film_supplier: FilmSupplier) -> None:
+        self.prof_supplier = prof_supplier
+        self.film_supplier = film_supplier
 
     async def enrich_notifications(  # noqa: WPS210, WPS213, WPS231
         self, notifications: list[Notification]
@@ -40,10 +42,10 @@ class NotificationEnricher:  # noqa: WPS214
 
         if film_review_liked_type:
             logger.info(
-                f"Получено: {len(film_review_liked_type)}"
+                f"Получено: {len(film_review_liked_type)} "
                 f"film_review_liked_type уведомлений для обогащения"
             )
-            enriched, failed = await self._enrich_film_review_liked_notify(test_type)
+            failed, enriched = await self._enrich_film_review_liked_notify(film_review_liked_type)
             if enriched:
                 enriched_notifications.extend(enriched)
             if failed:
@@ -51,10 +53,10 @@ class NotificationEnricher:  # noqa: WPS214
 
         if user_registered_type:
             logger.info(
-                f"Получено: {len(user_registered_type)}"
+                f"Получено: {len(user_registered_type)} "
                 f"user_registered_type уведомлений для обогащения"
             )
-            enriched, failed = await self._enrich_user_registered_notify(test_type)
+            failed, enriched = await self._enrich_user_registered_notify(user_registered_type)
             if enriched:
                 enriched_notifications.extend(enriched)
             if failed:
@@ -62,7 +64,7 @@ class NotificationEnricher:  # noqa: WPS214
 
         if mass_type:
             logger.info(f"Получено: {len(test_type)} mass_type уведомлений для обогащения")
-            enriched, failed = await self._enrich_mass_notify(test_type)
+            failed, enriched = await self._enrich_mass_notify(mass_type)
             if enriched:
                 enriched_notifications.extend(enriched)
             if failed:
@@ -72,11 +74,20 @@ class NotificationEnricher:  # noqa: WPS214
 
     async def _fetch_profiles(self, user_ids: set[UUID]) -> list[UserProfile]:
         try:
-            profiles = await self.supplier.fetch_profiles(user_ids=user_ids)
+            profiles = await self.prof_supplier.fetch_profiles(user_ids=user_ids)
             logger.debug(f"Получено: {len(profiles)} профилей для отправки уведомлений")
             return profiles
         except Exception:
             logger.warning(f"Не удалось получить профили для: {user_ids}")
+            return []
+
+    async def _fetch_films(self, films_ids: set[UUID]) -> list[Film]:
+        try:
+            films = await self.film_supplier.fetch_films(film_ids=films_ids)
+            logger.debug(f"Получено: {len(films)} фильмов для отправки уведомлений")
+            return films
+        except Exception:
+            logger.warning(f"Не удалось получить фильмы для: {films_ids}")
             return []
 
     async def _sort_notifications_by_type(  # noqa: WPS231
@@ -150,22 +161,27 @@ class NotificationEnricher:  # noqa: WPS214
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
+        # Выбираю всех пользователей, которым предназначены уведомления
         user_ids = {notification.user_id for notification in notifications}
-        # liked_by_user_ids = {
-        #     notification.event_data["liked_by_user_id"] for notification in notifications
-        # }
-        # review_ids = {notification.event_data["review_id"] for notification in notifications}
-        # film_ids = {notification.event_data["film_id"] for notification in notifications}
-        profiles = await self._fetch_profiles(user_ids)
+        # Выбираю всех пользователей, которые фигурируют в тексте уведомления
+        liked_by_user_ids = {
+            notification.event_data["liked_by_user_id"] for notification in notifications
+        }
+        # Объединяю для получения всех профилей
+        all_user_ids = user_ids.union(liked_by_user_ids)
+        film_ids = {notification.event_data["film_id"] for notification in notifications}
 
-        # Преобразую в dict чтобы сложность сопоставления нотификации и
-        # профиля была O(m + n), а не O(m * n) (т.к. перебор двух списков отстой)
+        profiles = await self._fetch_profiles(all_user_ids)
+        films = await self._fetch_films(film_ids)
+
         profiles_dict = {profile.user_id: profile for profile in profiles}
+        films_dict = {film.uuid: film for film in films}
 
         for notify in notifications:
             user_profile = profiles_dict.get(notify.user_id)
+            film = films_dict.get(UUID(notify.event_data["film_id"]))
 
-            if not user_profile:
+            if not user_profile or not film:
                 logger.warning(f"Не удалось обогатить нотификацию {notify.id}")
                 notify.status = NotificationStatus.PROCESSING_ERROR
                 enrich_failed_notifications.append(notify)
@@ -174,14 +190,8 @@ class NotificationEnricher:  # noqa: WPS214
             notify.user_timezone = user_profile.user_timezone
             notify.event_data.update(
                 {
-                    "first_name": user_profile.first_name,
-                    "last_name": user_profile.last_name,
-                    "gender": user_profile.gender,
-                    "email": user_profile.email,
-                    "is_fictional_email": user_profile.is_fictional_email,
-                    "is_email_notify_allowed": user_profile.is_email_notify_allowed,
-                    "is_verified_email": user_profile.is_verified_email,
-                    "created_at": user_profile.is_verified_email,
+                    "liked_by": user_profile.username,
+                    "reviewed_film_name": film.title,
                 }
             )
 
@@ -197,8 +207,6 @@ class NotificationEnricher:  # noqa: WPS214
         user_ids = {notification.user_id for notification in notifications}
         profiles = await self._fetch_profiles(user_ids)
 
-        # Преобразую в dict чтобы сложность сопоставления нотификации и
-        # профиля была O(m + n), а не O(m * n) (т.к. перебор двух списков отстой)
         profiles_dict = {profile.user_id: profile for profile in profiles}
 
         for notify in notifications:
@@ -213,6 +221,7 @@ class NotificationEnricher:  # noqa: WPS214
             notify.user_timezone = user_profile.user_timezone
             notify.event_data.update(
                 {
+                    "username": user_profile.username,
                     "first_name": user_profile.first_name,
                     "last_name": user_profile.last_name,
                     "gender": user_profile.gender,
@@ -268,5 +277,6 @@ class NotificationEnricher:  # noqa: WPS214
 
 
 def get_notification_enricher() -> NotificationEnricher:
-    supplier = get_profile_supplier()
-    return NotificationEnricher(supplier=supplier)
+    prof_supplier = get_profile_supplier()
+    film_supplier = get_film_supplier()
+    return NotificationEnricher(prof_supplier=prof_supplier, film_supplier=film_supplier)

@@ -162,6 +162,8 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
+    ports:
+      - "8001:8000"
     restart: always
 
   content-actions-api:
@@ -249,7 +251,7 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_healthy
-    restart: "always"
+    restart: always
 
   nginx:
     container_name: nginx

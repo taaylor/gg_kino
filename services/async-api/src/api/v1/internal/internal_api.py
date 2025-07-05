@@ -7,6 +7,7 @@ from services.filmwork import FilmService, get_film_service
 router = APIRouter()
 
 
+# TODO: Добавить авторизацию по Api-Key
 @router.post(
     "/fetch-films",
     response_model=list[FilmInternalResponse],

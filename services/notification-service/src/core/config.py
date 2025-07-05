@@ -42,6 +42,16 @@ class ProfileApi(BaseModel):
         return f"http://{self.host}:{self.port}{self.profile_path}"
 
 
+class FilmApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8001
+    profile_path: str = "/async/api/v1/internal/fetch-films"
+
+    @property
+    def get_film_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class AppConfig(BaseSettings):
     tracing: bool = False
     project_name: str = "notification-service"
@@ -55,6 +65,7 @@ class AppConfig(BaseSettings):
     server: Server = Server()
     postgres: Postgres = Postgres()
     profile_api: ProfileApi = ProfileApi()
+    film_api: FilmApi = FilmApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

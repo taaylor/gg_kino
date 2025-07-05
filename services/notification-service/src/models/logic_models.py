@@ -1,14 +1,8 @@
 from datetime import datetime
-from enum import StrEnum
 from uuid import UUID
 
 from models.enums import NotificationMethod, Priority
 from pydantic import BaseModel
-
-
-class GenderEnum(StrEnum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
 
 
 class UserProfile(BaseModel):
@@ -16,7 +10,7 @@ class UserProfile(BaseModel):
     username: str
     first_name: str
     last_name: str
-    gender: GenderEnum
+    gender: str
     role: str
     email: str
     is_fictional_email: bool
@@ -24,6 +18,18 @@ class UserProfile(BaseModel):
     is_verified_email: bool
     user_timezone: str
     created_at: datetime
+
+
+class Film(BaseModel):
+    uuid: UUID
+    title: str
+    imdb_rating: float | None
+    description: str | None
+    genre: list[dict]
+    actors: list[dict]
+    writers: list[dict]
+    directors: list[dict]
+    type: str
 
 
 class LikeNotification(BaseModel):
