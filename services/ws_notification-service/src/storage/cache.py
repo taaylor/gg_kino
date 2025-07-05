@@ -50,6 +50,10 @@ class Cache(ABC):
 
 
 class RedisCache(Cache):
+    """Реализация кэша на основе Redis."""
+
+    __slots__ = ("redis",)
+
     def __init__(self, redis: Redis):
         self.redis = redis
 

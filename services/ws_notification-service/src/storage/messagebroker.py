@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from typing import Callable
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncMessageBroker(ABC):
+    """Абстрактный класс для работы с брокером сообщений."""
 
     @abstractmethod
     async def consumer(self, queue_name: str, callback: Callable):
@@ -30,6 +32,9 @@ class AsyncMessageBroker(ABC):
 
 
 class RabbitMQConnector(AsyncMessageBroker):
+    """Класс для работы с RabbitMQ, использует пул соединений и каналов для асинхронной работы"""
+
+    __slots__ = ("hosts", "_channel_pool", "_connection_pool")
 
     auth_conf = {"login": app_config.rabbitmq.user, "password": app_config.rabbitmq.password}
 
@@ -60,10 +65,14 @@ class RabbitMQConnector(AsyncMessageBroker):
     async def consumer(self, queue_name: str, callback: Callable):
         async with self._channel_pool as channel:
             queue = await channel.declare_queue(queue_name, durable=True)
-            async with queue.iterator() as queue_iter:
-                async for message in queue_iter:
-                    async with message.process():
-                        await callback(message.body.decode())
+            while True:
+
+                async with queue.iterator() as queue_iter:
+                    async for message in queue_iter:
+                        async with message.process():
+                            await callback(message.body.decode())
+
+                await asyncio.sleep(1)
 
     async def close(self):
         await self._channel_pool.close()
