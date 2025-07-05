@@ -15,7 +15,7 @@ class ProfileSupplier:
         self.timeout = timeout
 
     @handle_http_errors(service_name=app_config.profile_api.host)
-    async def fetch_profiles(self, user_ids: list[UUID]) -> list[UserProfile]:  # noqa: WPS210
+    async def fetch_profiles(self, user_ids: set[UUID]) -> list[UserProfile]:  # noqa: WPS210
         logger.info(
             f"Получение профилей: {len(user_ids)} "
             f"пользователей от сервиса {app_config.profile_api.host}"

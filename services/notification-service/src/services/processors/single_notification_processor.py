@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import NoReturn
 
 from core.config import app_config
 from db.postgres import get_session_context
@@ -26,13 +27,13 @@ class NewNotificationProcessor:  # noqa: WPS214
         enricher: NotificationEnricher,
         sender: NotificationSender,
         pr_manager: PriorityManager,
-    ):
+    ) -> None:
         self.repository = repository
         self.enricher = enricher
         self.sender = sender
         self.pr_manager = pr_manager
 
-    async def process_new_notifications(self):  # noqa: WPS210, WPS217
+    async def process_new_notifications(self) -> NoReturn:  # noqa: WPS210, WPS217
         while True:  # noqa: WPS457
             logger.info("Запущен процесс обработки нотификаций в статусе NEW")
 

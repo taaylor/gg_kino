@@ -85,17 +85,17 @@ class LoggerSettings(BaseSettings):
                 },
                 "sqlalchemy": {
                     "handlers": ["console"],
-                    "level": "ERROR",
+                    "level": "WARNING",
                     "propagate": False,
                 },
                 "opentelemetry": {
                     "handlers": ["console"],
-                    "level": "ERROR",
+                    "level": "WARNING",
                     "propagate": False,
                 },
                 "httpcore": {
                     "handlers": ["console"],
-                    "level": "ERROR",
+                    "level": "WARNING",
                     "propagate": False,
                 },
             },

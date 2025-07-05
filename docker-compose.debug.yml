@@ -158,6 +158,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      es-init:
+        condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
     restart: always
@@ -247,7 +249,7 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_healthy
-    restart: "on-failure"
+    restart: "always"
 
   nginx:
     container_name: nginx

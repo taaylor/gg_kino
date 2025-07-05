@@ -5,6 +5,7 @@ class EventType(StrEnum):
     TEST = "TEST"
     USER_REVIEW_LIKED = "USER_REVIEW_LIKED"
     USER_REGISTERED = "USER_REGISTERED"
+    MASS_NOTIFY = "MASS_NOTIFY"
 
 
 class Priority(StrEnum):
