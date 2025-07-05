@@ -1,5 +1,6 @@
 from aiohttp import web
 from api.v1 import ws_sender
+from middleware.middleware import authorize_middleware
 from utils.connectors import (
     cleanup_cache,
     cleanup_message_broker,
@@ -18,6 +19,7 @@ def start_application() -> web.Application:
     app.on_startup.append(setup_message_broker)
     app.on_cleanup.append(cleanup_message_broker)
     app.on_cleanup.append(cleanup_cache)
+    app.middlewares.append(authorize_middleware)
     return app
 
 

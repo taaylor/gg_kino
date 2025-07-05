@@ -4,8 +4,7 @@ from storage.cache import Cache
 routes = web.RouteTableDef()
 
 
-@routes.get("/test")
-async def index(request: web.Request) -> web.Response:
-    cache: Cache = request.app.get("cache")
-    await cache.set("key", "привет!", expire=10)
-    return web.Response(text=(await cache.get("key")))
+@routes.get("/ws-notification/api/v1/ws-sender")
+async def websocket_handler(request: web.Request) -> web.Response:
+    websocket = web.WebSocketResponse()
+    await websocket.prepare(request)

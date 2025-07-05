@@ -32,6 +32,18 @@ class Config(BaseSettings):
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
+    cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
+    auth_public_key: str = """
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7XpysaZje95xChyW8u
+    L8xGDbvUezcygQNcYep97eM9Vurhk+5BSgNF5sQfW/IeMCH2EtbQi+tVuyTYcelG
+    Gs2Flln/AHXdE6UqiS3AKvRxuvZTWetf80AGcyl7Sax2SY+j6sPSwy/q+SpaxYMf
+    QOx0buewylTZ7MUkkepsDf7ZbYZfzyUOUUzGilDWeKskKNt9ujCdZYNy6+37xWru
+    LsIdrTFC1/ggReddwEM4/VNvK5q+go+SCDfVgfQ8LbMiCgkKyZ3fgeP+KFsbCL/d
+    iaqd0feQZY8tFMEttcBzQaZUny2pjJ+cBNmkRJG54vD1wl3ujSIfimJ2gQTmCPvf
+    iwIDAQAB
+    -----END PUBLIC KEY-----
+    """
 
     model_config = SettingsConfigDict(
         env_file=find_dotenv(),

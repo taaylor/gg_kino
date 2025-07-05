@@ -1,10 +1,9 @@
-import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Coroutine
 
 import aio_pika
-from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection
+from aio_pika.abc import AbstractIncomingMessage, AbstractRobustChannel, AbstractRobustConnection
 from aio_pika.exceptions import AMQPConnectionError
 from aio_pika.pool import Pool
 from aiohttp import web
@@ -17,7 +16,7 @@ class AsyncMessageBroker(ABC):
     """Абстрактный класс для работы с брокером сообщений."""
 
     @abstractmethod
-    async def consumer(self, queue_name: str, callback: Callable):
+    async def consumer(self, queue_name: str, callback: Coroutine):
         """
         Метод позволяет прочитать сообщения из очереди, и выполнить их обработку
         :queue_name - название очереди
@@ -40,8 +39,8 @@ class RabbitMQConnector(AsyncMessageBroker):
 
     def __init__(self, hosts: list[str]):
         self.hosts = hosts
-        self._channel_pool: AbstractRobustChannel = Pool(self._get_channel, max_size=2)
-        self._connection_pool: AbstractRobustConnection = Pool(self._get_connection, max_size=2)
+        self._channel_pool: Pool = Pool(self._get_channel, max_size=2)
+        self._connection_pool: Pool = Pool(self._get_connection, max_size=2)
 
     async def _get_connection(self) -> AbstractRobustConnection:
         for host in self.hosts:
@@ -62,17 +61,13 @@ class RabbitMQConnector(AsyncMessageBroker):
             logger.debug(f"Создан канал для соединения с {connection}")
             return channel
 
-    async def consumer(self, queue_name: str, callback: Callable):
+    async def consumer(self, queue_name: str, callback: Coroutine):
         async with self._channel_pool as channel:
             queue = await channel.declare_queue(queue_name, durable=True)
-            while True:
-
-                async with queue.iterator() as queue_iter:
-                    async for message in queue_iter:
-                        async with message.process():
-                            await callback(message.body.decode())
-
-                await asyncio.sleep(1)
+            async with queue.iterator() as queue_iter:
+                message: AbstractIncomingMessage
+                async for message in queue_iter:
+                    await callback(message)
 
     async def close(self):
         await self._channel_pool.close()

@@ -4,6 +4,7 @@ from aiohttp import web
 from core.config import app_config
 from redis.asyncio import Redis
 from storage import cache, messagebroker
+from utils.callback import EventHandler
 
 
 async def setup_cache(app: web.Application):
@@ -23,7 +24,6 @@ async def setup_cache(app: web.Application):
         retry_on_timeout=False,
     )
     app.setdefault("cache_conn", cache.cache_conn)
-    # Позволяет сразу инициализировать экземпляр класса с кешем некий аналог Depends в FastAPI
     app.setdefault("cache", cache.get_cache())
 
 
@@ -40,14 +40,16 @@ async def setup_message_broker(app: web.Application):
     """
     Устанавливает соединение с брокером сообщений при инициализации приложения
     """
+    event_handler = EventHandler(cache=app.get("cache"))
     message_broker = messagebroker.RabbitMQConnector(hosts=app_config.rabbitmq.hosts)
-    # consumer_task = asyncio.create_task(message_broker.consumer(
-    #     queue_name=app_config.rabbitmq.review_like_queue,
-    #     callback=...
-    # ))
+    consumer_task = asyncio.create_task(
+        message_broker.consumer(
+            queue_name=app_config.rabbitmq.review_like_queue, callback=event_handler.event_handler
+        )
+    )
 
     app.setdefault("message_broker", message_broker)
-    # app.setdefault("consumer_task", consumer_task)
+    app.setdefault("consumer_task", consumer_task)
 
 
 async def cleanup_message_broker(app: web.Application):
