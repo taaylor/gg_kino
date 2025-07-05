@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+import backoff
 import httpx
 from httpx import HTTPStatusError, RequestError
 
@@ -14,6 +15,27 @@ class ClientRepository:
     Используется для взаимодействия между сервисами.
     """
 
+    @backoff.on_exception(
+        backoff.expo,
+        exception=(
+            HTTPStatusError,
+            RequestError,
+            ValueError,
+        ),
+        max_tries=8,
+        raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+        on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+            "Повтор %s попытка для %s. Ошибка: %s",
+            details["tries"],
+            details["target"].__name__,
+            details["value"],
+        ),
+        on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+            "Giveup: функция %s исчерпала %s попыток",
+            details["target"].__name__,
+            details["tries"],
+        ),
+    )
     async def get_request(
         self,
         url: str,
@@ -31,19 +53,44 @@ class ClientRepository:
 
         :return: Распарсенный JSON-ответ или пустой список в случае ошибки.
         """
+        result = []
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(url=url, params=params, timeout=timeout, **kwargs)
                 response.raise_for_status()
-                return response.json()
+                result = response.json()
             except HTTPStatusError as e:
                 logger.error(f"GET запрос по {url} вернул статус код {e.response.status_code}")
+                raise e
             except RequestError as e:
                 logger.error(f"GET запрос по {url} получил ошибку: {e!r}")
+                raise e
             except ValueError as e:
                 logger.error(f"GET запрос {url} неверный формат данных: {e!r}")
-            return []
+                raise e
+            return result
 
+    @backoff.on_exception(
+        backoff.expo,
+        exception=(
+            HTTPStatusError,
+            RequestError,
+            ValueError,
+        ),
+        max_tries=8,
+        raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+        on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+            "Повтор %s попытка для %s. Ошибка: %s",
+            details["tries"],
+            details["target"].__name__,
+            details["value"],
+        ),
+        on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+            "Giveup: функция %s исчерпала %s попыток",
+            details["target"].__name__,
+            details["tries"],
+        ),
+    )
     async def post_request(
         self,
         url: str,
@@ -61,15 +108,19 @@ class ClientRepository:
 
         :return: Распарсенный JSON-ответ или пустой список в случае ошибки.
         """
+        result = []
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(url=url, json=json_data, timeout=timeout, **kwargs)
                 response.raise_for_status()
-                return response.json()
+                result = response.json()
             except HTTPStatusError as e:
                 logger.error(f"POST запрос по {url} вернул статус код {e.response.status_code}")
+                raise e
             except RequestError as e:
                 logger.error(f"POST запрос по {url} получил ошибку: {e!r}")
+                raise e
             except ValueError as e:
                 logger.error(f"POST запрос по {url} невалидный JSON: {e!r}")
-            return []
+                raise e
+            return result
