@@ -81,9 +81,11 @@ class FilmSchedulerService:
             params={"sort": "-imdb_rating", "page_size": "10", "page_number": "1"},
         )
         validated_films = cls.validate_films(
-            url=cls.URL_PATH_POST_REQUEST,
-            json_data=json_data,
+            data=json_data,
         )
-        result = await cls.send_films_to_notification(validated_films)
+        result = await cls.send_films_to_notification(
+            url=cls.URL_PATH_POST_REQUEST,
+            json_data=validated_films,
+        )
         logger.info("execute_task: выполнен с результатом %r", result)
         return result
