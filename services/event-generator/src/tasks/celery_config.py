@@ -1,7 +1,8 @@
 import os
 
 from celery import Celery
-from celery.schedules import crontab
+
+# from celery.schedules import crontab
 
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
 RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "pass")
@@ -21,10 +22,6 @@ celery_engine.conf.beat_schedule = {
         "task": "issue.reminder_1day",
         "schedule": 10,  # каждые 10 секнд
         # "schedule": crontab(minute="0", hour="9"),  # каждое утро в 9:00
-    },
-    "issue.reminder_3days": {
-        "task": "issue.reminder_3days",
-        "schedule": crontab(minute="0", hour="13"),  # каждый день в 13:00
     },
     # "luboe-nazvanie": {
     #     "task": "periodic_task",
