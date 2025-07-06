@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class SingleNotificationRequest(BaseModel):
+    """Запрос на создание одиночного уведомления"""
+
     user_id: UUID = Field(
         ..., description="Уникальный идентификатор пользователя, которому предназначено уведомление"
     )
@@ -31,6 +33,21 @@ class SingleNotificationRequest(BaseModel):
 
 
 class SingleNotificationResponse(BaseModel):
+    """Ответ о создании одиночного уведомления"""
+
     notification_id: UUID = Field(
         ..., description="Уникальный идентификатор экземпляра уведомления"
     )
+
+
+class UpdateSendingStatusRequest(BaseModel):
+    sent_success: list[UUID] = Field(
+        default_factory=list, description="Список успешно отправленных уведомлений"
+    )
+    failure: list[UUID] = Field(
+        default_factory=list, description="Список уведомлений, которые не удалось отправить"
+    )
+
+
+class UpdateSendingStatusResponse(BaseModel):
+    updated: list[UUID] = Field(default_factory=list, description="Список обновлённых уведомлений")

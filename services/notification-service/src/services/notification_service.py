@@ -1,9 +1,15 @@
 import logging
 from functools import lru_cache
 
-from api.v1.notification.schemas import SingleNotificationRequest, SingleNotificationResponse
+from api.v1.notification.schemas import (
+    SingleNotificationRequest,
+    SingleNotificationResponse,
+    UpdateSendingStatusRequest,
+    UpdateSendingStatusResponse,
+)
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
+from models.enums import NotificationStatus
 from models.models import Notification
 from services.base_service import BaseService
 from services.repository.notification_repository import (
@@ -20,6 +26,7 @@ class NotificationService(BaseService):
     async def send_single_notification(
         self, request_body: SingleNotificationRequest
     ) -> SingleNotificationResponse:
+        """Сохраняет в БД одну новую нотификацию со статусом NEW"""
 
         logger.info(
             f"Получен запрос на отправку нотификации: {request_body.model_dump_json(indent=4)}"
@@ -49,6 +56,48 @@ class NotificationService(BaseService):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось сохранить уведомление",
         )
+
+    async def update_notification_status(
+        self, request_body: UpdateSendingStatusRequest
+    ) -> UpdateSendingStatusResponse:
+        """Обновляет в БД статус нотификации по результатам отправки"""
+
+        updated_list = []
+
+        logger.debug(
+            f"Получено нотификаций для обновления статуса отправки:"
+            f"{len(request_body.sent_success)} успешных, "
+            f"{len(request_body.failure)} неудачных"
+        )
+
+        if request_body.sent_success:
+            updated_sent_success = await self.repository.update_notification_status_by_id(
+                session=self.session,
+                notify_ids=request_body.sent_success,
+                status=NotificationStatus.SENT,
+            )
+            if updated_sent_success:
+                logger.info(
+                    f"Статус: {len(updated_sent_success)} " f"успешных нотификаций обновлён"
+                )
+                for notify in updated_sent_success:
+                    updated_list.append(str(notify.id))
+
+        if request_body.failure:
+            updated_sent_failure = await self.repository.update_notification_status_by_id(
+                session=self.session,
+                notify_ids=request_body.failure,
+                status=NotificationStatus.SENDING_ERROR,
+            )
+
+            if updated_sent_failure:
+                logger.info(
+                    f"Статус: {len(updated_sent_failure)} " f"неудачных нотификаций обновлён"
+                )
+                for notify in updated_sent_failure:
+                    updated_list.append(str(notify.id))
+
+        return UpdateSendingStatusResponse(updated=updated_list)
 
 
 @lru_cache

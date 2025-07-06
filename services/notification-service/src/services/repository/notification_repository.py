@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from functools import lru_cache
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from models.enums import NotificationStatus
@@ -35,14 +36,14 @@ class NotificationRepository:
             .with_for_update(skip_locked=True)
         )
         result = await session.execute(stmt)
-        notifications = list(result.scalars().all())
+        db_notifications = list(result.scalars().all())
 
         # Сразу меняем статус, чтобы другие процессы их не взяли
-        for notify in notifications:
+        for notify in db_notifications:
             notify.status = NotificationStatus.PROCESSING
 
         await session.flush()
-        return notifications
+        return db_notifications
 
     @sqlalchemy_universal_decorator
     async def fetch_delayed_notifications(
@@ -60,14 +61,14 @@ class NotificationRepository:
             .with_for_update(skip_locked=True)
         )
         result = await session.execute(stmt)
-        notifications = list(result.scalars().all())
+        db_notifications = list(result.scalars().all())
 
         # Сразу меняем статус, чтобы другие процессы их не взяли
-        for notify in notifications:
+        for notify in db_notifications:
             notify.status = NotificationStatus.PROCESSING
 
         await session.flush()
-        return notifications
+        return db_notifications
 
     @sqlalchemy_universal_decorator
     async def update_notifications(  # noqa: WPS210
@@ -81,18 +82,32 @@ class NotificationRepository:
         notifications_dict = {notify.id: notify for notify in notifications}
 
         updated_count = 0
-        for db_notify in db_notifications:
-            updated_notify = notifications_dict[db_notify.id]
+        for notify in db_notifications:
+            updated_notify = notifications_dict[notify.id]
             for attr_name in updated_notify.__table__.columns.keys():
                 if attr_name != "id":  # id не обновляем
-                    setattr(db_notify, attr_name, getattr(updated_notify, attr_name))
+                    setattr(notify, attr_name, getattr(updated_notify, attr_name))
             updated_count += 1
 
             # Принудительно помечаем JSON поле как измененное иначе sqlalchemy его не обновит
-            flag_modified(db_notify, "event_data")
+            flag_modified(notify, "event_data")
 
         await session.flush()
         logger.info(f"Обновлено {updated_count} уведомлений")
+
+    @sqlalchemy_universal_decorator
+    async def update_notification_status_by_id(
+        self, session: AsyncSession, notify_ids: list[UUID], status: NotificationStatus
+    ) -> list[Notification]:
+        stmt = select(Notification).where(Notification.id.in_(notify_ids))
+        result = await session.execute(stmt)
+        db_notifications = list(result.scalars().all())
+
+        for notify in db_notifications:
+            notify.status = status
+        await session.flush()
+
+        return db_notifications
 
 
 @lru_cache
