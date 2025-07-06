@@ -64,7 +64,7 @@ class RabbitMQConnector(AsyncMessageBroker):
             logger.debug(f"Создан канал для соединения с {connection}")
             return channel
 
-    async def consumer(self, queue_name: str, callback: Coroutine):
+    async def consumer(self, queue_name: str, callback: Coroutine) -> None:
         async with self._channel_pool.acquire() as channel:
             queue = await channel.declare_queue(queue_name, passive=True)
             logger.debug(f"Подключение к очереди {queue_name} для чтения сообщений")
@@ -74,7 +74,7 @@ class RabbitMQConnector(AsyncMessageBroker):
                 async for message in queue_iter:
                     await callback(message)
 
-    async def close(self):
+    async def close(self) -> None:
         await self._channel_pool.close()
         await self._connection_pool.close()
         logger.info("Соединение с rabbitmq закрыто")

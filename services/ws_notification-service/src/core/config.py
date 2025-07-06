@@ -32,6 +32,8 @@ class Config(BaseSettings):
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
+
+    cache_expire_time: int = 360
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
     auth_public_key: str = """
     -----BEGIN PUBLIC KEY-----
