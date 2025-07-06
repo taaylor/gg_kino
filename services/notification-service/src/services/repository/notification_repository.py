@@ -99,12 +99,14 @@ class NotificationRepository:
     async def update_notification_status_by_id(
         self, session: AsyncSession, notify_ids: list[UUID], status: NotificationStatus
     ) -> list[Notification]:
+        now_utc = datetime.now(ZoneInfo("UTC"))
         stmt = select(Notification).where(Notification.id.in_(notify_ids))
         result = await session.execute(stmt)
         db_notifications = list(result.scalars().all())
 
         for notify in db_notifications:
             notify.status = status
+            notify.actual_sent_at = now_utc
         await session.flush()
 
         return db_notifications
