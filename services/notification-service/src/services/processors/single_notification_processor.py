@@ -4,6 +4,7 @@ from typing import NoReturn
 
 from core.config import app_config
 from db.postgres import get_session_context
+from models.enums import NotificationStatus
 from models.models import Notification
 from services.processors.enricher import NotificationEnricher, get_notification_enricher
 from services.processors.priority_manager import PriorityManager, get_priority_manager
@@ -35,7 +36,7 @@ class NewNotificationProcessor:  # noqa: WPS214
 
     async def process_new_notifications(self) -> NoReturn:  # noqa: WPS210, WPS217
         while True:  # noqa: WPS457
-            logger.info("Запущен процесс обработки нотификаций в статусе NEW")
+            logger.info(f"Запущен процесс обработки нотификаций в статусе {NotificationStatus.NEW}")
 
             async with get_session_context() as session:
                 while (

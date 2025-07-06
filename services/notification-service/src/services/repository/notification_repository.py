@@ -1,5 +1,7 @@
 import logging
+from datetime import datetime
 from functools import lru_cache
+from zoneinfo import ZoneInfo
 
 from models.enums import NotificationStatus
 from models.models import Notification
@@ -29,6 +31,31 @@ class NotificationRepository:
         stmt = (
             select(Notification)
             .where(Notification.status == NotificationStatus.NEW)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        result = await session.execute(stmt)
+        notifications = list(result.scalars().all())
+
+        # Сразу меняем статус, чтобы другие процессы их не взяли
+        for notify in notifications:
+            notify.status = NotificationStatus.PROCESSING
+
+        await session.flush()
+        return notifications
+
+    @sqlalchemy_universal_decorator
+    async def fetch_delayed_notifications(
+        self, session: AsyncSession, limit: int = 10
+    ) -> list[Notification]:
+        """Получает уведомления и сразу меняет их статус на PROCESSING"""
+        now_utc = datetime.now(ZoneInfo("UTC"))
+        stmt = (
+            select(Notification)
+            .where(
+                Notification.status == NotificationStatus.DELAYED,
+                Notification.target_sent_at <= now_utc,
+            )
             .limit(limit)
             .with_for_update(skip_locked=True)
         )

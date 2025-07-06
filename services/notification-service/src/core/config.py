@@ -83,7 +83,7 @@ class AppConfig(BaseSettings):
     openapi_url: str = "/notification/openapi.json"
     single_notify_batch: int = 10
 
-    notify_start_hour: int = 9
+    notify_start_hour: int = 18
     notify_end_hour: int = 20
 
     server: Server = Server()
