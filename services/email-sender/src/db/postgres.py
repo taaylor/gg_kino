@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 
 from core.config import app_config
 from sqlalchemy import create_engine, func
-from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 logger = logging.getLogger(__name__)
@@ -47,19 +47,30 @@ class Base(AsyncAttrs, DeclarativeBase):
         return f"<{self.__class__.__name__} {', '.join(cols)}>"
 
 
-async_session_maker: sessionmaker | None = None
-
-
 sync_engine = create_engine(app_config.postgres.SYNC_DATABASE_URL)
+
 sync_session_maker = sessionmaker(
     bind=sync_engine,
     autoflush=False,
     autocommit=False,
 )
 
+async_engine = create_async_engine(
+    app_config.postgres.ASYNC_DATABASE_URL,
+    echo=True,
+    future=True,
+)
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async_session_maker = sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     if async_session_maker is None:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")
     async with async_session_maker() as session:
-        yield session
+        # yield session
+        return session

@@ -2,12 +2,11 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 
+from core.config import app_config
 from redis.asyncio import Redis
 from utils.decorators import redis_handler_exceptions
 
 logger = logging.getLogger(__name__)
-
-cache_conn: Redis | None = None
 
 
 class Cache(ABC):
@@ -61,6 +60,20 @@ class RedisCache(Cache):
     async def background_destroy(self, key: str) -> None:
         asyncio.create_task(self.destroy(key=key))
         logger.debug(f"Объект будет удален в кеше по {key=}")
+
+
+cache_conn = Redis(
+    host=app_config.redis.host,
+    port=app_config.redis.port,
+    db=app_config.redis.db,
+    decode_responses=True,
+    username=app_config.redis.user,
+    password=app_config.redis.password,
+    socket_connect_timeout=5,
+    socket_timeout=5,
+    retry_on_error=False,
+    retry_on_timeout=False,
+)
 
 
 async def get_cache() -> Cache:

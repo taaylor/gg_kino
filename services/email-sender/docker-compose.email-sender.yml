@@ -20,7 +20,10 @@ services:
         condition: service_healthy
       rabbitmq-3:
         condition: service_healthy
-
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     restart: always
 
 volumes:

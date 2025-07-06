@@ -202,6 +202,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
       - ./backup/postgres_dump-auth/dumps:/dumps
