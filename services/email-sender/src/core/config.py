@@ -2,7 +2,8 @@ import logging
 import os
 
 import dotenv
-from core.logger_config import LoggerSettings
+
+# from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -52,8 +53,8 @@ class AppConfig(BaseSettings):
 
 
 def _get_config() -> AppConfig:
-    log = LoggerSettings()
-    log.apply()
+    # log = LoggerSettings()
+    # log.apply()
 
     app_config = AppConfig()
     logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")

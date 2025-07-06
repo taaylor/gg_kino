@@ -24,6 +24,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      auth-api:
+        condition: service_healthy
     restart: always
 
 volumes:
