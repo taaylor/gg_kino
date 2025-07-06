@@ -14,13 +14,13 @@ class FilmSupplier:
     def __init__(self, timeout: int = 30) -> None:
         self.timeout = timeout
 
-    @handle_http_errors(service_name=app_config.profile_api.host)
+    @handle_http_errors(service_name=app_config.profileapi.host)
     async def fetch_films(self, film_ids: set[UUID]) -> list[Film]:  # noqa: WPS210
-        logger.info(f"Получение фильмов: {len(film_ids)} " f"от сервиса {app_config.film_api.host}")
+        logger.info(f"Получение фильмов: {len(film_ids)} " f"от сервиса {app_config.filmapi.host}")
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
             data = {"film_ids": [str(film_id) for film_id in film_ids]}
-            url = app_config.film_api.get_film_url
+            url = app_config.filmapi.get_film_url
 
             logger.debug(f"Сформирована строка запроса фильмов: {url}")
             logger.debug(f"Сформирована data запроса фильмов: {data}")
@@ -32,14 +32,14 @@ class FilmSupplier:
             # Проверяем наличие контента
             if not response.content:
                 logger.error(
-                    f"Пустой ответ от сервиса {app_config.film_api.host} " f"для фильмов {film_ids}"
+                    f"Пустой ответ от сервиса {app_config.filmapi.host} " f"для фильмов {film_ids}"
                 )
                 raise EmptyServerResponse("Получен пустой ответ от сервиса фильмов")
 
             response_data = response.json()
 
             logger.debug(
-                f"Получен ответ от сервиса {app_config.film_api.host}: "
+                f"Получен ответ от сервиса {app_config.filmapi.host}: "
                 f"{len(response_data)} фильмов"
             )
 

@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 nodes = [
-    app_config.rabbit.get_host(1),
-    app_config.rabbit.get_host(2),
-    app_config.rabbit.get_host(3),
+    app_config.rabbitmq.get_host(1),
+    app_config.rabbitmq.get_host(2),
+    app_config.rabbitmq.get_host(3),
 ]
 
 

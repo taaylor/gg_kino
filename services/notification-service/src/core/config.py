@@ -88,9 +88,9 @@ class AppConfig(BaseSettings):
 
     server: Server = Server()
     postgres: Postgres = Postgres()
-    profile_api: ProfileApi = ProfileApi()
-    film_api: FilmApi = FilmApi()
-    rabbit: RabbitMQ = RabbitMQ()
+    profileapi: ProfileApi = ProfileApi()
+    filmapi: FilmApi = FilmApi()
+    rabbitmq: RabbitMQ = RabbitMQ()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

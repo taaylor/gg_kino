@@ -14,17 +14,17 @@ class ProfileSupplier:
     def __init__(self, timeout: int = 30) -> None:
         self.timeout = timeout
 
-    @handle_http_errors(service_name=app_config.profile_api.host)
+    @handle_http_errors(service_name=app_config.profileapi.host)
     async def fetch_profiles(self, user_ids: set[UUID]) -> list[UserProfile]:  # noqa: WPS210
         logger.info(
             f"Получение профилей: {len(user_ids)} "
-            f"пользователей от сервиса {app_config.profile_api.host}"
+            f"пользователей от сервиса {app_config.profileapi.host}"
         )
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
-            headers = {"x-api-key": app_config.profile_api.api_key}
+            headers = {"x-api-key": app_config.profileapi.api_key}
             data = {"user_ids": [str(user_id) for user_id in user_ids]}
-            url = app_config.profile_api.get_profile_url
+            url = app_config.profileapi.get_profile_url
 
             logger.debug(f"Сформирована строка запроса профиля: {url}")
             logger.debug(f"Сформирована data запроса профиля: {data}")
@@ -36,7 +36,7 @@ class ProfileSupplier:
             # Проверяем наличие контента
             if not response.content:
                 logger.error(
-                    f"Пустой ответ от сервиса {app_config.profile_api.host} "
+                    f"Пустой ответ от сервиса {app_config.profileapi.host} "
                     f"для пользователей {user_ids}"
                 )
                 raise EmptyServerResponse("Получен пустой ответ от сервиса профилей")
@@ -44,7 +44,7 @@ class ProfileSupplier:
             response_data = response.json()
 
             logger.debug(
-                f"Получен ответ от сервиса {app_config.profile_api.host}: "
+                f"Получен ответ от сервиса {app_config.profileapi.host}: "
                 f"{len(response_data)} профилей"
             )
 

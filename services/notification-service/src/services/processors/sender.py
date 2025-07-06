@@ -41,22 +41,22 @@ class NotificationSender:
                     )
                 if notify_dto.event_type == EventType.USER_REVIEW_LIKED:
                     await self.queue_producer.publish(  # noqa: WPS476
-                        queue_name=app_config.rabbit.review_like_queue,
+                        queue_name=app_config.rabbitmq.review_like_queue,
                         message=notify_dto.model_dump_json(),
                     )
                 if notify_dto.event_type == EventType.USER_REGISTERED:
                     await self.queue_producer.publish(  # noqa: WPS476
-                        queue_name=app_config.rabbit.registered_queue,
+                        queue_name=app_config.rabbitmq.registered_queue,
                         message=notify_dto.model_dump_json(),
                     )
                 if notify_dto.event_type == EventType.AUTO_MASS_NOTIFY:
                     await self.queue_producer.publish(  # noqa: WPS476
-                        queue_name=app_config.rabbit.auto_mailing_queue,
+                        queue_name=app_config.rabbitmq.auto_mailing_queue,
                         message=notify_dto.model_dump_json(),
                     )
                 if notify_dto.event_type == EventType.MANAGER_MASS_NOTIFY:
                     await self.queue_producer.publish(  # noqa: WPS476
-                        queue_name=app_config.rabbit.manager_mailing_queue,
+                        queue_name=app_config.rabbitmq.manager_mailing_queue,
                         message=notify_dto.model_dump_json(),
                     )
 
