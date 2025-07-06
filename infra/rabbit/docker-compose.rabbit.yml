@@ -9,6 +9,8 @@ services:
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-1
       - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+    ports:
+      - "15672:15672"
     expose:
       - "5672:5672"
       - "15672:15672"

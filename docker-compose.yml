@@ -261,6 +261,8 @@ services:
         condition: service_healthy
       rabbitmq-3:
         condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
     restart: "on-failure"
 
   nginx:

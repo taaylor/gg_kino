@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import lru_cache
 
 from aio_pika.abc import AbstractIncomingMessage
 from aiohttp import web
@@ -35,13 +36,9 @@ class EventHandler:
 
             logger.debug(f"Получено сообщение {event.id} из очереди {message.routing_key}")
 
-            if user_ws := connections.get(event.user_id):
-
-                if not user_ws.closed:
-                    return await self._send_message_user(user_ws, message, event)
-
-                elif event.priority == Priority.HIGH and user_ws.closed:
-                    return await self._save_messsage_hight(event, user_key_cache_not_send)
+            user_ws = connections.get(event.user_id)
+            if not user_ws.closed:
+                return await self._send_message_user(user_ws, message, event)
 
             elif event.priority == Priority.HIGH:
                 return await self._save_messsage_hight(event, user_key_cache_not_send)
@@ -106,3 +103,8 @@ class EventHandler:
         :param message_id: Уникальный идентификатор сообщения.
         """
         return True
+
+
+@lru_cache
+def get_event_handler(cache: Cache) -> EventHandler:
+    return EventHandler(cache)
