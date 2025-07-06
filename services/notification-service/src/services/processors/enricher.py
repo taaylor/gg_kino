@@ -107,7 +107,10 @@ class NotificationEnricher:  # noqa: WPS214
                 film_review_liked_type.append(notify)
             elif notify.event_type == EventType.USER_REGISTERED:
                 user_registered_type.append(notify)
-            elif notify.event_type == EventType.MASS_NOTIFY:
+            elif (
+                notify.event_type == EventType.MANAGER_MASS_NOTIFY
+                or notify.event_type == EventType.AUTO_MASS_NOTIFY
+            ):
                 mass_type.append(notify)
             else:
                 logger.warning(

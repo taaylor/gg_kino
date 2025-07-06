@@ -25,12 +25,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
         expire_on_commit=False,
     )
 
-    # Запускаем фоновую задачу после инициализации sessionmaker
-    new_notify_processor = get_new_notification_processor()
-    background_task = asyncio.create_task(new_notify_processor.process_new_notifications())
-
-    # Создаём сессию к RabbitMQ
+    # Создаём сессию к RabbitMQ сначала
     await rabbitmq.get_producer()
+
+    # Запускаем фоновую задачу после инициализации RabbitMQ
+    new_notify_processor = await get_new_notification_processor()
+    background_task = asyncio.create_task(new_notify_processor.process_new_notifications())
 
     yield
 

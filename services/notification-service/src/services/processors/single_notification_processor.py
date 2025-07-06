@@ -81,7 +81,12 @@ class NewNotificationProcessor:  # noqa: WPS214
         """Функция распределяет уведомления в зависимости от категории"""
         # Отправляем уведомления, которые можно отправить сейчас
         if send_now:
-            await self.sender._push_to_queue(send_now)
+            logger.info(f"Уведомлений в процессе отправки в очередь: {len(send_now)}")
+            sending_failed, sent_to_queue = await self.sender.push_to_queue(send_now)
+            sending_result = sending_failed + sent_to_queue
+            await self.repository.update_notifications(
+                session=session, notifications=sending_result
+            )
 
         # Возвращаем в БД уведомления для отложенной отправки
         if send_later:
@@ -101,10 +106,10 @@ class NewNotificationProcessor:  # noqa: WPS214
             logger.info(f"Уведомлений не удалось обогатить: {len(processing_failed_notifications)}")
 
 
-def get_new_notification_processor() -> NewNotificationProcessor:
+async def get_new_notification_processor() -> NewNotificationProcessor:
     repository = get_notification_repository()
     enricher = get_notification_enricher()
-    sender = get_notification_sender()
+    sender = await get_notification_sender()
     pr_manager = get_priority_manager()
     return NewNotificationProcessor(
         repository=repository, enricher=enricher, sender=sender, pr_manager=pr_manager

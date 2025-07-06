@@ -1,7 +1,6 @@
 from datetime import datetime
 from uuid import UUID
 
-from models.enums import NotificationMethod, Priority
 from pydantic import BaseModel
 
 
@@ -32,15 +31,20 @@ class Film(BaseModel):
     type: str
 
 
-class LikeNotification(BaseModel):
+class NotificationLogic(BaseModel):
     id: UUID
     user_id: UUID
+    method: str
     source: str
+    status: str
     target_sent_at: datetime
-    added_queue_at: datetime
+    actual_sent_at: datetime | None
+    added_queue_at: datetime | None
+    priority: str
     event_type: str
-    updated_at: datetime
-    method: NotificationMethod
-    priority: Priority
     event_data: dict
-    created_at: datetime
+    user_timezone: str | None
+    template_id: UUID | None
+    mass_notification_id: UUID | None
+
+    model_config = {"from_attributes": True}  # Включаем поддержку атрибутов ORM
