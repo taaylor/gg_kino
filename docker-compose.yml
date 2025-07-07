@@ -154,8 +154,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      es-init:
+        condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   content-actions-api:
@@ -206,6 +213,8 @@ services:
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
       - ./backup/postgres_dump-auth/dumps:/dumps
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -231,8 +240,8 @@ services:
         condition: service_healthy
     restart: "no"
 
-  notification-api:
-    container_name: notification-api-container
+  notification:
+    container_name: notification-container
     env_file:
       - .env
     build:
@@ -241,7 +250,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
       auth-api:
+        condition: service_healthy
+      async-api:
         condition: service_healthy
     restart: "on-failure"
 
@@ -278,6 +291,7 @@ services:
       - static_django:/var/www
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
+      - "${NGINX_RABBIT_MANAGEMENT_PORT}:${NGINX_RABBIT_MANAGEMENT_PORT}"
     restart: always
 
 volumes:

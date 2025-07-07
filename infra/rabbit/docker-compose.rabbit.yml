@@ -9,8 +9,6 @@ services:
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-1
       - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
-    ports:
-      - "15672:15672"
     expose:
       - "5672:5672"
       - "15672:15672"
@@ -86,6 +84,10 @@ services:
       dockerfile: Dockerfile
     depends_on:
       rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
         condition: service_healthy
     restart: no
 
