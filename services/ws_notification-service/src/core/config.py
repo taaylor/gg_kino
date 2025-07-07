@@ -1,5 +1,5 @@
 from dotenv import find_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,15 +26,43 @@ class Redis(BaseModel):
     user: str = "redis_user"
     password: str = "Parol123"
     db: int = 0
+    cache_expire_time: int = 360
+
+    key_cache_drop_session: str = Field(
+        default="session:drop:{user_id}:{session_id}",
+        description="ключ по которому храняться отозванные сессии пользователя",
+    )
+    key_cache_send_event: str = Field(
+        default="send_event:{user_id}:{event_id}",
+        description="ключ по которому храняться отправленные нотификации пользователя",
+    )
+    key_cache_not_send_event: str = Field(
+        default="not_send_event:{user_id}:{event_id}",
+        description="ключ по которому храняться не отправленные обогащенные нотификации",
+    )
+    key_cache_fail_event: str = Field(
+        default="fail_event:{user_id}:{event_id}",
+        description="ключ по которому храняться не отправленные нотификации",
+    )
+
+
+class NotificationAPI(BaseModel):
+    host: str = "localhost"
+    port: int = 8000
+    callback_path: str = "/notification/api/v1/update-sending-status"
+
+    @property
+    def get_url(self):
+        return f"http://{self.host}:{self.port}{self.callback_path}"
 
 
 class Config(BaseSettings):
+    api_keys: list[str]
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
+    notification_api: NotificationAPI = NotificationAPI()
 
-    cache_expire_time: int = 360
-    cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
     auth_public_key: str = """
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7XpysaZje95xChyW8u

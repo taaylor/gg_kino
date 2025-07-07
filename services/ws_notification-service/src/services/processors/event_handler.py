@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 class EventHandler(BaseService):
     """Класс для обработки событий, полученных из очереди сообщений."""
 
-    async def event_handler(self, message: AbstractIncomingMessage) -> None:
+    async def event_handler(self, message: AbstractIncomingMessage) -> None:  # noqa: WPS231
         """
         Обработчик события, который будет вызываться при получении сообщения из очереди.
         :param message: Сообщение, содержащее данные события.
         """
 
-        try:
+        try:  # noqa: WPS229
             event = EventSchemaMessage.model_validate_json(message.body.decode())
             logger.debug(f"Получено сообщение {event.id} из очереди {message.routing_key}")
 
@@ -29,20 +29,7 @@ class EventHandler(BaseService):
             if user_ws and not user_ws.closed:
                 return await self._send_message_user(user_ws, message, event)
 
-            key_not_send_event = self.__class__.key_cache_not_send_event.format(
-                user_id=event.user_id, event_id=event.id
-            )
-            await self.cache.background_set(
-                key=key_not_send_event,
-                value=event.model_dump_json(),
-                expire=app_config.cache_expire_time,
-            )
-            logger.info(
-                (
-                    f"Cобытие {event.id} отправлено временно в кеш "
-                    f"для пользователя {event.user_id}, так как его соединение не активно."
-                )
-            )
+            await self._set_cache_fail_event(event=event)
 
             if event.priority in (Priority.HIGH, Priority.MEDIUM):
                 return await message.nack(requeue=False)
@@ -63,7 +50,7 @@ class EventHandler(BaseService):
         :param message: Сообщение, содержащее данные события.
         :param event: Данные события, которые будут отправлены пользователю.
         """
-        key_cache_event = self.__class__.key_cache_send_event.format(
+        key_event_send = self.__class__.key_event_send.format(
             user_id=event.user_id, event_id=event.id
         )
 
@@ -71,11 +58,38 @@ class EventHandler(BaseService):
         logger.debug(f"Отправлено сообщение {event.id} пользователю {event.user_id}")
 
         await self.cache.background_set(
-            key=key_cache_event,
+            key=key_event_send,
             value=event.model_dump_json(include={"id"}),
-            expire=app_config.cache_expire_time,
+            expire=app_config.redis.cache_expire_time,
         )
         await message.ack()
+
+    async def _set_cache_fail_event(self, event: EventSchemaMessage) -> None:
+        key_event_not_send = self.__class__.key_event_not_send.format(
+            user_id=event.user_id, event_id=event.id
+        )
+        key_event_fail = self.__class__.key_event_fail.format(
+            user_id=event.user_id, event_id=event.id
+        )
+
+        logger.warning(event.model_dump_json())
+        await self.cache.background_set(
+            key=key_event_not_send,
+            value=event.model_dump_json(),
+            expire=app_config.redis.cache_expire_time,
+        )
+        logger.warning(event.model_dump_json(include={"id"}))
+        await self.cache.background_set(
+            key=key_event_fail,
+            value=event.model_dump_json(include={"id"}),
+            expire=app_config.redis.cache_expire_time,
+        )
+        logger.info(
+            (
+                f"Cобытие {event.id} отправлено временно в кеш "
+                f"для пользователя {event.user_id}, так как его соединение не активно."
+            )
+        )
 
 
 @lru_cache

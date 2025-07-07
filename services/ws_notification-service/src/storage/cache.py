@@ -2,7 +2,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Coroutine, Iterable
+from typing import Coroutine
 
 from redis.asyncio import Redis
 from utils.decorators import redis_handler_exceptions
@@ -49,8 +49,17 @@ class Cache(ABC):
         """Удаляет все значения из кэша по паттерну в фоновом режиме."""
 
     @abstractmethod
-    def scan_keys(self, ppattern: str) -> Coroutine[None, None, list[str]]:
-        """Возвращает ключи найденные по патерну"""
+    def scan_keys(
+        self, pattern: str, count: int | None = None
+    ) -> Coroutine[None, None, list[str]]:  # noqa: WPS211
+        """
+        Сканирует ключи, соответствующие заданному шаблону.
+
+        :param pattern: Шаблон для поиска ключей.
+        :param count: Максимальное количество ключей для возврата.
+            Если None, возвращаются все ключи.
+        :return: Список ключей, до 'count', если указано.
+        """
 
 
 class RedisCache(Cache):
@@ -72,7 +81,6 @@ class RedisCache(Cache):
 
     @redis_handler_exceptions
     async def set(self, key: str, value: str, expire: int | None):
-        await self.destroy(key)
         await self.redis.set(key, value, ex=expire)
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
 
@@ -107,8 +115,8 @@ class RedisCache(Cache):
         asyncio.create_task(self.set(key=key, value=value, expire=expire))
         logger.debug(f"Объект будет сохранен в кеш по {key=}")
 
-    async def background_destroy(self, key: str) -> None:
-        asyncio.create_task(self.destroy(key=key))
+    async def background_destroy(self, *key: str) -> None:
+        asyncio.create_task(self.destroy(*key))
         logger.debug(f"Объект будет удален в кеше по {key=}")
 
     async def background_destroy_all_by_pattern(self, pattern: str) -> None:
@@ -116,15 +124,26 @@ class RedisCache(Cache):
         logger.debug(f"Объекты будут удалены в кеше по {pattern=}")
 
     @redis_handler_exceptions
-    async def scan_keys(self, pattern: str) -> list[str]:
+    async def scan_keys(self, pattern: str, count: int | None = None) -> list[str]:  # type: ignore
         keys = []
         cursor = 0
+        scan_count = 100
+
         while True:
-            cursor, partial_keys = await self.redis.scan(cursor=cursor, match=pattern)
+            cursor, partial_keys = await self.redis.scan(
+                cursor=cursor, match=pattern, count=scan_count
+            )
             keys.extend(partial_keys)
+
+            if count is not None and len(keys) >= count:
+                break
+
             if cursor == 0:
                 break
-        return keys
+
+        if count is None:
+            return keys
+        return keys[:count]
 
 
 @lru_cache()

@@ -116,3 +116,4 @@ notifications-api-down:
 
 ws-sender-start:
 	docker compose up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger
+	docker compose logs -f ws-sender-worker

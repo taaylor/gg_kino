@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Coroutine
+from typing import Callable
 
 import aio_pika
 from aio_pika.abc import AbstractIncomingMessage, AbstractRobustChannel, AbstractRobustConnection
@@ -16,7 +16,7 @@ class AsyncMessageBroker(ABC):
     """Абстрактный класс для работы с брокером сообщений."""
 
     @abstractmethod
-    async def consumer(self, queue_name: str, callback: Coroutine):
+    async def consumer(self, queue_name: str, callback: Callable):
         """
         Метод позволяет прочитать сообщения из очереди, и выполнить их обработку
         :queue_name - название очереди
@@ -43,9 +43,24 @@ class RabbitMQConnector(AsyncMessageBroker):
         self._channel_pool: Pool = Pool(self._get_channel, max_size=2)
         self._connection_pool: Pool = Pool(self._get_connection, max_size=2)
 
+    async def consumer(self, queue_name: str, callback: Callable) -> None:
+        async with self._channel_pool.acquire() as channel:
+            queue = await channel.declare_queue(queue_name, passive=True)
+            logger.debug(f"Подключение к очереди {queue_name} для чтения сообщений")
+            async with queue.iterator() as queue_iter:
+                logger.debug(f"Начинаем чтение сообщений из очереди {queue_name}")
+                message: AbstractIncomingMessage
+                async for message in queue_iter:
+                    await callback(message)  # ignore
+
+    async def close(self) -> None:
+        await self._channel_pool.close()
+        await self._connection_pool.close()
+        logger.info("Соединение с rabbitmq закрыто")
+
     async def _get_connection(self) -> AbstractRobustConnection:
         for host in self.hosts:
-            try:
+            try:  # noqa: WPS229
                 connect = await aio_pika.connect_robust(
                     host=host, login=self.__class__.login, password=self.__class__.password
                 )
@@ -64,27 +79,12 @@ class RabbitMQConnector(AsyncMessageBroker):
             logger.debug(f"Создан канал для соединения с {connection}")
             return channel
 
-    async def consumer(self, queue_name: str, callback: Coroutine) -> None:
-        async with self._channel_pool.acquire() as channel:
-            queue = await channel.declare_queue(queue_name, passive=True)
-            logger.debug(f"Подключение к очереди {queue_name} для чтения сообщений")
-            async with queue.iterator() as queue_iter:
-                logger.debug(f"Начинаем чтение сообщений из очереди {queue_name}")
-                message: AbstractIncomingMessage
-                async for message in queue_iter:
-                    await callback(message)
-
-    async def close(self) -> None:
-        await self._channel_pool.close()
-        await self._connection_pool.close()
-        logger.info("Соединение с rabbitmq закрыто")
-
 
 messagebroker: AsyncMessageBroker | None = None
 
 
 def get_message_broker() -> AsyncMessageBroker:
-    global messagebroker
+    global messagebroker  # noqa: WPS420
     if messagebroker is None:
         messagebroker = RabbitMQConnector(hosts=app_config.rabbitmq.hosts)
     return messagebroker

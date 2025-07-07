@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from aiohttp import web
+from aiohttp import ClientSession, web
 from core.config import app_config
 from redis.asyncio import Redis
 from services.processors.event_handler import EventHandler, get_event_handler
@@ -13,10 +13,12 @@ from storage.messagebroker import AsyncMessageBroker, get_message_broker
 logger = logging.getLogger(__name__)
 
 
-async def setup_dependencies(app: web.Application):
+async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
     """
-    Устанавливает соединение с хранилищем кеша при инициализации приложения
+    Инициализирует зависимости при старте приложения
     """
+    logging.getLogger("aio_pika").setLevel(logging.WARNING)
+    logging.getLogger("aiormq").setLevel(logging.WARNING)
     cache.cache_conn = Redis(
         host=app_config.redis.host,
         port=app_config.redis.port,
@@ -36,8 +38,10 @@ async def setup_dependencies(app: web.Application):
         cache_manager
     )
     message_broker: AsyncMessageBroker = get_message_broker()
-
-    # TODO: добавить SupplierProcessor
+    client_session: ClientSession = ClientSession()
+    supplier_processor: SupplierProcessor = get_supplier_processor(
+        cache=cache_manager, client_session=client_session
+    )
 
     consumer_task = asyncio.create_task(
         message_broker.consumer(
@@ -46,21 +50,31 @@ async def setup_dependencies(app: web.Application):
         ),
         name="message_broker_consumer",
     )
-    logger.info("Consumer запущен в фоновом режиме")
+    logger.info("Consumer rabbitmq запущен в фоновом режиме")
+
+    supplier_task = asyncio.create_task(
+        supplier_processor.supplier_processor(), name="supplier_processor"
+    )
+    logger.info("Supplier процесс запущен в фоновом режиме")
 
     app.setdefault("cache_conn", cache.cache_conn)
     app.setdefault("cache_manager", cache_manager)
     app.setdefault("message_broker", message_broker)
     app.setdefault("consumer_task", consumer_task)
     app.setdefault("websocket_handler_service", websocket_handler_service)
-    app.setdefault("event_handler", event_handler)
+    app.setdefault("client_session", client_session)
+    app.setdefault("supplier_task", supplier_task)
 
 
-async def cleanup_dependencies(app: web.Application):
-    """Закрывает соединение с брокером сообщений при остановке приложения"""
+async def cleanup_dependencies(app: web.Application):  # noqa: WPS213
+    """
+    Закрывает все активные зависимости при остановке приложения
+    """
     message_broker: AsyncMessageBroker = app.get("message_broker")
     consumer_task: asyncio.Task = app.get("consumer_task")
     cache_conn: Redis = app.get("cache_conn")
+    client_session: ClientSession = app.get("client_session")
+    supplier_task: asyncio.Task = app.get("supplier_task")
 
     if cache_conn:
         await cache_conn.close()
@@ -74,3 +88,13 @@ async def cleanup_dependencies(app: web.Application):
 
     if message_broker:
         await message_broker.close()
+
+    if client_session:
+        await client_session.close()
+
+    if supplier_task:
+        supplier_task.cancel()
+        try:
+            await supplier_task
+        except asyncio.CancelledError:
+            logger.info("Supplier процесс остановлен")

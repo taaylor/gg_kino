@@ -1,3 +1,4 @@
+from core.config import app_config
 from storage.cache import Cache
 
 
@@ -6,8 +7,9 @@ class BaseService:
 
     __slots__ = ("cache",)
 
-    key_cache_send_event = "send_event:{user_id}:{event_id}"
-    key_cache_not_send_event = "not_send_event:{user_id}:{event_id}"
+    key_event_send = app_config.redis.key_cache_send_event
+    key_event_not_send = app_config.redis.key_cache_not_send_event
+    key_event_fail = app_config.redis.key_cache_fail_event
 
     def __init__(self, cache: Cache):
         self.cache = cache
