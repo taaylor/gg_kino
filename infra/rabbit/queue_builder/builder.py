@@ -13,7 +13,7 @@ logging.basicConfig(
 
 # Получение настроек из переменных окружения
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
-RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "pass")
+RABBITMQ_PASS = os.getenv("RABBITMQ_PASSWORD", "pass")
 MESSAGE_TTL = int(os.getenv("RABBITMQ_MESSAGE_TTL", "pass"))
 DLQ_MESSAGE_TTL = int(os.getenv("RABBITMQ_DLQ_MESSAGE_TTL", "pass"))
 DLQ_NAME = os.getenv("RABBITMQ_DLQ_QUEUE")
