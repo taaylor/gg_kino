@@ -67,11 +67,9 @@ class RabbitMQ(BaseModel):
     password: str = "pass"
 
     def get_host(self, host_number: int = 1) -> str:
-        if host_number == 1:
-            return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}/"
         if host_number == 2:
             return f"amqp://{self.user}:{self.password}@{self.host2}:{self.port}/"
-        if host_number == 3:
+        elif host_number == 3:
             return f"amqp://{self.user}:{self.password}@{self.host3}:{self.port}/"
         return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}/"
 
@@ -83,6 +81,7 @@ class AppConfig(BaseSettings):
     openapi_url: str = "/notification/openapi.json"
     single_notify_batch: int = 10
 
+    start_processing_interval_sec: int = 10
     notify_start_hour: int = 9
     notify_end_hour: int = 20
 

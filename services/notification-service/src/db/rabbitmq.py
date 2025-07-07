@@ -27,14 +27,19 @@ class AsyncProducer:
             try:
                 self.connection = await aio_pika.connect_robust(url)  # noqa: WPS476
                 self.channel = await self.connection.channel()  # noqa: WPS476
-                logger.info("Подключение к RabbitMQ установлено")
-            except AMQPConnectionError as e:
-                logger.error(f"Ошибка подключения к RabbitMQ: {e}")
-                raise
-            else:
-                break
+                logger.info(f"Подключение к RabbitMQ {url} установлено")
+                return  # Успешное подключение, выходим из функции
+            except AMQPConnectionError:  # Можно не указывать as e, логгер
+                # сам перехватит ошибку и трейс, если ошибка возникает в except
+                logger.exception("Ошибка подключения к RabbitMQ")
+
+        raise AMQPConnectionError("Не удалось подключиться к RabbitMQ")
 
     async def close(self):
+        if self.channel:
+            await self.channel.close()
+            logger.info("Канал к RabbitMQ закрыт")
+
         if self.connection:
             await self.connection.close()
             logger.info("Подключение к RabbitMQ закрыто")

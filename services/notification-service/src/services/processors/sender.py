@@ -35,26 +35,26 @@ class NotificationSender:
                 # Подсчет количества сообщений по типам
                 type_counts[notify_dto.event_type] = type_counts.get(notify_dto.event_type, 0) + 1
 
-                if notify_dto.event_type == EventType.TEST:
+                if notify_dto.event_type == EventType.TEST:  # noqa: WPS223
                     logger.info(
                         f"Получено тестовое сообщение {notify_dto.model_dump_json(indent=4)}"
                     )
-                if notify_dto.event_type == EventType.USER_REVIEW_LIKED:
+                elif notify_dto.event_type == EventType.USER_REVIEW_LIKED:
                     await self.queue_producer.publish(  # noqa: WPS476
                         queue_name=app_config.rabbitmq.review_like_queue,
                         message=notify_dto.model_dump_json(),
                     )
-                if notify_dto.event_type == EventType.USER_REGISTERED:
+                elif notify_dto.event_type == EventType.USER_REGISTERED:
                     await self.queue_producer.publish(  # noqa: WPS476
                         queue_name=app_config.rabbitmq.registered_queue,
                         message=notify_dto.model_dump_json(),
                     )
-                if notify_dto.event_type == EventType.AUTO_MASS_NOTIFY:
+                elif notify_dto.event_type == EventType.AUTO_MASS_NOTIFY:
                     await self.queue_producer.publish(  # noqa: WPS476
                         queue_name=app_config.rabbitmq.auto_mailing_queue,
                         message=notify_dto.model_dump_json(),
                     )
-                if notify_dto.event_type == EventType.MANAGER_MASS_NOTIFY:
+                elif notify_dto.event_type == EventType.MANAGER_MASS_NOTIFY:
                     await self.queue_producer.publish(  # noqa: WPS476
                         queue_name=app_config.rabbitmq.manager_mailing_queue,
                         message=notify_dto.model_dump_json(),

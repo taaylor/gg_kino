@@ -16,20 +16,37 @@ class SingleNotificationRequest(BaseModel):
         description="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
     )
     source: str = Field(..., description="Сервис запрашивающий уведомление")
-    object_id: UUID | None = Field(
-        None, description="Уникальный идентификатор объекта с которым произошло действие"
-    )
     method: NotificationMethod = Field(..., description="Канал для уведомления пользователя")
     priority: Priority = Field(
         Priority.LOW,
         description="Приоритет, с которым будет отправлено уведомление. HIGH доставляются без учёта таймзоны пользователя",  # noqa: E501
     )
-    event_data: dict | None = Field(
-        ..., description="Контекст события, которое привело к запросу на нотификацию"
+    event_data: dict = Field(
+        default_factory=dict,
+        description="Контекст события, которое привело к запросу на нотификацию",
     )
     target_sent_at: datetime | None = Field(
         datetime.now(timezone.utc), description="Желаемое время отправки уведомления"
     )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "user_id": "a88cbbeb-b998-4ca6-aeff-501463dcdaa0",
+                    "event_type": "USER_REVIEW_LIKED",
+                    "source": "content-api",
+                    "method": "WEBSOCKET",
+                    "priority": "HIGH",
+                    "event_data": {
+                        "liked_by_user_id": "cf3d6829-5f95-4e64-acf2-70a6e0f27909",
+                        "review_id": "f59ac58a-64a5-41f3-bae4-f4a8aefab8b0",
+                        "film_id": "3e5351d6-4e4a-486b-8529-977672177a07",
+                    },
+                }
+            ]
+        }
+    }
 
 
 class SingleNotificationResponse(BaseModel):

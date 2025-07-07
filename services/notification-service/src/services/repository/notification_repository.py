@@ -28,7 +28,7 @@ class NotificationRepository:
     async def fetch_new_notifications(
         self, session: AsyncSession, limit: int = 10
     ) -> list[Notification]:
-        """Получает уведомления и сразу меняет их статус на PROCESSING"""
+        """Получает новые уведомления и сразу меняет их статус на PROCESSING"""
         stmt = (
             select(Notification)
             .where(Notification.status == NotificationStatus.NEW)
@@ -49,7 +49,7 @@ class NotificationRepository:
     async def fetch_delayed_notifications(
         self, session: AsyncSession, limit: int = 10
     ) -> list[Notification]:
-        """Получает уведомления и сразу меняет их статус на PROCESSING"""
+        """Получает отложенные уведомления и сразу меняет их статус на PROCESSING"""
         now_utc = datetime.now(ZoneInfo("UTC"))
         stmt = (
             select(Notification)
@@ -74,6 +74,7 @@ class NotificationRepository:
     async def update_notifications(  # noqa: WPS210
         self, session: AsyncSession, notifications: list[Notification]
     ) -> None:
+        """Полностью обновляет уведомление в БД на то состояние, которое пришло в запросе"""
         notify_ids = [notify.id for notify in notifications]
         stmt = select(Notification).where(Notification.id.in_(notify_ids))
         result = await session.execute(stmt)
@@ -99,6 +100,7 @@ class NotificationRepository:
     async def update_notification_status_by_id(
         self, session: AsyncSession, notify_ids: list[UUID], status: NotificationStatus
     ) -> list[Notification]:
+        """ "Обновляет статус уведомления в БД в результате обработки коллбека по отправке"""
         now_utc = datetime.now(ZoneInfo("UTC"))
         stmt = select(Notification).where(Notification.id.in_(notify_ids))
         result = await session.execute(stmt)

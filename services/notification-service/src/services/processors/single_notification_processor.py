@@ -69,7 +69,7 @@ class NewNotificationProcessor:  # noqa: WPS214
                         processing_failed_notifications=enrich_failed_notifications,
                     )
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(app_config.start_processing_interval_sec)
 
     async def _allocate_notifications(
         self,

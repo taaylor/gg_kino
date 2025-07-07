@@ -46,7 +46,7 @@ class DelayedNotificationProcessor:  # noqa: WPS214
                         session=session, notifications=sending_result
                     )
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(app_config.start_processing_interval_sec)
 
 
 async def get_delayed_notification_processor() -> DelayedNotificationProcessor:

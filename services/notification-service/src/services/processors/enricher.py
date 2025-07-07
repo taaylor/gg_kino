@@ -25,6 +25,7 @@ class NotificationEnricher:  # noqa: WPS214
     async def enrich_notifications(  # noqa: WPS210, WPS213, WPS231
         self, notifications: list[Notification]
     ) -> tuple[list[Notification], list[Notification]]:
+        """Обогащает уведомления дополнительными данными, которые будут отображаться пользователю"""
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
@@ -73,6 +74,7 @@ class NotificationEnricher:  # noqa: WPS214
         return enrich_failed_notifications, enriched_notifications
 
     async def _fetch_profiles(self, user_ids: set[UUID]) -> list[UserProfile]:
+        """Получает данные из профиля пользователя для обогащения уведомления"""
         try:
             profiles = await self.prof_supplier.fetch_profiles(user_ids=user_ids)
             logger.debug(f"Получено: {len(profiles)} профилей для отправки уведомлений")
@@ -95,6 +97,7 @@ class NotificationEnricher:  # noqa: WPS214
     ) -> tuple[
         list[Notification], list[Notification], list[Notification], list[Notification]
     ]:  # noqa: WPS221
+        """Сортирует уведомления по типам для дальнейшего обогащения"""
         test_type = []
         film_review_liked_type = []
         user_registered_type = []
@@ -122,6 +125,7 @@ class NotificationEnricher:  # noqa: WPS214
     async def _enrich_test_notify(  # noqa: WPS210
         self, notifications: list[Notification]
     ) -> tuple[list[Notification], list[Notification]]:
+        """Обогащает уведомления типа TEST данными из профиля пользователя"""
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
@@ -161,6 +165,14 @@ class NotificationEnricher:  # noqa: WPS214
     async def _enrich_film_review_liked_notify(  # noqa: WPS210
         self, notifications: list[Notification]
     ) -> tuple[list[Notification], list[Notification]]:
+        """
+        Обогащает уведомления типа TEST данными из профилей пользователей
+        И данными о фильме, к комментарию о котором поставили лайк.
+
+        Предполагается, что будет получено 2 профиля для каждого уведомления:
+            * Автор комментария
+            * Тот кто поставил лайк на комментарий
+        """
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
@@ -204,6 +216,7 @@ class NotificationEnricher:  # noqa: WPS214
     async def _enrich_user_registered_notify(  # noqa: WPS210
         self, notifications: list[Notification]
     ) -> tuple[list[Notification], list[Notification]]:
+        """Обогащает уведомления типа USER_REGISTERED данными из профиля пользователя"""
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
@@ -242,6 +255,12 @@ class NotificationEnricher:  # noqa: WPS214
     async def _enrich_mass_notify(  # noqa: WPS210
         self, notifications: list[Notification]
     ) -> tuple[list[Notification], list[Notification]]:
+        """
+        Обогащает уведомления типов:
+            * AUTO_MASS_NOTIFY
+            * MANAGER_MASS_NOTIFY
+        данными из профиля пользователя
+        """
         enriched_notifications: list[Notification] = []
         enrich_failed_notifications: list[Notification] = []
 
