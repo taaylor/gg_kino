@@ -90,6 +90,11 @@ up-local-content-api:
 	cd services/content-actions-service/src/ && uvicorn main:app --port 8009 --reload
 
 
+
+# up-local-ws-sender:
+# 	docker compose -f $(COMPOSE_FILE_DEBUG) up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init redis postgres pg-import auth-api jaeger
+# 	cd services/ws_notification-service/src/ && gunicorn main:app --reload
+
 # Rabbit only
 up-rabbit:
 	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \

@@ -32,3 +32,14 @@ class EventSchemaMessage(BaseModel):
     priority: Priority = Field(..., description="Приоритет события (например, LOW)")
     event_data: dict = Field(..., description="Данные события")
     created_at: str = Field(..., description="Время создания события")
+
+
+class EventsIdsLogic(BaseModel):
+    """Схема для хранения статусов отправленных событий."""
+
+    sent_success: list[str] = Field(
+        default_factory=list, description="Список успешно отправленных уведомлений"
+    )
+    failure: list[str] = Field(
+        default_factory=list, description="Список уведомлений, которые не удалось отправить"
+    )

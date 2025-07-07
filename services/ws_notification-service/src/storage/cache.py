@@ -2,7 +2,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Coroutine
+from typing import Coroutine, Iterable
 
 from redis.asyncio import Redis
 from utils.decorators import redis_handler_exceptions
@@ -41,12 +41,16 @@ class Cache(ABC):
         """Сохраняет значение в кэш в фоновом режиме."""
 
     @abstractmethod
-    def background_destroy(self, key: str) -> Coroutine[None, None, None]:
+    def background_destroy(self, *key: str) -> Coroutine[None, None, None]:
         """Удаляет значение из кэша в фоновом режиме."""
 
     @abstractmethod
     def background_destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, None]:
         """Удаляет все значения из кэша по паттерну в фоновом режиме."""
+
+    @abstractmethod
+    def scan_keys(self, ppattern: str) -> Coroutine[None, None, list[str]]:
+        """Возвращает ключи найденные по патерну"""
 
 
 class RedisCache(Cache):
@@ -62,8 +66,8 @@ class RedisCache(Cache):
         return await self.redis.get(key)
 
     @redis_handler_exceptions
-    async def destroy(self, key: str) -> None:
-        await self.redis.delete(key)
+    async def destroy(self, *key: str) -> None:
+        await self.redis.delete(*key)
         logger.info(f"[RedisCache] Объект удален по ключу '{key}'")
 
     @redis_handler_exceptions
@@ -110,6 +114,17 @@ class RedisCache(Cache):
     async def background_destroy_all_by_pattern(self, pattern: str) -> None:
         asyncio.create_task(self.destroy_all_by_pattern(pattern=pattern))
         logger.debug(f"Объекты будут удалены в кеше по {pattern=}")
+
+    @redis_handler_exceptions
+    async def scan_keys(self, pattern: str) -> list[str]:
+        keys = []
+        cursor = 0
+        while True:
+            cursor, partial_keys = await self.redis.scan(cursor=cursor, match=pattern)
+            keys.extend(partial_keys)
+            if cursor == 0:
+                break
+        return keys
 
 
 @lru_cache()

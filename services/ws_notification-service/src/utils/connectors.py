@@ -4,7 +4,8 @@ import logging
 from aiohttp import web
 from core.config import app_config
 from redis.asyncio import Redis
-from services.callback_service import EventHandlerService, get_event_handler
+from services.processors.event_handler import EventHandler, get_event_handler
+from services.processors.supplier_processor import SupplierProcessor, get_supplier_processor
 from services.ws_service import WebSocketHandlerService, get_websocket_handler_service
 from storage import cache
 from storage.messagebroker import AsyncMessageBroker, get_message_broker
@@ -30,16 +31,18 @@ async def setup_dependencies(app: web.Application):
     )
 
     cache_manager: cache.Cache = cache.get_cache()
-    event_handler_service: EventHandlerService = get_event_handler(cache_manager)
+    event_handler: EventHandler = get_event_handler(cache_manager)
     websocket_handler_service: WebSocketHandlerService = get_websocket_handler_service(
         cache_manager
     )
     message_broker: AsyncMessageBroker = get_message_broker()
 
+    # TODO: добавить SupplierProcessor
+
     consumer_task = asyncio.create_task(
         message_broker.consumer(
             queue_name=app_config.rabbitmq.review_like_queue,
-            callback=event_handler_service.event_handler,
+            callback=event_handler.event_handler,
         ),
         name="message_broker_consumer",
     )
@@ -50,7 +53,7 @@ async def setup_dependencies(app: web.Application):
     app.setdefault("message_broker", message_broker)
     app.setdefault("consumer_task", consumer_task)
     app.setdefault("websocket_handler_service", websocket_handler_service)
-    app.setdefault("event_handler_service", event_handler_service)
+    app.setdefault("event_handler", event_handler)
 
 
 async def cleanup_dependencies(app: web.Application):

@@ -1,3 +1,12 @@
+include:
+  - ./infra/glitchtip/docker-compose.glitchtip.yml
+  - ./infra/kafka/docker-compose.kafka.yaml
+  - ./infra/elk/docker-compose.elk.yml
+  - ./infra/clickhouse/docker-compose.clickhouse.yml
+  - ./infra/mongodb/docker-compose.mongodb.yml
+  - ./infra/rabbit/docker-compose.rabbit.yml
+  - ./services/metric-service/docker-compose.metric-services.yml
+
 services:
   elasticsearch:
     image: elasticsearch:8.16.5
