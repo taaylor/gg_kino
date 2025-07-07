@@ -20,9 +20,11 @@ class EventHandler(BaseService):
         Обработчик события, который будет вызываться при получении сообщения из очереди.
         :param message: Сообщение, содержащее данные события.
         """
-
+        # TODO: решить проблему с сериализацией и десериализацией
         try:  # noqa: WPS229
-            event = EventSchemaMessage.model_validate_json(message.body.decode())
+            body = message.body.decode()
+
+            event = EventSchemaMessage.model_validate_json(body)
             logger.debug(f"Получено сообщение {event.id} из очереди {message.routing_key}")
 
             user_ws = connections.get(event.user_id)
@@ -36,7 +38,7 @@ class EventHandler(BaseService):
 
             return await message.ack()
         except Exception as error:
-            logger.error(f"Ошибка при обработке события {event}: {error}")
+            logger.error(f"Ошибка при обработке события {message}: {error}")
             return await message.nack(requeue=False)
 
     async def _send_message_user(

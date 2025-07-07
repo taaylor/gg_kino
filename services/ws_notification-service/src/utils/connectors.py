@@ -13,12 +13,21 @@ from storage.messagebroker import AsyncMessageBroker, get_message_broker
 logger = logging.getLogger(__name__)
 
 
+async def monitor_task(task: asyncio.Task, name: str):
+    try:
+        await task
+    except asyncio.CancelledError:
+        logger.info(f"{name} был отменён")
+    except Exception as e:
+        logger.error(f"Ошибка в {name}: {e}")
+
+
 async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
     """
     Инициализирует зависимости при старте приложения
     """
-    logging.getLogger("aio_pika").setLevel(logging.WARNING)
-    logging.getLogger("aiormq").setLevel(logging.WARNING)
+    # logging.getLogger("aio_pika").setLevel(logging.WARNING)
+    # logging.getLogger("aiormq").setLevel(logging.WARNING)
     cache.cache_conn = Redis(
         host=app_config.redis.host,
         port=app_config.redis.port,
@@ -51,6 +60,7 @@ async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
         name="message_broker_consumer",
     )
     logger.info("Consumer rabbitmq запущен в фоновом режиме")
+    asyncio.create_task(monitor_task(consumer_task, "message_broker_consumer"))
 
     supplier_task = asyncio.create_task(
         supplier_processor.supplier_processor(), name="supplier_processor"
