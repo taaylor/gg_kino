@@ -31,12 +31,15 @@ class Redis(BaseModel):
 
 class FilmApi(BaseModel):
     host: str = "localhost"
-    port: int = 8000
-    profile_path: str = "/async/api/v1/films"
+    port: int = 8001
+    profile_path: str = "/async/api/v1/films/"
 
     @property
     def get_last_films_url(self) -> str:
         return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
+# mock-get-regular-mass-sending
 
 
 class AppConfig(BaseSettings):

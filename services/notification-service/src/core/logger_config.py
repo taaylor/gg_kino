@@ -83,6 +83,31 @@ class LoggerSettings(BaseSettings):
                     "level": self.log_level,
                     "propagate": False,
                 },
+                "sqlalchemy": {  # noqa: WPS204
+                    "handlers": ["console"],  # noqa: WPS204
+                    "level": "WARNING",
+                    "propagate": False,
+                },
+                "opentelemetry": {  # noqa: WPS204
+                    "handlers": ["console"],
+                    "level": "WARNING",
+                    "propagate": False,
+                },
+                "httpcore": {  # noqa: WPS204
+                    "handlers": ["console"],
+                    "level": "WARNING",
+                    "propagate": False,
+                },
+                "aio_pika": {  # noqa: WPS204
+                    "handlers": ["console"],
+                    "level": "WARNING",
+                    "propagate": False,
+                },
+                "aiormq": {  # noqa: WPS204
+                    "handlers": ["console"],
+                    "level": "WARNING",
+                    "propagate": False,
+                },
             },
             "root": {
                 "level": self.log_level,

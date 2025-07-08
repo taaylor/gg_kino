@@ -25,13 +25,15 @@ class ClientRepository:
         max_tries=8,
         raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
         on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
-            (
-                f"Повтор {details["tries"]} попытка для"
-                f" {details["target"].__name__}. Ошибка: {details["value"]}"
-            )
+            # (
+            #     f"Повтор {details["tries"]} попытка для"
+            #     f" {details["target"].__name__}. Ошибка: {details["value"]}"
+            # )
+            "Ошибка warning"
         ),
         on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
-            f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+            # f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+            "Ошибка error"
         ),
     )
     async def get_request(
@@ -78,13 +80,15 @@ class ClientRepository:
         max_tries=8,
         raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
         on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
-            (
-                f"Повтор {details["tries"]} попытка для"
-                f" {details["target"].__name__}. Ошибка: {details["value"]}"
-            )
+            # (
+            #     f"Повтор {details["tries"]} попытка для"
+            #     f" {details["target"].__name__}. Ошибка: {details["value"]}"
+            # )
+            "Ошибка warning"
         ),
         on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
-            f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+            # f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+            "Ошибка error"
         ),
     )
     async def post_request(

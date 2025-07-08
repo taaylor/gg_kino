@@ -4,7 +4,7 @@ from celery import Celery
 from celery.schedules import crontab
 
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
-RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "pass")
+RABBITMQ_PASS = os.getenv("RABBITMQ_PASSWORD", "pass")
 
 celery_engine = Celery(
     "tasks",
