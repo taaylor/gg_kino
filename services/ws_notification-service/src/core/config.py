@@ -49,7 +49,7 @@ class Redis(BaseModel):
 class NotificationAPI(BaseModel):
     host: str = "localhost"
     port: int = 8000
-    callback_path: str = "/notification/api/v1/update-sending-status"
+    callback_path: str = "/notification/api/v1/notifications/update-sending-status"
 
     @property
     def get_url(self):

@@ -2,7 +2,7 @@ import json
 import logging
 from functools import lru_cache
 
-from aiohttp import ClientConnectionError, WSCloseCode, web
+from aiohttp import ClientConnectionError, web
 from core.config import app_config
 from services.base_service import BaseService
 from storage.cache import Cache
@@ -23,11 +23,6 @@ class WebSocketHandlerService(BaseService):
         user_id = request.get("user").get("user_id")
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)
-
-        if user_id in connections:
-            logger.warning(f"Пользователь {user_id} уже подключен к каналу по websocket")
-            await websocket.close(code=WSCloseCode.OK, message="Пользователь уже подключен")
-            return websocket
 
         connections[user_id] = websocket
         logger.debug(f"Пользователь {user_id=} подключился к каналу по websocket")

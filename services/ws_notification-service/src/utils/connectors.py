@@ -20,14 +20,15 @@ async def monitor_task(task: asyncio.Task, name: str):
         logger.info(f"{name} был отменён")
     except Exception as e:
         logger.error(f"Ошибка в {name}: {e}")
+        raise
 
 
 async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
-    """
-    Инициализирует зависимости при старте приложения
-    """
-    # logging.getLogger("aio_pika").setLevel(logging.WARNING)
-    # logging.getLogger("aiormq").setLevel(logging.WARNING)
+    """Инициализирует зависимости при старте приложения"""
+
+    logging.getLogger("aio_pika").setLevel(logging.INFO)
+    logging.getLogger("aiormq").setLevel(logging.INFO)
+
     cache.cache_conn = Redis(
         host=app_config.redis.host,
         port=app_config.redis.port,
@@ -67,34 +68,25 @@ async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
     )
     logger.info("Supplier процесс запущен в фоновом режиме")
 
+    asyncio.create_task(monitor_task(consumer_task, "message_broker_consumer"))
+    asyncio.create_task(monitor_task(supplier_task, "supplier_processor"))
+
     app.setdefault("cache_conn", cache.cache_conn)
     app.setdefault("cache_manager", cache_manager)
     app.setdefault("message_broker", message_broker)
-    app.setdefault("consumer_task", consumer_task)
     app.setdefault("websocket_handler_service", websocket_handler_service)
     app.setdefault("client_session", client_session)
-    app.setdefault("supplier_task", supplier_task)
 
 
 async def cleanup_dependencies(app: web.Application):  # noqa: WPS213
-    """
-    Закрывает все активные зависимости при остановке приложения
-    """
+    """Закрывает все активные зависимости при остановке приложения"""
+
     message_broker: AsyncMessageBroker = app.get("message_broker")
-    consumer_task: asyncio.Task = app.get("consumer_task")
     cache_conn: Redis = app.get("cache_conn")
     client_session: ClientSession = app.get("client_session")
-    supplier_task: asyncio.Task = app.get("supplier_task")
 
     if cache_conn:
         await cache_conn.close()
-
-    if consumer_task:
-        consumer_task.cancel()
-        try:
-            await consumer_task
-        except asyncio.CancelledError:
-            logger.info("Consumer остановлен")
 
     if message_broker:
         await message_broker.close()
@@ -102,9 +94,10 @@ async def cleanup_dependencies(app: web.Application):  # noqa: WPS213
     if client_session:
         await client_session.close()
 
-    if supplier_task:
-        supplier_task.cancel()
-        try:
-            await supplier_task
-        except asyncio.CancelledError:
-            logger.info("Supplier процесс остановлен")
+    try:
+        tasks = asyncio.all_tasks()
+        for task in tasks:
+            task.cancel()
+        await asyncio.sleep(0)
+    except asyncio.CancelledError:
+        logger.info("Все фоновые задачи отменены")
