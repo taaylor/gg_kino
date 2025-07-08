@@ -17,7 +17,7 @@ class RabbitMQ(BaseModel):
     hosts: list[str] = ["rabbitmq-1", "rabbitmq-3", "rabbitmq-3"]
     user: str = "user"
     password: str = "pass"
-    review_like_queue: str = "user-review.liked.natification-api.websocket-sender"
+    review_like_queue: str = "user-review.liked.notification.websocket-sender"
 
 
 class Redis(BaseModel):
@@ -49,7 +49,7 @@ class Redis(BaseModel):
 class NotificationAPI(BaseModel):
     host: str = "localhost"
     port: int = 8000
-    callback_path: str = "/notification/api/v1/update-sending-status"
+    callback_path: str = "/notification/api/v1/notifications/update-sending-status"
 
     @property
     def get_url(self):

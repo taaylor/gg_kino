@@ -30,7 +30,7 @@ jobs:
           --select=WPS \
           --exclude=services/notification-service/src/migration/*,services/notification-service/src/alembic/* \
           --format=html \
-          --htmldir=flake-report \
+          --htmldir=flake-report
           mypy services/content-actions-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
           mypy services/notification-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
           mypy services/ws_notification-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
