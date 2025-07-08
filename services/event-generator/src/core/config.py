@@ -29,6 +29,16 @@ class Redis(BaseModel):
     db: int = 0
 
 
+class FilmApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8000
+    profile_path: str = "/async/api/v1/films"
+
+    @property
+    def get_last_films_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
@@ -42,6 +52,7 @@ class AppConfig(BaseSettings):
 
     redis: Redis = Redis()
     server: Server = Server()
+    filmapi: FilmApi = FilmApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

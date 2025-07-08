@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from core.config import app_config
 from models.logic_models import FilmListSchemaRequest
 from services.connector_repository import ClientRepository
 
@@ -15,7 +16,8 @@ class FilmSchedulerService:
     """
 
     client_repository = ClientRepository()
-    URL_PATH_GET_REQUEST = "http://nginx/async/api/v1/films/"
+    # URL_PATH_GET_REQUEST = "http://nginx/async/api/v1/films/"
+    URL_PATH_GET_REQUEST = app_config.filmapi.get_last_films_url
     URL_PATH_POST_REQUEST = "http://nginx/notification-api/api/v1/notifications/mock-get-films"
 
     @classmethod
@@ -28,26 +30,26 @@ class FilmSchedulerService:
 
         :return: Распарсенный JSON-ответ в виде dict или list, или пустой список при ошибке.
         """
-        logger.info("get_films: начал выполняться, url=%s, params=%s", url, params)
+        logger.info(f"get_films: начал выполняться, url={url}, params={params}")
         result = await cls.client_repository.get_request(
             url=url,
             params=params,
         )
         count = len(result) if isinstance(result, list) else 1
-        logger.info("get_films: получено %d записей", count)
+        logger.info(f"get_films: получено {count} записей")
         return result
 
     @classmethod
-    def validate_films(cls, data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def validate_films(cls, films_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Валидирует и формирует payload для отправки.
 
-        :param data: Сырые данные фильмов из API.
+        :param films_list: Сырые данные фильмов из API.
 
         :return: Список словарей с единственным полем film_id для каждого валидного фильма.
         """
-        logger.info("Валидация фильмов: start, items=%d", len(data))
-        return [FilmListSchemaRequest(film_id=film["uuid"]).model_dump() for film in data]
+        logger.info(f"Валидация фильмов: start, items={len(films_list)}")
+        return [FilmListSchemaRequest(film_id=film["uuid"]).model_dump() for film in films_list]
 
     @classmethod
     async def send_films_to_notification(
@@ -62,7 +64,7 @@ class FilmSchedulerService:
         :return: Распарсенный JSON-ответ целевого сервиса или пустой список при ошибке.
         """
         count = len(json_data) if isinstance(json_data, list) else 1
-        logger.info("send_films_to_notification: отправка %d записей на %s", count, url)
+        logger.info(f"send_films_to_notification: отправка {count} записей на {url}")
         return await cls.client_repository.post_request(
             url=url,
             json_data=json_data,
@@ -87,5 +89,5 @@ class FilmSchedulerService:
             url=cls.URL_PATH_POST_REQUEST,
             json_data=validated_films,
         )
-        logger.info("execute_task: выполнен с результатом %r", result)
+        logger.info(f"execute_task: выполнен с результатом {result}")
         return result
