@@ -50,10 +50,10 @@ class NotificationAdapter(AbstractNotification):
             response_json = response.json()
             logger.debug(
                 f"Получен ответ от сервиса {app_config.notifyapi.host}: "
-                f"идентификатор нотификации: {response_json}, {type(response_json)}"
+                f"идентификатор нотификации: {response_json}"
             )
 
-            return str(response_json)
+            return response_json.get("notification_id")
 
 
 def get_notifier() -> NotificationAdapter:
