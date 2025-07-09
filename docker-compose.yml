@@ -123,6 +123,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      notification:
+        condition: service_healthy
     cpus: "1"
     mem_limit: 256M
     healthcheck:
@@ -174,9 +176,18 @@ services:
       redis:
         condition: service_healthy
       async-api:
-        condition: service_started
+        condition: service_healthy
+      notification:
+        condition: service_healthy
     cpus: "1"
     mem_limit: 256M
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000//content-api/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   admin-panel:

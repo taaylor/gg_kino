@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 import httpx
 from core.config import app_config
-from models.logic_models import RegisteredNotify
+from models.logic_models import ReviewLikeNotify
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
 
 logger = logging.getLogger(__name__)
@@ -13,20 +13,21 @@ class AbstractNotification(ABC):
     """Абстрактный класс для реализации отправки нотификации"""
 
     @abstractmethod
-    async def send_registered_notify(self, notify) -> str:
+    async def send_review_liked_notify(self, notify) -> str:
         """Метод для создания нотификации"""
 
 
 class NotificationAdapter(AbstractNotification):
     """
-    Класс является адаптером для функционала отправки нотификаций.
+    Класс является адаптером для функционала отправки нотификациЙ.
     """
 
     @handle_http_errors(service_name=app_config.notifyapi.host)
-    async def send_registered_notify(self, notify: RegisteredNotify) -> str:
-        """Метод создаёт нотификацию о регистрации пользователя"""
+    async def send_review_liked_notify(self, notify: ReviewLikeNotify) -> str:
+        """Метод создаёт нотификацию о лайке на комментарий пользователя пользователя"""
         logger.info(
-            f"Получен запрос на отправку нотификации о регистрации пользователя {notify.user_id}"
+            f"Получен запрос на отправку нотификации о лайке"
+            f"на комментарий пользователя {notify.user_id}"
         )
 
         url = app_config.notifyapi.get_notify_url

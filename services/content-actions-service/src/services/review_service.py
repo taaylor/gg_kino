@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Annotated
 from uuid import UUID
 
+from adapters.notification_adapter import NotificationAdapter, get_notifier
 from api.v1.review.schemas import (
     ReviewDetailResponse,
     ReviewModifiedRequest,
@@ -14,6 +15,7 @@ from core.config import app_config
 from db.cache import Cache, get_cache
 from fastapi import Depends, HTTPException, status
 from models.enum_models import LikeEnum, SortedEnum
+from models.logic_models import ReviewLikeNotify, ReviewLikeNotifyContext
 from models.models import Review, ReviewLike
 from services.review_repository import (
     ReviewLikeRepository,
@@ -32,7 +34,13 @@ class ReviewService:  # noqa: WPS214
         "user_review": "review:user:{user_id}:{sorted}:{page_number}:{page_size}",
     }
 
-    __slots__ = ("cache", "review_repository", "review_like_repository", "film_validator")
+    __slots__ = (
+        "cache",
+        "review_repository",
+        "review_like_repository",
+        "film_validator",
+        "notifier",
+    )
 
     def __init__(
         self,
@@ -40,11 +48,13 @@ class ReviewService:  # noqa: WPS214
         review_repository: ReviewRepository,
         review_like_repository: ReviewLikeRepository,
         film_validator: FilmIdValidator,
-    ):
+        notifier: NotificationAdapter,
+    ) -> None:
         self.cache = cache
         self.review_repository = review_repository
         self.review_like_repository = review_like_repository
         self.film_validator = film_validator
+        self.notifier = notifier
 
     async def get_reviews(
         self, film_id: UUID, page_number: int, page_size: int, sorted: SortedEnum
@@ -232,6 +242,10 @@ class ReviewService:  # noqa: WPS214
         Returns:
             ReviewRateResponse: Объект ответа, содержащий информацию об установленной оценке.
         """
+
+        review = await self.review_repository.get_document(Review.id == review_id)
+        logger.debug(f"Для оценки найдено ревью {review}")
+
         is_like = True
         if mark == LikeEnum.DISLIKE:
             is_like = False
@@ -240,11 +254,20 @@ class ReviewService:  # noqa: WPS214
             ReviewLike.user_id == user_id,
             ReviewLike.review_id == review_id,
             user_id=user_id,
+            author_user_id=review.user_id,  # type: ignore
+            film_id=review.film_id,  # type: ignore
             review_id=review_id,
             is_like=is_like,
         )
         logger.info(f"Пользователь {user_id=} оценил рецензию {review_id=} тип оценки {is_like=}")
-        return ReviewRateResponse(**review_like_model.model_dump())
+
+        sent_notify_id = await self._send_like_notify(review_like_model)
+
+        logger.info(
+            f"Пользователю была отправлена нотификация о лайке на рецензию: {sent_notify_id}"
+        )
+
+        return ReviewRateResponse.model_validate(review_like_model.model_dump())
 
     async def delete_rate_review(self, user_id: UUID, review_id: UUID) -> None:
         """
@@ -270,6 +293,18 @@ class ReviewService:  # noqa: WPS214
 
         logger.info(f"Оценка пользователя {user_id=} удалена с рецензии {review_id}")
 
+    async def _send_like_notify(self, review_like: ReviewLike) -> str:
+        notify = ReviewLikeNotify(
+            user_id=review_like.user_id,
+            event_data=ReviewLikeNotifyContext(
+                review_id=review_like.review_id,
+                film_id=review_like.film_id,
+                liked_by_user_id=review_like.author_user_id,
+                is_like=review_like.is_like,
+            ),
+        )
+        return await self.notifier.send_review_liked_notify(notify)
+
 
 @lru_cache()
 def get_review_service(
@@ -277,5 +312,12 @@ def get_review_service(
     review_repository: Annotated[ReviewRepository, Depends(get_review_repository)],
     review_like_repository: Annotated[ReviewLikeRepository, Depends(get_review_like_repository)],
     film_validator: Annotated[FilmIdValidator, Depends(get_film_id_validator)],
+    notifier: Annotated[NotificationAdapter, Depends(get_notifier)],
 ) -> ReviewService:
-    return ReviewService(cache, review_repository, review_like_repository, film_validator)
+    return ReviewService(
+        cache,
+        review_repository,
+        review_like_repository,
+        film_validator,
+        notifier=notifier,
+    )
