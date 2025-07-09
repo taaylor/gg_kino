@@ -25,10 +25,6 @@ class Cache(ABC):
         """Удаляет значение из кэша по ключу."""
 
     @abstractmethod
-    def destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, int | None]:
-        """Удаляет все значения из кэша по паттерну."""
-
-    @abstractmethod
     def set(
         self, key: str, value: str, expire: int | None
     ) -> Coroutine[None, None, None]:  # noqa: WPS221
@@ -45,10 +41,6 @@ class Cache(ABC):
         """Удаляет значение из кэша в фоновом режиме."""
 
     @abstractmethod
-    def background_destroy_all_by_pattern(self, pattern: str) -> Coroutine[None, None, None]:
-        """Удаляет все значения из кэша по паттерну в фоновом режиме."""
-
-    @abstractmethod
     def scan_keys(
         self, pattern: str, count: int | None = None
     ) -> Coroutine[None, None, list[str]]:  # noqa: WPS211
@@ -61,8 +53,15 @@ class Cache(ABC):
         :return: Список ключей, до 'count', если указано.
         """
 
+    @abstractmethod
+    def mget(self, keys: list[str]) -> Coroutine[None, None, list[str]]:
+        """
+        Отдает список объектов, хранящихся в виде JSON-значений по ключам.
+        :param keys: список из одного или нескольких ключей.
+        """
 
-class RedisCache(Cache):
+
+class RedisCache(Cache):  # noqa: WPS214
     """Реализация кэша на основе Redis."""
 
     __slots__ = ("redis",)
@@ -85,45 +84,6 @@ class RedisCache(Cache):
         logger.info(f"[RedisCache] Объект сохранён в кэш по ключу '{key}'")
 
     @redis_handler_exceptions
-    async def destroy_all_by_pattern(self, pattern: str) -> int:
-        """
-        Удаляет все ключи, соответствующие паттерну.
-        Использует SCAN для безопасного поиска ключей.
-
-        :param pattern: Паттерн для поиска ключей (например, "bookmarks:123:*")
-        :return: Количество удаленных ключей
-        """
-        deleted_count = 0
-        cursor = 0
-
-        while True:
-            cursor, keys = await self.redis.scan(
-                cursor=cursor, match=pattern, count=100
-            )  # noqa: WPS221
-
-            if keys:
-                deleted_count += await self.redis.delete(*keys)
-                logger.debug(f"Удалено {len(keys)} ключей по паттерну {pattern}")
-
-            if cursor == 0:
-                break
-
-        logger.info(f"Всего удалено {deleted_count} ключей по паттерну {pattern}")
-        return deleted_count
-
-    async def background_set(self, key: str, value: str, expire: int | None):
-        asyncio.create_task(self.set(key=key, value=value, expire=expire))
-        logger.debug(f"Объект будет сохранен в кеш по {key=}")
-
-    async def background_destroy(self, *key: str) -> None:
-        asyncio.create_task(self.destroy(*key))
-        logger.debug(f"Объект будет удален в кеше по {key=}")
-
-    async def background_destroy_all_by_pattern(self, pattern: str) -> None:
-        asyncio.create_task(self.destroy_all_by_pattern(pattern=pattern))
-        logger.debug(f"Объекты будут удалены в кеше по {pattern=}")
-
-    @redis_handler_exceptions
     async def scan_keys(self, pattern: str, count: int | None = None) -> list[str]:  # type: ignore
         keys = []
         cursor = 0
@@ -144,6 +104,23 @@ class RedisCache(Cache):
         if count is None:
             return keys
         return keys[:count]
+
+    @redis_handler_exceptions
+    async def mget(self, keys: list[str]) -> list[str]:  # type: ignore
+
+        if not keys:
+            return []
+
+        result = await self.redis.mget(*keys)
+        return [item for item in result if item]
+
+    async def background_set(self, key: str, value: str, expire: int | None):
+        asyncio.create_task(self.set(key=key, value=value, expire=expire))
+        logger.debug(f"Объект будет сохранен в кеш по {key=}")
+
+    async def background_destroy(self, *key: str) -> None:
+        asyncio.create_task(self.destroy(*key))
+        logger.debug(f"Объект будет удален в кеше по {key=}")
 
 
 @lru_cache()

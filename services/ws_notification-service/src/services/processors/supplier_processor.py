@@ -61,31 +61,18 @@ class SupplierProcessor(BaseService):
                     sent_success=list(ids_event_send), failure=list(ids_event_fail)
                 ).model_dump(mode="json")
 
-                logger.info(f"Делаю запрос в сервис нотификации с телом {request_body}")
+                await self._make_request_notify_api(
+                    request_body=request_body,
+                    keys_send_event=keys_send_event,
+                    keys_fail_event=keys_fail_event,
+                )
 
-                async with self.client_session.post(
-                    url=self.callback_url,
-                    json=request_body,
-                    timeout=5,
-                    headers=self.headers,
-                ) as response:
-                    if response.ok:
-                        await self.cache.destroy(*keys_send_event, *keys_fail_event)
-                        logger.info(
-                            f"Данные успешно отправлены в сервис нотификации и удалены из кеша \
-                                (отправленных {len(keys_send_event)}, \
-                                    не отправленных {len(keys_fail_event)})"
-                        )
-                    else:
-                        logger.error(
-                            f"Сервис notification недоступен, статус: {response.status}, {response}"
-                        )
             except Exception as error:
                 logger.error(
                     f"Ошибка в процессе отправки статуса уведомления в сервис notification: {error}"
                 )
             finally:
-                await asyncio.sleep(10)
+                await asyncio.sleep(app_config.waiting_time)
 
     async def _get_ids_events(self, keys: list[str]) -> set[str]:
         """
@@ -98,10 +85,35 @@ class SupplierProcessor(BaseService):
             return set()
 
         # используем магию asyncio для получения кеша
-        tasks = (asyncio.create_task(self.cache.get(key)) for key in keys)
-        events = await asyncio.gather(*tasks)
+        events = await self.cache.mget(keys=keys)
         ids = set(json.loads(event).get("id") for event in events if event)  # noqa: WPS221
         return ids
+
+    async def _make_request_notify_api(
+        self,
+        request_body: dict[str, list[str]],
+        keys_send_event: list[str],
+        keys_fail_event: list[str],
+    ) -> None:
+        logger.info(f"Делаю запрос в сервис нотификации с телом {request_body}")
+
+        async with self.client_session.post(
+            url=self.callback_url,
+            json=request_body,
+            timeout=5,
+            headers=self.headers,
+        ) as response:
+            if response.ok:
+                await self.cache.destroy(*keys_send_event, *keys_fail_event)
+                logger.info(
+                    f"Данные успешно отправлены в сервис нотификации и удалены из кеша \
+                        (отправленных {len(keys_send_event)}, \
+                            не отправленных {len(keys_fail_event)})"
+                )
+            else:
+                logger.error(
+                    f"Сервис notification недоступен, статус: {response.status}, {response}"
+                )
 
 
 def get_supplier_processor(cache: Cache, client_session: ClientSession) -> SupplierProcessor:

@@ -39,24 +39,19 @@ class LoggerSettings(BaseSettings):
                     "level": "INFO",
                     "propagate": False,
                 },
-                "aiohttp.access": {
+                "aiohttp": {
                     "handlers": self.log_default_handlers,
                     "level": self.log_level,
                     "propagate": False,
                 },
-                "aiohttp.server": {
-                    "handlers": self.log_default_handlers,
-                    "level": self.log_level,
+                "aio_pika": {
+                    "handlers": ["console"],
+                    "level": "WARNING",
                     "propagate": False,
                 },
-                "aiohttp.client": {
-                    "handlers": self.log_default_handlers,
-                    "level": self.log_level,
-                    "propagate": False,
-                },
-                "aiohttp.web": {
-                    "handlers": self.log_default_handlers,
-                    "level": self.log_level,
+                "aiormq": {
+                    "handlers": ["console"],
+                    "level": "WARNING",
                     "propagate": False,
                 },
             },
