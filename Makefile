@@ -92,6 +92,9 @@ up-local-content-api:
 up-local-notification:
 	cd services/notification-service/src/ && uvicorn main:app --port 8009 --reload
 
+up-local-auth:
+	cd services/auth-service/src/ && uvicorn main:app --port 8009 --reload
+
 # Rabbit only
 up-rabbit:
 	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \

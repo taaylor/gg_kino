@@ -1,13 +1,12 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
-
-from .models_types import GenderEnum
+from models.models_types import GenderEnum
+from pydantic import BaseModel
 
 
 class SessionUserData(BaseModel):
     user_id: UUID
-    session_id: UUID | None = Field(None)
+    session_id: UUID | None = None
     username: str
     user_agent: str | None
     role_code: str
@@ -20,3 +19,11 @@ class OAuthUserInfo(BaseModel):
     first_name: str | None
     last_name: str | None
     gender: GenderEnum | None
+
+
+class RegisteredNotify(BaseModel):
+    user_id: UUID
+    event_type: str = "USER_REGISTERED"
+    source: str = "AUTH-SERVICE"
+    method: str = "EMAIL"
+    priority: str = "HIGH"
