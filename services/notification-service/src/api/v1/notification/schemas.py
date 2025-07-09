@@ -93,3 +93,18 @@ class RecomendedFilmsSchema(BaseModel):
         default_factory=list,
         description="Список жанров фильма.",
     )
+
+
+class RequestToMassNotificationSchema(BaseModel):
+    target_start_sending_at: datetime = Field(
+        ...,
+        description="Начало запуска рассылки",
+    )
+    event_data: RecomendedFilmsSchema = Field(
+        ...,
+        description="Список рекомендуемых фильмов.",
+    )
+    template_id: UUID = Field(
+        ...,
+        description="UUID шаблона для email.",
+    )

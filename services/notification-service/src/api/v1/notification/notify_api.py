@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from api.v1.notification.schemas import (
-    RecomendedFilmsSchema,
+    RequestToMassNotificationSchema,
     SingleNotificationRequest,
     SingleNotificationResponse,
     UpdateSendingStatusRequest,
@@ -45,7 +45,7 @@ async def update_sending_status(
 )
 async def mock_get_regular_mass_sending(
     request_body: Annotated[
-        RecomendedFilmsSchema, Body(description="Данные пришедшие от event-generator")
+        RequestToMassNotificationSchema, Body(description="Данные пришедшие от event-generator")
     ],
 ):
     return request_body

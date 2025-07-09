@@ -1,5 +1,3 @@
-# include:
-#   - ../../infra/rabbit/docker-compose.rabbit.yml
 services:
 
   event-generator:

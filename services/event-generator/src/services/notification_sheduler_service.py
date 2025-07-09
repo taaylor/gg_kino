@@ -1,8 +1,14 @@
 import logging
+from datetime import datetime, timezone
 from typing import Any
+from uuid import UUID
 
 from core.config import app_config
-from models.logic_models import FilmListSchema, RecomendedFilmsSchema
+from models.logic_models import (
+    FilmListSchema,
+    RecomendedFilmsSchema,
+    ResponseToMassNotificationSchema,
+)
 from services.connector_repository import ClientRepository
 
 logger = logging.getLogger(__name__)
@@ -15,15 +21,10 @@ class FilmSchedulerService:
     Используется в Celery-таске для регулярной генерации уведомлений.
     """
 
-    client_repository = ClientRepository()
-    # URL_PATH_GET_REQUEST = "http://nginx/async/api/v1/films/"
-    URL_PATH_GET_REQUEST = app_config.filmapi.get_last_films_url
-    URL_PATH_POST_REQUEST = (
-        "http://notification:8000/notification/api/v1/notifications/mock-get-regular-mass-sending"
-    )
+    def __init__(self, client_repository: ClientRepository):
+        self.client_repository = client_repository
 
-    @classmethod
-    async def get_films(cls, url: str, params: dict[str, str]) -> dict[str, Any] | list[Any]:
+    async def get_films(self, url: str, params: dict[str, str]) -> dict[str, Any] | list[Any]:
         """
         Получает список фильмов из async-api.
 
@@ -33,7 +34,7 @@ class FilmSchedulerService:
         :return: Распарсенный JSON-ответ в виде dict или list, или пустой список при ошибке.
         """
         logger.info(f"get_films: начал выполняться, url={url}, params={params}")
-        result = await cls.client_repository.get_request(
+        result = await self.client_repository.get_request(
             url=url,
             params=params,
         )
@@ -41,63 +42,63 @@ class FilmSchedulerService:
         logger.info(f"get_films: получено {count} записей")
         return result
 
-    @classmethod
-    def validate_films(cls, films_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """
-        Валидирует и формирует payload для отправки.
+    def prepare_payload(
+        self,
+        recommended_films: RecomendedFilmsSchema,
+    ) -> ResponseToMassNotificationSchema:
+        return ResponseToMassNotificationSchema(
+            target_start_sending_at=datetime.now(timezone.utc),
+            event_data=recommended_films,
+            # TODO: моковый UUID для template_id потом заменить на реальный из БД
+            template_id=UUID("3aba7aa0-8930-417c-bf78-3df596c3f062"),
+        )
 
-        :param films_list: Сырые данные фильмов из API.
-
-        :return: Список словарей с единственным полем film_id для каждого валидного фильма.
-        """
-        logger.info(f"Валидация фильмов: start, items={len(films_list)}")
-        recommended_films = [
-            FilmListSchema(
-                film_id=film["uuid"],
-                film_title=film["title"],
-                imdb_rating=film["imdb_rating"],
-            )
-            for film in films_list
-        ]
-        return RecomendedFilmsSchema(recommended_films=recommended_films)
-
-    @classmethod
     async def send_films_to_notification(
-        cls, url: str, films: RecomendedFilmsSchema
+        self, url: str, response_schema: ResponseToMassNotificationSchema
     ) -> dict[str, Any] | list[Any]:
         """
         Отправляет сформированный payload в notification-processor.
 
         :param url: Базовый URL для POST-запроса.
-        :param films: Данные для отправки (список словарей или словарь).
+        :param response_schema: Данные для отправки (список словарей или словарь).
 
         :return: Распарсенный JSON-ответ целевого сервиса или пустой список при ошибке.
         """
-        count = len(films) if isinstance(films, list) else 1
+        count = len(response_schema) if isinstance(response_schema, list) else 1
         logger.info(f"send_films_to_notification: отправка {count} записей на {url}")
-        return await cls.client_repository.post_request(
+        return await self.client_repository.post_request(
             url=url,
-            json_data=films.model_dump(mode="json"),
+            json_data=response_schema.model_dump(mode="json"),
         )
 
-    @classmethod
-    async def execute_task(cls) -> dict[str, Any] | list[Any]:
+    async def execute_task(self) -> dict[str, Any] | list[Any]:
         """
         Основной рабочий метод: получает фильмы, валидирует и отправляет.
 
         :return: Ответ от notification-processor или пустой список при неуспехе.
         """
         logger.info("execute_task: начал выполняться")
-        json_data = await cls.get_films(
-            url=cls.URL_PATH_GET_REQUEST,
+        json_data = await self.get_films(
+            url=app_config.filmapi.get_last_films_url,
             params={"sort": "-imdb_rating", "page_size": "10", "page_number": "1"},
         )
-        validated_films = cls.validate_films(
-            films_list=json_data,
-        )
-        result = await cls.send_films_to_notification(
-            url=cls.URL_PATH_POST_REQUEST,
-            films=validated_films,
+        validated_films = [
+            FilmListSchema(
+                film_id=film["uuid"],
+                film_title=film["title"],
+                imdb_rating=film["imdb_rating"],
+            )
+            for film in json_data
+        ]
+        recommended_films = RecomendedFilmsSchema(recommended_films=validated_films)
+        payload = self.prepare_payload(recommended_films=recommended_films)
+        result = await self.send_films_to_notification(
+            url=app_config.notificationapi.send_to_mass_notification_url,
+            response_schema=payload,
         )
         logger.info(f"execute_task: выполнен с результатом {result}")
         return result
+
+
+def get_film_scheduler_service() -> FilmSchedulerService:
+    return FilmSchedulerService(client_repository=ClientRepository())

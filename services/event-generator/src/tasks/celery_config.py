@@ -1,14 +1,10 @@
-import os
-
 from celery import Celery
 from celery.schedules import crontab
-
-RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
-RABBITMQ_PASS = os.getenv("RABBITMQ_PASSWORD", "pass")
+from core.config import app_config
 
 celery_engine = Celery(
     "tasks",
-    broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq-1:5672//",
+    broker=app_config.rabbitmq.get_host,
     include=[
         "tasks.scheduled",
     ],
