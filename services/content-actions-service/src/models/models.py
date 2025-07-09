@@ -66,8 +66,6 @@ class ReviewLike(TimestampMixin):
         ..., description="Оценка рецензии пользователем True = лайк, False = дизлайк"
     )
     review_id: UUID = Field(..., description="Идентификатор рецензии")
-    author_user_id: UUID = Field(..., description="Идентификатор пользователя автора рецензии")
-    film_id: UUID = Field(..., description="Идентификатор фильма, на который было ревью")
     user_id: UUID = Field(..., description="Идентификатор пользователя")
 
     class Settings:

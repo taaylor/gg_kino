@@ -112,7 +112,7 @@ up-notification:
 	docker compose --profile production up --build -d postgres pg-import auth-api async-api jaeger nginx notification
 
 up-notification-logs:
-	docker compose --profile production up --build -d postgres pg-import auth-api async-api jaeger nginx notification && \
+	docker compose --profile production up --build -d postgres pg-import auth-api content-actions-api async-api jaeger nginx notification && \
 	docker compose logs -f $(srv)
 
 down-notification:

@@ -1,8 +1,12 @@
 include:
+  - ./infra/glitchtip/docker-compose.glitchtip.yml
   - ./infra/kafka/docker-compose.kafka.yaml
+  - ./infra/elk/docker-compose.elk.yml
   - ./infra/clickhouse/docker-compose.clickhouse.yml
-  - ./services/metric-service/docker-compose.metric-services.yml
   - ./infra/mongodb/docker-compose.mongodb.yml
+  - ./infra/rabbit/docker-compose.rabbit.yml
+  - ./services/metric-service/docker-compose.metric-services.yml
+  - ./services/event-generator/docker-compose.event-generator.yml
 
 
 services:
@@ -241,6 +245,28 @@ services:
         condition: service_healthy
       jaeger:
         condition: service_started
+
+  notification:
+    container_name: notification
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/notification-service/src/Dockerfile
+    profiles: ["auth-api-test", "content-api-test"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "always"
 
   tests-metrics-api:
     build:

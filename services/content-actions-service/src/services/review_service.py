@@ -244,6 +244,10 @@ class ReviewService:  # noqa: WPS214
         """
 
         review = await self.review_repository.get_document(Review.id == review_id)
+
+        if not review:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ревью не найдено")
+
         logger.debug(f"Для оценки найдено ревью {review}")
 
         is_like = True
@@ -254,17 +258,15 @@ class ReviewService:  # noqa: WPS214
             ReviewLike.user_id == user_id,
             ReviewLike.review_id == review_id,
             user_id=user_id,
-            author_user_id=review.user_id,  # type: ignore
-            film_id=review.film_id,  # type: ignore
             review_id=review_id,
             is_like=is_like,
         )
         logger.info(f"Пользователь {user_id=} оценил рецензию {review_id=} тип оценки {is_like=}")
 
-        sent_notify_id = await self._send_like_notify(review_like_model)
+        sent_notify_id = await self._send_like_notify(review, review_like_model)
 
         logger.info(
-            f"Пользователю была отправлена нотификация о лайке на рецензию: {sent_notify_id}"
+            f"Пользователю отправлена нотификация: {sent_notify_id} о лайке на ревью: {review.id}"
         )
 
         return ReviewRateResponse.model_validate(review_like_model.model_dump())
@@ -293,13 +295,13 @@ class ReviewService:  # noqa: WPS214
 
         logger.info(f"Оценка пользователя {user_id=} удалена с рецензии {review_id}")
 
-    async def _send_like_notify(self, review_like: ReviewLike) -> str:
+    async def _send_like_notify(self, review: Review, review_like: ReviewLike) -> str:
         notify = ReviewLikeNotify(
             user_id=review_like.user_id,
             event_data=ReviewLikeNotifyContext(
                 review_id=review_like.review_id,
-                film_id=review_like.film_id,
-                liked_by_user_id=review_like.author_user_id,
+                film_id=review.film_id,
+                liked_by_user_id=review.user_id,
                 is_like=review_like.is_like,
             ),
         )

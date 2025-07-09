@@ -123,8 +123,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      notification:
-        condition: service_healthy
     cpus: "1"
     mem_limit: 256M
     healthcheck:
