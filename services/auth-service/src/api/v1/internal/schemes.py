@@ -12,3 +12,23 @@ class ProfileInternalRequest(BaseModel):
 
 class ProfileInternalResponse(UserProfileBase):
     """Профиль пользователя"""
+
+
+class ProfilePaginateInternalResponse(BaseModel):
+    """Профиль пользователя"""
+
+    profiles: list[UserProfileBase] = Field(
+        description="Список профилей пользователей",
+    )
+    page_current: int = Field(
+        description="Номер текущей страницы",
+        ge=1,
+    )
+    page_size: int = Field(
+        description="Общее количество пользователей",
+        ge=1,
+    )
+    page_total: int = Field(
+        description="Общее количество страниц",
+        ge=1,
+    )
