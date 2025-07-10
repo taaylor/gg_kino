@@ -82,6 +82,13 @@ class AppConfig(BaseSettings):
     default_role: str = "UNSUB_USER"
     tracing: bool = False  # включение/выключение трассировки
 
+    confirmation_host: str = "localhost"
+    confirmation_path: str = "/auth/api/v1/sessions/verify-email?token={token}&user_id={user_id}"
+
+    @property
+    def get_confirmation_link(self) -> str:
+        return f"http://{self.confirmation_host}{self.confirmation_path}"
+
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
     server: Server = Server()

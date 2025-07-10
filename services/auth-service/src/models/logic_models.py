@@ -21,9 +21,14 @@ class OAuthUserInfo(BaseModel):
     gender: GenderEnum | None
 
 
+class RegisteredNotifyContext(BaseModel):
+    confirmation_link: str
+
+
 class RegisteredNotify(BaseModel):
     user_id: UUID
     event_type: str = "USER_REGISTERED"
     source: str = "AUTH-SERVICE"
     method: str = "EMAIL"
     priority: str = "HIGH"
+    event_data: RegisteredNotifyContext

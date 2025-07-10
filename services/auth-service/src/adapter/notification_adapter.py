@@ -22,7 +22,6 @@ class NotificationAdapter(AbstractNotification):
     Класс является адаптером для функционала отправки нотификаций.
     """
 
-    @handle_http_errors(service_name=app_config.notifyapi.host)
     async def send_registered_notify(self, notify: RegisteredNotify) -> str:
         """Метод создаёт нотификацию о регистрации пользователя"""
         logger.info(
@@ -37,6 +36,7 @@ class NotificationAdapter(AbstractNotification):
 
         return await self._send(url, data)
 
+    @handle_http_errors(service_name=app_config.notifyapi.host)
     async def _send(self, url: str, data: dict) -> str:
         """Отправляет запрос в сервис нотификаций"""
         async with httpx.AsyncClient(

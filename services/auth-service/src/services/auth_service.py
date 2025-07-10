@@ -26,7 +26,12 @@ from core.oauth_conf import providers_conf
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
-from models.logic_models import OAuthUserInfo, RegisteredNotify, SessionUserData
+from models.logic_models import (
+    OAuthUserInfo,
+    RegisteredNotify,
+    RegisteredNotifyContext,
+    SessionUserData,
+)
 from models.models import SocialAccount, User, UserCred, UserMailConfirmation, UserProfileSettings
 from models.models_types import ProvidersEnum
 from services.auth_repository import AuthRepository, get_auth_repository
@@ -159,14 +164,11 @@ class RegisterService(BaseAuthService):
             f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}",
         )
 
-        # Тут необходимо будет отправить событие в сервис нотификации о регистрации пользователя
-        # вынести его в отдельный метод и реализовать через create_tasks в фоне
-        logger.info(
-            f"Ссылка для подтверждения почты пользователя {user.id}: "
-            f"http://localhost/auth/api/v1/sessions/verify-email?token={token}&user_id={user.id}"
-        )
+        confirmation_link = app_config.get_confirmation_link.format(token=token, user_id=user.id)
 
-        sent_notify_id = await self._send_registered_notify(user)
+        logger.info(f"Ссылка для подтверждения почты пользователя {user.id}: {confirmation_link}")
+
+        sent_notify_id = await self._send_registered_notify(user, confirmation_link)
 
         logger.info(f"Пользователю была отправлена нотификация о регистрации: {sent_notify_id}")
 
@@ -183,8 +185,10 @@ class RegisterService(BaseAuthService):
             is_verified_email=user_cred.is_verified_email,
         )
 
-    async def _send_registered_notify(self, user: User) -> str:
-        notify = RegisteredNotify(user_id=user.id)
+    async def _send_registered_notify(self, user: User, confirmation_link: str) -> str:
+        notify = RegisteredNotify(
+            user_id=user.id, event_data=RegisteredNotifyContext(confirmation_link=confirmation_link)
+        )
         return await self.notifier.send_registered_notify(notify)
 
 
