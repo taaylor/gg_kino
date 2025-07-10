@@ -23,3 +23,6 @@ COPY services/email-sender/src/ .
 RUN chmod +x ./scripts/run_email_sender.sh
 
 CMD ["./scripts/run_email_sender.sh", "celery"]
+
+# RUN chmod +x ./main.py
+# CMD ["./main.py"]

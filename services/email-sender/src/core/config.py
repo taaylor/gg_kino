@@ -40,17 +40,17 @@ class RabbitMQ(BaseModel):
     hosts: list[str] = ["rabbitmq-1", "rabbitmq-3", "rabbitmq-3"]
     user: str = "user"
     password: str = "pass"
-    registered_queue: str = "user.registered.natification-api.email-sender"
-    manager_mailing_queue: str = "manager-mailing.launched.natification-api.email-sender"
-    auto_mailing_queue: str = "auto-mailing.launched.natification-api.email-sender"
+    registered_queue: str = "user.registered.notification.email-sender"
+    manager_mailing_queue: str = "manager-mailing.launched.notification.email-sender"
+    auto_mailing_queue: str = "auto-mailing.launched.notification.email-sender"
 
 
 class AppConfig(BaseSettings):
-    rabbitmq: RabbitMQ = RabbitMQ()
     project_name: str = "email-sender"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
 
+    rabbitmq: RabbitMQ = RabbitMQ()
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
 
