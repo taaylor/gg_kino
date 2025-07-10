@@ -121,6 +121,14 @@ down-notification:
 down-notification-v:
 	docker compose --profile production down -v postgres pg-import auth-api async-api jaeger nginx notification
 
+
+# ws sender
+ws-sender-start:
+	docker compose up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
+	docker compose logs -f ws-sender-worker
+
+
+# event-generator
 event-generator-up:
 	docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification event-generator celery-beat
 

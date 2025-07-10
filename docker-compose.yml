@@ -93,6 +93,8 @@ services:
       '
     volumes:
       - redis_data:/data
+    ports:
+      - 6379:6379
     deploy:
       resources:
         limits:
@@ -268,6 +270,26 @@ services:
       timeout: 5s
       retries: 5
     restart: "always"
+
+  ws-sender-worker:
+    container_name: ws-sender-worker
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/ws_notification-service/src/Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
+    restart: "on-failure"
 
   nginx:
     container_name: nginx
