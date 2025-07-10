@@ -15,7 +15,7 @@ from utils.decorators import sqlalchemy_universal_decorator
 logger = logging.getLogger(__name__)
 
 
-class NotificationRepository(BaseRepository):
+class NotificationRepository(BaseRepository):  # noqa: WPS214
 
     @sqlalchemy_universal_decorator
     async def create_new_notification(
