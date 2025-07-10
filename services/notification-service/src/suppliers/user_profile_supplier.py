@@ -64,7 +64,7 @@ class ProfileSupplier:
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
             headers = {"x-api-key": app_config.profileapi.api_key}
-            url = app_config.profileapi.profile_all_path
+            url = app_config.profileapi.get_all_profiles_url
             query_params = {
                 "page_number": page_number,
                 "page_size": page_size,
@@ -72,7 +72,7 @@ class ProfileSupplier:
 
             logger.debug(f"Сформирована строка запроса профиля: {url}")
 
-            response = await client.get(url=url, headers=headers, params=query_params)
+            response = await client.post(url=url, headers=headers, params=query_params)
             response.raise_for_status()
 
             if not response.content:

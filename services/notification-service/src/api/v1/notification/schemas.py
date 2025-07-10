@@ -102,7 +102,7 @@ class MassNotificationRequest(BaseModel):
                     "event_type": "AUTO_MASS_NOTIFY",
                     "source": "event-generator",
                     "method": "EMAIL",
-                    "priority": "LOW",
+                    "priority": "HIGH",
                     "template_id": "d3b2f1c4-5e6f-4c8b-9f3d-2e1f5a6b7c8d",
                     "event_data": {
                         "recommended_films": [

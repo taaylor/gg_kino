@@ -121,7 +121,7 @@ class NotificationService(BaseService):
             event_type=request_body.event_type,
         )
 
-        created_mass_notify = await self.repository.create_object(
+        created_mass_notify = await self.repository.create_or_update_object(
             session=self.session, object=new_mass_notification
         )
 
