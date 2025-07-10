@@ -124,3 +124,14 @@ down-notification-v:
 ws-sender-start:
 	docker compose up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
 	docker compose logs -f ws-sender-worker
+
+
+# event-generator
+event-generator-up:
+	docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification event-generator celery-beat
+
+event-generator-down-v:
+	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres
+
+event-generator-reload:
+	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat

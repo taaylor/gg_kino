@@ -45,8 +45,17 @@ class RabbitMQConnector(AsyncMessageBroker):
 
     async def consumer(self, queue_name: str, callback: Callable) -> None:
         async with self._channel_pool.acquire() as channel:
-            queue = await channel.declare_queue(queue_name, passive=True)
-            logger.debug(f"Подключение к очереди {queue_name} для чтения сообщений")
+
+            try:
+                logger.debug(f"Подключение к очереди {queue_name} для чтения сообщений")
+                queue = await channel.declare_queue(queue_name, passive=True)
+            except aio_pika.exceptions.ChannelNotFoundEntity as error:
+                logger.error(f"Не удалось подключиться к очереди {queue_name}: {error}")
+                logger.warning(f"Пробуем создать очередь {queue_name}")
+                queue = await channel.declare_queue(
+                    queue_name, durable=True, auto_delete=False, passive=False
+                )
+
             async with queue.iterator() as queue_iter:
                 logger.debug(f"Начинаем чтение сообщений из очереди {queue_name}")
                 message: AbstractIncomingMessage
@@ -61,7 +70,7 @@ class RabbitMQConnector(AsyncMessageBroker):
     async def _get_connection(self) -> AbstractRobustConnection:
         for host in self.hosts:
             try:  # noqa: WPS229
-                connect = await aio_pika.connect_robust(
+                connect = await aio_pika.connect_robust(  # noqa: WPS476
                     host=host, login=self.__class__.login, password=self.__class__.password
                 )
                 logger.debug(f"Установлено соединение с нодой {host=}")

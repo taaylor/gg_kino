@@ -61,10 +61,10 @@ class WebSocketHandlerService(BaseService):
         keys = await self.cache.scan_keys(pattern=key_not_send)
 
         for key in keys:
-            user_event = await self.cache.get(key)  # type: ignore
+            user_event = await self.cache.get(key)  # type: ignore  # noqa: WPS476
             if user_event:
                 user_event = json.loads(user_event)  # type: ignore
-                await websocket.send_json(user_event)
+                await websocket.send_json(user_event)  # noqa: WPS476
                 send_event += 1
                 logger.debug(
                     (
@@ -72,14 +72,14 @@ class WebSocketHandlerService(BaseService):
                         f"для пользователя {user_id} из кеша."
                     )
                 )
-                await self.cache.background_set(
+                await self.cache.background_set(  # noqa: WPS476
                     key=self.__class__.key_event_send.format(
                         user_id=user_id, event_id=user_event.get("id")  # type: ignore
                     ),
                     value=json.dumps({"id": user_event.get("id")}),  # type: ignore
                     expire=app_config.redis.cache_expire_time,
                 )
-                await self.cache.background_destroy(key)
+                await self.cache.background_destroy(key)  # noqa: WPS476
 
         logger.info(
             f"Проверка событий для пользователя {user_id} завершена. \

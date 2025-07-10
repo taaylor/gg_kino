@@ -29,6 +29,41 @@ class Redis(BaseModel):
     db: int = 0
 
 
+class FilmApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8001
+    profile_path: str = "/async/api/v1/films/"
+
+    @property
+    def get_last_films_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
+class NotificationApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8002
+    profile_path: str = "/notification/api/v1/notifications/mock-get-regular-mass-sending"
+
+    @property
+    def send_to_mass_notification_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
+class RabbitMQ(BaseModel):
+    host1: str = "localhost"
+    host2: str = "localhost"
+    host3: str = "localhost"
+    port: int = 5672
+
+    user: str = "user"
+    password: str = "pass"
+
+    @property
+    def get_host(self) -> str:
+        # broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@rabbitmq-1:5672//",
+        return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}//"
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
@@ -40,8 +75,11 @@ class AppConfig(BaseSettings):
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
 
+    rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
+    filmapi: FilmApi = FilmApi()
+    notificationapi: NotificationApi = NotificationApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

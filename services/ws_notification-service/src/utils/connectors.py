@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def monitor_task(task: asyncio.Task, name: str):
+    """Мониторит выполнение задачи и отлавливает исключения."""
     try:
         await task
     except asyncio.CancelledError:
@@ -25,9 +26,6 @@ async def monitor_task(task: asyncio.Task, name: str):
 
 async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
     """Инициализирует зависимости при старте приложения"""
-
-    logging.getLogger("aio_pika").setLevel(logging.INFO)
-    logging.getLogger("aiormq").setLevel(logging.INFO)
 
     cache.cache_conn = Redis(
         host=app_config.redis.host,

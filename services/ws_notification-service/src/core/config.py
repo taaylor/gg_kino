@@ -63,6 +63,7 @@ class Config(BaseSettings):
     server: Server = Server()
     notification_api: NotificationAPI = NotificationAPI()
 
+    waiting_time: int = 10
     auth_public_key: str = """
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7XpysaZje95xChyW8u

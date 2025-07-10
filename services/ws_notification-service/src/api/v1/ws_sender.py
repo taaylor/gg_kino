@@ -1,6 +1,5 @@
 from aiohttp import web
 from services.ws_service import WebSocketHandlerService
-from storage.cache import Cache
 
 routes = web.RouteTableDef()
 
