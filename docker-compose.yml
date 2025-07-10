@@ -6,6 +6,7 @@ include:
   - ./infra/mongodb/docker-compose.mongodb.yml
   - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
+  - ./services/event-generator/docker-compose.event-generator.yml
   - ./services/email-sender/docker-compose.email-sender.yml
 
 services:
@@ -99,6 +100,8 @@ services:
       '
     volumes:
       - redis_data:/data
+    ports:
+      - 6379:6379
     deploy:
       resources:
         limits:
@@ -255,6 +258,26 @@ services:
         condition: service_healthy
       async-api:
         condition: service_healthy
+    restart: "on-failure"
+
+  ws-sender-worker:
+    container_name: ws-sender-worker
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/ws_notification-service/src/Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
     restart: "on-failure"
 
   nginx:

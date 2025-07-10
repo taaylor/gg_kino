@@ -4,12 +4,10 @@ from functools import lru_cache
 from aio_pika.abc import AbstractIncomingMessage
 from aiohttp import web
 from core.config import app_config
-from models.enums import EventType
-from models.models import EventSchemaMessage  # , Priority
+from models.models import EventSchemaMessage, Priority
 from services.base_service import BaseService
 from storage.cache import Cache
-
-# from utils.ws_connections import connections
+from utils.ws_connections import connections
 
 logger = logging.getLogger(__name__)
 
@@ -24,38 +22,25 @@ class EventHandler(BaseService):
         """
         try:  # noqa: WPS229
             body = message.body.decode()
-            event_type = body.get("event_type", "UNKNOWN")
-            # event = EventSchemaMessage.model_validate_json(body)
-            # logger.debug(
-            #     f"Получено сообщение {event.id} из очереди {message.routing_key}: \
-            #         {event.model_dump_json(indent=4)}"
-            # )
+            event = EventSchemaMessage.model_validate_json(body)
+            logger.debug(
+                f"Получено сообщение {event.id} из очереди {message.routing_key}: \
+                    {event.model_dump_json(indent=4)}"
+            )
 
-            # user_ws = connections.get(event.user_id)
-            # if user_ws and not user_ws.closed:
-            #     return await self._send_message_user(user_ws, message, event)
+            user_ws = connections.get(event.user_id)
+            if user_ws and not user_ws.closed:
+                return await self._send_message_user(user_ws, message, event)
 
-            # await self._set_cache_fail_event(event=event)
+            await self._set_cache_fail_event(event=event)
 
-            # if event.priority in (Priority.HIGH, Priority.MEDIUM):
-            #     return await message.nack(requeue=False)
+            if event.priority in (Priority.HIGH, Priority.MEDIUM):
+                return await message.nack(requeue=False)
 
-            # return await message.ack()
+            return await message.ack()
         except Exception as error:
             logger.error(f"Ошибка при обработке события {message}: {error}")
             return await message.nack(requeue=False)
-        if event_type == EventType.USER_REGISTERED:
-            # в зависимости от event_type по разному обрабатываем
-            pass
-        elif event_type == EventType.AUTO_MASS_NOTIFY:
-            # в зависимости от event_type по разному обрабатываем
-            pass
-        elif event_type == EventType.MANAGER_MASS_NOTIFY:
-            # в зависимости от event_type по разному обрабатываем
-            pass
-        else:
-            # невалидный event_type
-            pass
 
     async def _send_message_user(
         self,
