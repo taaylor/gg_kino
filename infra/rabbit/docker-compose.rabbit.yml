@@ -9,9 +9,12 @@ services:
     environment:
       - RABBITMQ_NODENAME=rabbit@rabbitmq-1
       - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
-    expose:
+    ports:
       - "5672:5672"
       - "15672:15672"
+    # expose:
+    #   - "5672:5672"
+    #   - "15672:15672"
     volumes:
       - rabbitmq_1_data:/var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro

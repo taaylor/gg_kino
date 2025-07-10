@@ -1,6 +1,8 @@
 from typing import Annotated
 
 from api.v1.notification.schemas import (
+    MassNotificationRequest,
+    MassNotificationResponse,
     SingleNotificationRequest,
     SingleNotificationResponse,
     UpdateSendingStatusRequest,
@@ -36,3 +38,16 @@ async def update_sending_status(
     request_body: Annotated[UpdateSendingStatusRequest, Body()],
 ) -> UpdateSendingStatusResponse:
     return await service.update_notification_status(request_body=request_body)
+
+
+@router.post(
+    path="/mass-notification",
+    summary="Создание массовой рассылки",
+    description="Этот эндпоинт позволяет создать массовую рассылку уведомлений всем пользователям.",
+    response_model=MassNotificationResponse,
+)
+async def create_mass_notification(
+    service: Annotated[NotificationService, Depends(get_notification_service)],
+    request_body: Annotated[MassNotificationRequest, Body()],
+) -> MassNotificationResponse:
+    return await service.create_mass_notification(request_body=request_body)

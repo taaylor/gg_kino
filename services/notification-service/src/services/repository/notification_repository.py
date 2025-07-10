@@ -4,8 +4,9 @@ from functools import lru_cache
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from models.enums import NotificationStatus
-from models.models import Notification
+from db.postgres import Base
+from models.enums import MassNotificationStatus, NotificationStatus
+from models.models import MassNotification, Notification
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
@@ -46,6 +47,31 @@ class NotificationRepository:
         return db_notifications
 
     @sqlalchemy_universal_decorator
+    async def update_new_mass_notifications(
+        self, session: AsyncSession, limit: int = 10
+    ) -> tuple[int, int, int]:
+        """Получает новые массовые уведомления и сразу меняет их статус на PROCESSING"""
+        now_utc = datetime.now(ZoneInfo("UTC"))
+        stmt = (
+            select(MassNotification)
+            .where(MassNotification.status == MassNotificationStatus.NEW)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        db_notifications = list((await session.execute(stmt)).scalars().all())
+
+        update_value = {"send": 0, "delay": 0}
+        for notify in db_notifications:
+            if notify.target_start_sending_at <= now_utc:
+                notify.status = MassNotificationStatus.SENDING
+                update_value["send"] += 1
+            else:
+                notify.status = MassNotificationStatus.DELAYED
+                update_value["delay"] += 1
+        await session.flush()
+        return (len(db_notifications), update_value["send"], update_value["delay"])
+
+    @sqlalchemy_universal_decorator
     async def fetch_delayed_notifications(
         self, session: AsyncSession, limit: int = 10
     ) -> list[Notification]:
@@ -69,6 +95,30 @@ class NotificationRepository:
 
         await session.flush()
         return db_notifications
+
+    @sqlalchemy_universal_decorator
+    async def update_delayed_mass_notifications(
+        self, session: AsyncSession, limit: int = 10
+    ) -> int:
+        """Получает отложенные массовые уведомления"""
+        now_utc = datetime.now(ZoneInfo("UTC"))
+        stmt = (
+            select(MassNotification)
+            .where(
+                MassNotification.status == MassNotificationStatus.DELAYED,
+                MassNotification.target_start_sending_at <= now_utc,
+            )
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        result = await session.execute(stmt)
+        db_notifications = list(result.scalars().all())
+
+        for notify in db_notifications:
+            notify.status = MassNotificationStatus.SENDING
+
+        await session.flush()
+        return len(db_notifications)
 
     @sqlalchemy_universal_decorator
     async def update_notifications(  # noqa: WPS210
@@ -112,6 +162,26 @@ class NotificationRepository:
         await session.flush()
 
         return db_notifications
+
+    @sqlalchemy_universal_decorator
+    async def create_all_objects(
+        self,
+        session: AsyncSession,
+        objects: list[Base],
+    ) -> list[Base]:
+        session.add_all(objects)
+        await session.flush()
+        return objects
+
+    @sqlalchemy_universal_decorator
+    async def create_object(
+        self,
+        session: AsyncSession,
+        object: Base,
+    ) -> Base:
+        session.add(object)
+        await session.flush()
+        return object
 
 
 @lru_cache

@@ -7,6 +7,7 @@ from core.config import app_config
 from db import postgres, rabbitmq
 from fastapi import FastAPI
 from services.processors.delayed_notification_processor import get_delayed_notification_processor
+from services.processors.mass_notify_processors import get_mass_notify_status_processor
 from services.processors.single_notification_processor import get_new_notification_processor
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:  # noqa: WPS217
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:  # noqa: WPS217, WPS210
     engine = create_async_engine(
         url=app_config.postgres.ASYNC_DATABASE_URL,
         echo=False,
@@ -32,8 +33,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:  # noqa: WPS217
     # Запускаем фоновые задачи после инициализации RabbitMQ
     new_notify_processor = await get_new_notification_processor()
     delayed_notify_processor = await get_delayed_notification_processor()
+    mass_notify_status_processor = await get_mass_notify_status_processor()
 
     background_tasks = [
+        asyncio.create_task(mass_notify_status_processor.process_mass_notify_new_status()),
+        asyncio.create_task(mass_notify_status_processor.process_mass_notify_delayed_status()),
         asyncio.create_task(new_notify_processor.process_new_notifications()),
         asyncio.create_task(delayed_notify_processor.process_delayed_notifications()),
     ]

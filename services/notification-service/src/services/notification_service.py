@@ -2,6 +2,8 @@ import logging
 from functools import lru_cache
 
 from api.v1.notification.schemas import (
+    MassNotificationRequest,
+    MassNotificationResponse,
     SingleNotificationRequest,
     SingleNotificationResponse,
     UpdateSendingStatusRequest,
@@ -10,7 +12,7 @@ from api.v1.notification.schemas import (
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from models.enums import NotificationStatus
-from models.models import Notification
+from models.models import MassNotification, Notification
 from services.base_service import BaseService
 from services.repository.notification_repository import (
     NotificationRepository,
@@ -98,6 +100,39 @@ class NotificationService(BaseService):
                     updated_list.append(str(notify.id))
 
         return UpdateSendingStatusResponse(updated=updated_list)
+
+    async def create_mass_notification(
+        self, request_body: MassNotificationRequest
+    ) -> MassNotificationResponse:
+        """Создаёт массовую рассылку уведомлений всем пользователям"""
+
+        logger.info(
+            f"Получен запрос на массовую рассылку уведомлений: \
+            {request_body.model_dump_json(indent=4)}"
+        )
+
+        new_mass_notification = MassNotification(
+            method=request_body.method,
+            source=request_body.source,
+            target_start_sending_at=request_body.target_sent_at,
+            priority=request_body.priority,
+            event_data=request_body.event_data,
+            template_id=request_body.template_id,
+            event_type=request_body.event_type,
+        )
+
+        created_mass_notify = await self.repository.create_object(
+            session=self.session, object=new_mass_notification
+        )
+
+        if created_mass_notify:
+            logger.info(f"Созданa массовая рассылка уведомлений: {created_mass_notify.id}")
+            return MassNotificationResponse(notification_id=created_mass_notify.id)
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось создать массовую рассылку уведомлений",
+        )
 
 
 @lru_cache

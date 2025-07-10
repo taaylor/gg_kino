@@ -36,6 +36,7 @@ class ProfileApi(BaseModel):
     auth_header: str = "x-api-key"
     api_key: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
     profile_path: str = "/auth/api/v1/internal/fetch-profiles"
+    profile_all_path: str = "/auth/api/v1/internal/fetch-all-profiles"
 
     @property
     def get_profile_url(self) -> str:
