@@ -226,6 +226,7 @@ services:
       jaeger:
         condition: service_started
 
+
   tests-auth-api:
     build:
       context: .
@@ -245,6 +246,8 @@ services:
         condition: service_healthy
       jaeger:
         condition: service_started
+      notification:
+        condition: service_healthy
 
   notification:
     container_name: notification
