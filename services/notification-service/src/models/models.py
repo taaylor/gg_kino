@@ -93,4 +93,7 @@ class MassNotification(Base):
     event_data: Mapped[dict] = mapped_column(
         JSONB, comment="Дополнительные данные события для шаблона рассылки"
     )
+    event_type: Mapped[str] = mapped_column(
+        String(100), comment="Тип рассылки (автоматическая/ручная рассылка)"
+    )
     template_id: Mapped[uuid.UUID | None] = mapped_column(comment="ID шаблона рассылки")

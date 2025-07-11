@@ -73,6 +73,12 @@ def upgrade() -> None:
             comment="Приоритет рассылки",
         ),
         sa.Column(
+            "event_type",
+            sa.String(length=50),
+            nullable=False,
+            comment="Тип рассылки (автоматическая/ручная рассылка)",
+        ),
+        sa.Column(
             "event_data",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,

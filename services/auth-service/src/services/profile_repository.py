@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import Any
 
 from models.models import User, UserCred, UserProfileSettings
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
 
@@ -56,6 +56,21 @@ class ProfileRepository:
         stmt = self._base_profile_query().where(User.id.in_(user_ids))
         result = (await session.execute(stmt)).all()
         return [dict(profile._mapping) for profile in result]
+
+    @sqlalchemy_universal_decorator
+    async def fetch_all_profiles(
+        self, session: AsyncSession, page_size: int, page_number: int
+    ) -> list[dict[str, Any]]:
+        stmt = self._base_profile_query().limit(page_size).offset((page_number - 1) * page_size)
+        result = (await session.execute(stmt)).all()
+        return [dict(profile._mapping) for profile in result]
+
+    @sqlalchemy_universal_decorator
+    async def fetch_all_profiles_count(self, session: AsyncSession) -> int:
+        """Получение общего количества профилей пользователей"""
+        stmt = select(func.count(User.id)).select_from(User)
+        count = (await session.execute(stmt)).scalar_one()
+        return count
 
 
 @lru_cache

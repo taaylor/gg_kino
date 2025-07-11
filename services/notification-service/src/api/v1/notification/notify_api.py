@@ -1,13 +1,14 @@
 from typing import Annotated
 
 from api.v1.notification.schemas import (
-    RequestToMassNotificationSchema,
+    MassNotificationRequest,
+    MassNotificationResponse,
     SingleNotificationRequest,
     SingleNotificationResponse,
     UpdateSendingStatusRequest,
     UpdateSendingStatusResponse,
 )
-from fastapi import APIRouter, Body, Depends, status
+from fastapi import APIRouter, Body, Depends
 from services.notification_service import NotificationService, get_notification_service
 
 router = APIRouter()
@@ -40,12 +41,13 @@ async def update_sending_status(
 
 
 @router.post(
-    path="/mock-get-regular-mass-sending",
-    status_code=status.HTTP_200_OK,
+    path="/mass-notification",
+    summary="Создание массовой рассылки",
+    description="Этот эндпоинт позволяет создать массовую рассылку уведомлений всем пользователям.",
+    response_model=MassNotificationResponse,
 )
-async def mock_get_regular_mass_sending(
-    request_body: Annotated[
-        RequestToMassNotificationSchema, Body(description="Данные пришедшие от event-generator")
-    ],
-):
-    return request_body
+async def create_mass_notification(
+    service: Annotated[NotificationService, Depends(get_notification_service)],
+    request_body: Annotated[MassNotificationRequest, Body()],
+) -> MassNotificationResponse:
+    return await service.create_mass_notification(request_body=request_body)
