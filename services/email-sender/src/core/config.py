@@ -58,14 +58,22 @@ class RabbitMQ(BaseModel):
     auto_mailing_queue: str = "auto-mailing.launched.notification.email-sender"
 
 
+class SmtpConfig(BaseModel):
+    email_yandex_kinoservice: str = "skipped_work@yandex.ru"
+    smtp_host = "mailhog"
+    smtp_port = 1025
+
+
 class AppConfig(BaseSettings):
     project_name: str = "email-sender"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
+    cache_expire_in_seconds_for_email: int = 300 * 10 * 10  # время кэширование ответа (сек.)
 
     rabbitmq: RabbitMQ = RabbitMQ()
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
+    smtp: SmtpConfig = SmtpConfig()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
