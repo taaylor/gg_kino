@@ -25,4 +25,4 @@ if app_config.tracing:
 
 SERVICE_PATH = "/link/api/v1"
 app.include_router(link_api.router, prefix=f"{SERVICE_PATH}/link", tags=["Сокращение ссылки"])
-app.include_router(link_redirect.router, prefix="/link", tags=["Роут по сокращённой ссылке"])
+app.include_router(link_redirect.router, prefix="/l", tags=["Роут по сокращённой ссылке"])

@@ -21,7 +21,7 @@ class Server(BaseModel):
 class ShortLink(BaseModel):
     protocol: str = "http"
     short_host: str = "localhost"
-    short_port: str = ":8009"  # Для локальной отладки
+    short_port: str = ""  # Для локальной отладки можно указать порт ":8009"
     service_path: str = "l"
     link_lifetime_days: int = 10
 

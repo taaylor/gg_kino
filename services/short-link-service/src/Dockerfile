@@ -18,20 +18,17 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY services/notification-service/src/pyproject.toml services/notification-service/src/poetry.lock ./
-
-COPY libs/auth_utils /opt/app/libs/auth_utils
-RUN cd /opt/app/libs/auth_utils && poetry build && cd /opt/app && poetry add libs/auth_utils
+COPY services/short-link-service/src/pyproject.toml services/short-link-service/src/poetry.lock ./
 
 COPY libs/tracer_utils /opt/app/libs/tracer_utils
 RUN cd /opt/app/libs/tracer_utils && poetry build && cd /opt/app && poetry add libs/tracer_utils
 
-RUN poetry install --only main && useradd -m notifiuser
+RUN poetry install --only main && useradd -m linkuser
 
-COPY services/notification-service/src .
+COPY services/short-link-service/src .
 
 RUN chmod +x ./scripts/entrypoint.sh
 
-USER notifiuser
+USER linkuser
 
 ENTRYPOINT ["./scripts/entrypoint.sh"]

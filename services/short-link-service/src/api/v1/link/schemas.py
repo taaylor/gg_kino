@@ -17,7 +17,7 @@ class ShortLinkRequest(BaseModel):
         Field(
             ...,
             description="Полная ссылка, которую необходимо сократить.",
-            examples=["https://spastv.ru/"],
+            examples=["https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ"],
         ),
     ]
     valid_days: Annotated[
