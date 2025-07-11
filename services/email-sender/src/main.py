@@ -3,6 +3,7 @@ import logging
 import signal
 
 from aio_pika.abc import AbstractIncomingMessage
+from services.processors.event_handler import EventHandler, get_event_handler
 from storage.messagebroker import get_message_broker
 
 logger = logging.getLogger(__name__)
@@ -33,11 +34,17 @@ async def main():
         "manager-mailing.launched.notification.email-sender",
         "auto-mailing.launched.notification.email-sender",
     ]
+    event_handler: EventHandler = get_event_handler()
 
     # 3) Запускаем задачи‑консьюмеры
     tasks = [
         asyncio.create_task(
-            broker.consumer(queue_name=q, callback=dummy_callback), name=f"consumer:{q}"
+            broker.consumer(
+                queue_name=q,
+                # callback=dummy_callback
+                callback=event_handler.event_handler,
+            ),
+            name=f"consumer:{q}",
         )
         for q in queues
     ]

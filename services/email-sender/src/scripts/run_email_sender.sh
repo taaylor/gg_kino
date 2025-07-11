@@ -4,6 +4,8 @@ set -e
 # 1) Прогон миграций
 alembic upgrade head
 
+python dump_templates.py
+
 python main.py
 # 2) Запуск Celery
 # if [[ "$1" == "celery" ]]; then

@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Priority(StrEnum):
@@ -56,15 +56,8 @@ class EventSchemaMessage(BaseModel):
     priority: Priority = Field(description="Приоритет уведомления (например, LOW)")
     event_type: str = Field(description="Тип уведомления (например, user_review_liked)")
     event_data: dict = Field(default_factory=dict, description="Данные уведомления")
-    # user_timezone: str | None = Field(
-    #     default=None, description="Часовой пояс пользователя", exclude=True
-    # )
-    # template_id: str | None = Field(
-    #     default=None, description="Идентификатор шаблона уведомления", exclude=True
-    # )
-    # mass_notification_id: str | None = Field(
-    #     default=None, description="Идентификатор массового уведомления", exclude=True
-    # )
+
+    model_config = ConfigDict(extra="ignore")
 
 
 class EventsIdsLogic(BaseModel):

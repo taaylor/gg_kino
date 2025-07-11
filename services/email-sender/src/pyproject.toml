@@ -19,7 +19,8 @@ dependencies = [
     "greenlet>=3.2.0,<4.0.0",
     "aio-pika (==9.5.5)",
     "aiohttp (==3.12.13)",
-    "jinja2>=3.1.6"
+    "jinja2>=3.1.6",
+    "aiosmtplib>=4.0.1"
 ]
 
 [project.optional-dependencies]

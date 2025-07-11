@@ -140,7 +140,7 @@ up-email-sender:
 	docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
 
 down-email-sender-v:
-	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog
 
 reload-email-sender:
-	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch && docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog && docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import

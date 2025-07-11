@@ -26,7 +26,15 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     restart: always
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
 
 volumes:
   rabbitmq_data:
