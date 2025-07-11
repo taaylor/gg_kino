@@ -1,4 +1,4 @@
-from api.v1.link import link_api
+from api.v1.link import link_api, link_redirect
 from core.config import app_config
 from fastapi import FastAPI, responses
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -23,5 +23,6 @@ if app_config.tracing:
     init_tracer(app, app_config.project_name)
     FastAPIInstrumentor.instrument_app(app)
 
-SERVICE_PATH = "/link/api/v1/"
-app.include_router(link_api.router, prefix=f"{SERVICE_PATH}link", tags=["Сокращение ссылки"])
+SERVICE_PATH = "/link/api/v1"
+app.include_router(link_api.router, prefix=f"{SERVICE_PATH}/link", tags=["Сокращение ссылки"])
+app.include_router(link_redirect.router, prefix="/link", tags=["Роут по сокращённой ссылке"])

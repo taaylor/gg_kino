@@ -23,6 +23,7 @@ class ShortLink(BaseModel):
     short_host: str = "localhost"
     short_port: str = ":8009"  # Для локальной отладки
     service_path: str = "l"
+    link_lifetime_days: int = 10
 
     @property
     def get_short_url(self) -> str:
