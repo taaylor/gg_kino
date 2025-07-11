@@ -6,6 +6,7 @@ include:
   - ./infra/mongodb/docker-compose.mongodb.yml
   - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
+  - ./services/event-generator/docker-compose.event-generator.yml
 
 services:
   elasticsearch:
@@ -214,6 +215,7 @@ services:
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
       - ./backup/postgres_dump-auth/dumps:/dumps
+      - ./backup/event-generator_dump:/docker-entrypoint-initdb.d # создается дамп таблицы template
     ports:
       - "5432:5432"
     healthcheck:

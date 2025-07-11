@@ -64,6 +64,18 @@ class RabbitMQ(BaseModel):
         return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}//"
 
 
+class Postgres(BaseModel):
+    host: str = "localhost"
+    port: int = 5432
+    user: str = "postgres"
+    password: str = "postgres"
+    db: str = "pg_db"
+
+    @property
+    def ASYNC_DATABASE_URL(self):
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"  # noqa: WPS221, E501
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
@@ -77,6 +89,7 @@ class AppConfig(BaseSettings):
 
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
+    postgres: Postgres = Postgres()
     server: Server = Server()
     filmapi: FilmApi = FilmApi()
     notificationapi: NotificationApi = NotificationApi()
