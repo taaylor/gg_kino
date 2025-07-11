@@ -92,6 +92,8 @@ up-local-content-api:
 up-local-notification:
 	cd services/notification-service/src/ && uvicorn main:app --port 8009 --reload
 
+up-local-auth:
+	cd services/auth-service/src/ && uvicorn main:app --port 8009 --reload
 
 # Rabbit only
 up-rabbit:
@@ -110,7 +112,7 @@ up-notification:
 	docker compose --profile production up --build -d postgres pg-import auth-api async-api jaeger nginx notification
 
 up-notification-logs:
-	docker compose --profile production up --build -d postgres pg-import auth-api async-api jaeger nginx notification && \
+	docker compose --profile production up --build -d postgres pg-import auth-api content-actions-api async-api jaeger nginx notification && \
 	docker compose logs -f $(srv)
 
 down-notification:
