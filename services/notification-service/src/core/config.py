@@ -36,10 +36,15 @@ class ProfileApi(BaseModel):
     auth_header: str = "x-api-key"
     api_key: str = "9333954892f3ce159e33c829af5ea4b93cc2385306b45158ca95bc31f195c943"
     profile_path: str = "/auth/api/v1/internal/fetch-profiles"
+    profile_all_path: str = "/auth/api/v1/internal/fetch-all-profiles"
 
     @property
     def get_profile_url(self) -> str:
         return f"http://{self.host}:{self.port}{self.profile_path}"
+
+    @property
+    def get_all_profiles_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_all_path}"
 
 
 class FilmApi(BaseModel):
@@ -50,6 +55,14 @@ class FilmApi(BaseModel):
     @property
     def get_film_url(self) -> str:
         return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
+class Redis(BaseModel):
+    host: str = "localhost"
+    port: int = 6379
+    user: str = "redis_user"
+    password: str = "Parol123"
+    db: int = 0
 
 
 class RabbitMQ(BaseModel):
@@ -80,6 +93,9 @@ class AppConfig(BaseSettings):
     docs_url: str = "/notification/openapi"
     openapi_url: str = "/notification/openapi.json"
     single_notify_batch: int = 10
+    mass_notify_batch: int = 5
+    profile_page_size: int = 50
+    expire_cache_sec: int = 3600
 
     start_processing_interval_sec: int = 10
     notify_start_hour: int = 9
@@ -90,6 +106,7 @@ class AppConfig(BaseSettings):
     profileapi: ProfileApi = ProfileApi()
     filmapi: FilmApi = FilmApi()
     rabbitmq: RabbitMQ = RabbitMQ()
+    redis: Redis = Redis()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

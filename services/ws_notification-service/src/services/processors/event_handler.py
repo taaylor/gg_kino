@@ -20,6 +20,7 @@ class EventHandler(BaseService):
         Обработчик события, который будет вызываться при получении сообщения из очереди.
         :param message: Сообщение, содержащее данные события.
         """
+
         try:  # noqa: WPS229
             body = message.body.decode()
             event = EventSchemaMessage.model_validate_json(body)
