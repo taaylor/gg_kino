@@ -72,5 +72,5 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     if async_session_maker is None:
         raise ValueError("[PostgreSQL] sessionmaker не инициализирован")
     async with async_session_maker() as session:
-        # yield session
-        return session
+        yield session
+        # return session

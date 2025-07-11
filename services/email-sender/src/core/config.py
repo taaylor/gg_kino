@@ -4,7 +4,7 @@ import os
 import dotenv
 
 # from core.logger_config import LoggerSettings
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = dotenv.find_dotenv()
@@ -34,6 +34,19 @@ class Redis(BaseModel):
     user: str = "redis_user"
     password: str = "Parol123"
     db: int = 0
+
+    key_cache_send_event: str = Field(
+        default="send_event:{user_id}:{event_id}",
+        description="ключ по которому хранятся отправленные письма пользователю",
+    )
+    key_cache_not_send_event: str = Field(
+        default="not_send_event:{user_id}:{event_id}",
+        description="ключ по которому хранятся не отправленные обогащенные письма",
+    )
+    key_cache_fail_event: str = Field(
+        default="fail_event:{user_id}:{event_id}",
+        description="ключ по которому хранятся не отправленные письма",
+    )
 
 
 class RabbitMQ(BaseModel):
