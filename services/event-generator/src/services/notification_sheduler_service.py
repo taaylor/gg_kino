@@ -1,13 +1,14 @@
 import logging
-from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
 from core.config import app_config
 from models.logic_models import (
+    EventType,
     FilmListSchema,
+    Priority,
     RecomendedFilmsSchema,
-    ResponseToMassNotificationSchema,
+    RegularMassSendingSchemaRequest,
 )
 from services.connector_repository import ClientRepository
 
@@ -45,16 +46,19 @@ class FilmSchedulerService:
     def prepare_payload(
         self,
         recommended_films: RecomendedFilmsSchema,
-    ) -> ResponseToMassNotificationSchema:
-        return ResponseToMassNotificationSchema(
-            target_start_sending_at=datetime.now(timezone.utc),
+    ) -> RegularMassSendingSchemaRequest:
+        return RegularMassSendingSchemaRequest(
             event_data=recommended_films,
-            # TODO: моковый UUID для template_id потом заменить на реальный из БД
-            template_id=UUID("3aba7aa0-8930-417c-bf78-3df596c3f062"),
+            event_type=EventType.AUTO_MASS_NOTIFY,
+            method="EMAIL",
+            priority=Priority.HIGH,
+            source="event-generator",
+            # TODO: template_id хардкодом
+            template_id=UUID("104c743c-030c-41f9-a714-62392a46e71d"),
         )
 
     async def send_films_to_notification(
-        self, url: str, response_schema: ResponseToMassNotificationSchema
+        self, url: str, response_schema: RegularMassSendingSchemaRequest
     ) -> dict[str, Any] | list[Any]:
         """
         Отправляет сформированный payload в notification-processor.

@@ -22,6 +22,7 @@ class EventSchemaMessage(BaseModel):
     priority: Priority = Field(description="Приоритет уведомления (например, LOW)")
     event_type: str = Field(description="Тип уведомления (например, user_review_liked)")
     event_data: dict = Field(default_factory=dict, description="Данные уведомления")
+    template_id: str | None = Field(description="id шаблона")
 
     model_config = ConfigDict(extra="ignore")
 

@@ -40,7 +40,7 @@ class RabbitMQConnector(AsyncMessageBroker):
 
     def __init__(self, hosts: list[str]):
         self.hosts = hosts
-        self._channel_pool: Pool = Pool(self._get_channel, max_size=1)
+        self._channel_pool: Pool = Pool(self._get_channel, max_size=3)
         self._connection_pool: Pool = Pool(self._get_connection, max_size=1)
 
     async def consumer(self, queue_name: str, callback: Callable) -> None:

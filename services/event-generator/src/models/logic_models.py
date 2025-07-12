@@ -30,14 +30,14 @@ class RecomendedFilmsSchema(BaseModel):
 
 
 class RegularMassSendingSchemaRequest(BaseModel):
-    target_start_sending_at: datetime = Field(
-        ...,
-        description="Данные о событиях и рекомендациях",
-    )
     event_data: RecomendedFilmsSchema = Field(
         ...,
         description="Данные о событиях и рекомендациях",
     )
+    event_type: EventType = Field(description="Тип уведомления (например, user_review_liked)")
+    method: str = Field(..., description="Тип события")
+    priority: Priority = Field(description="Приоритет уведомления (например, LOW)")
+    source: str = Field(..., description="Тип события")
     template_id: UUID = Field(
         ...,
         description="UUID шаблона",
