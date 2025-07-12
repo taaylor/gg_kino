@@ -60,8 +60,18 @@ class RabbitMQ(BaseModel):
 
 class SmtpConfig(BaseModel):
     email_yandex_kinoservice: str = "skipped_work@yandex.ru"
-    smtp_host = "mailhog"
-    smtp_port = 1025
+    smtp_host: str = "mailhog"
+    smtp_port: int = 1025
+
+
+class NotificationApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8002
+    profile_path: str = "/notification/api/v1/notifications/update-sending-status"
+
+    @property
+    def update_status_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
 
 
 class AppConfig(BaseSettings):
@@ -69,11 +79,13 @@ class AppConfig(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     cache_expire_in_seconds_for_email: int = 300 * 10 * 10  # время кэширование ответа (сек.)
+    update_status_url: str = ""
 
     rabbitmq: RabbitMQ = RabbitMQ()
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
     smtp: SmtpConfig = SmtpConfig()
+    notificationapi: NotificationApi = NotificationApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

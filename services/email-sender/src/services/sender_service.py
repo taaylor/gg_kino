@@ -43,15 +43,17 @@ class SenderSerivce:
     async def send_email(self, validated_body: EventSchemaMessage) -> bool:
         event_type = validated_body.event_type
         event_data = validated_body.event_data
+        user_id = validated_body.user_id
+        event_id = validated_body.id
         cache_key_send_email = CACHE_KEY_SEND_EMAIL.format(
             user_id=validated_body.user_id,
             event_id=validated_body.id,
         )
 
-        email_sent = await self.cache.get(cache_key_send_email)
+        logger.info(f"Проверяем статус в кеше по ключу {cache_key_send_email}")
+        email_has_been_sent = await self.cache.get(cache_key_send_email)
         logger.info(f"Парсинг сообщения \n event_data: {event_data} \n event_type: {event_type}")
-        # ! нужно сделать проверку в кеше, что event_data.get("id") статус не отправлен
-        if not email_sent:
+        if not email_has_been_sent:
             template = await self.repository.get_tamplate_by_id(event_data.get("template_id"))
 
             if template:
@@ -61,17 +63,14 @@ class SenderSerivce:
                 if event_type == EventType.USER_REGISTERED:
                     context_for_email = {"username": event_data.get("username", "unknown")}
                 elif event_type == EventType.AUTO_MASS_NOTIFY:
-                    # в зависимости от event_type по разному обрабатываем
                     context_for_email = {"username": event_data.get("username", "unknown")}
                 elif event_type == EventType.MANAGER_MASS_NOTIFY:
-                    # в зависимости от event_type по разному обрабатываем
                     context_for_email = {"username": event_data.get("username", "unknown")}
                 else:
-                    # невалидный event_type
                     cache_key_invalid_event_type_send_email = (
                         CACHE_KEY_INVALID_EVENT_TYPE_SEND_EMAIL.format(
-                            user_id=validated_body.user_id,
-                            event_id=validated_body.id,
+                            user_id=user_id,
+                            event_id=event_id,
                         )
                     )
                     await self.cache.background_set(
@@ -96,12 +95,6 @@ class SenderSerivce:
                     logger.info(
                         f"Отправка письма на адрес {event_data.get("email")} прошла успешно"
                     )
-                    # пишем в кеш, что всё отправилось.
-                    # посылам через httpx запрос в `notification-processor`
-                    # что всё успешно отправилось
-                    # (или просто посылаем что отправилось в любом случае,
-                    # даже если не успешно,
-                    # но успешные и неуспешные надо разграничивать и это под вопросом)
                     await self.cache.background_set(
                         key=cache_key_send_email,
                         value=json.dumps(event_data),
@@ -109,8 +102,8 @@ class SenderSerivce:
                     )
                     return True
                 cache_key_fail_send_email = CACHE_KEY_FAIL_SEND_EMAIL.format(
-                    user_id=validated_body.user_id,
-                    event_id=validated_body.id,
+                    user_id=user_id,
+                    event_id=event_id,
                 )
                 await self.cache.background_set(
                     key=cache_key_fail_send_email,

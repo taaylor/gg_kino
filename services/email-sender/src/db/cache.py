@@ -77,6 +77,4 @@ cache_conn = Redis(
 
 
 async def get_cache() -> Cache:
-    if cache_conn is None:
-        raise ValueError("Cache не инициализирован")
     return RedisCache(cache_conn)

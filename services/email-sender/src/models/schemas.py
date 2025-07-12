@@ -60,7 +60,7 @@ class EventSchemaMessage(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
-class EventsIdsLogic(BaseModel):
+class UpdateStatusSchema(BaseModel):
     """Схема для хранения статусов отправленных событий."""
 
     sent_success: list[str] = Field(
