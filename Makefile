@@ -124,7 +124,6 @@ down-notification:
 down-notification-v:
 	docker compose --profile production down -v postgres pg-import auth-api async-api jaeger nginx notification
 
-
 # ws sender
 ws-sender-start:
 	docker compose up --build -d rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
@@ -139,10 +138,9 @@ event-generator-down-v:
 	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbit-init elasticsearch redis notification event-generator celery-beat postgres
 
 event-generator-reload:
-	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat
+	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat
 
 
-# Link service
 up-link:
 	docker compose --profile production up --build -d postgres link nginx
 
@@ -155,5 +153,16 @@ down-link-v:
 
 # Запуск всех сервисов контекста нотификаций
 up-notification-context:
-	docker compose --profile production up --build -d postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
+	docker compose --profile production up --build -d email-sender postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
 	docker compose logs -f notification
+
+
+# -=-=-=-=- EMAIL-SENDER SECTION -=-=-=-=-
+up-email-sender:
+	docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
+
+down-email-sender-v:
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog
+
+reload-email-sender:
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog && docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
