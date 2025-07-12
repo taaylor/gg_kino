@@ -8,12 +8,6 @@ from storage.messagebroker import get_message_broker
 logger = logging.getLogger(__name__)
 
 
-async def dummy_callback(message):
-    body = message.body.decode()
-    logger.info(f"[DUMMY] from {message.routing_key}: {body}")
-    await message.ack()
-
-
 async def main():
     # Настраиваем логирование
     logging.basicConfig(
@@ -33,7 +27,6 @@ async def main():
     event_handler: EventHandler = get_event_handler()
 
     # 3) Запускаем задачи‑консьюмеры
-    # !-=-=-=-=-=-
     tasks = []
     for q in queues:
         logger.info(f"Запускаем consumer для очереди: {q}")
@@ -41,25 +34,11 @@ async def main():
             asyncio.create_task(
                 broker.consumer(
                     queue_name=q,
-                    # callback=dummy_callback,
                     callback=event_handler.event_handler,
                 ),
                 name=f"consumer:{q}",
             )
         )
-    # !-=-=-=-=-=-
-    # ?-=-=-=-=-=-
-    # tasks = [
-    #     asyncio.create_task(
-    #         broker.consumer(
-    #             queue_name=q,
-    #             callback=event_handler.event_handler,
-    #         ),
-    #         name=f"consumer:{q}",
-    #     )
-    #     for q in queues
-    # ]
-    # ?-=-=-=-=-=-
     logger.info("Все консьюмеры запущены. Ждём сообщений…")
 
     # 4) Ждём SIGINT/SIGTERM для graceful shutdown
