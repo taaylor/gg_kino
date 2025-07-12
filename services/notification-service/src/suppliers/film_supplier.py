@@ -32,7 +32,7 @@ class FilmSupplier:
             # Проверяем наличие контента
             if not response.content:
                 logger.error(
-                    f"Пустой ответ от сервиса {app_config.filmapi.host} " f"для фильмов {film_ids}"
+                    f"Пустой ответ от сервиса {app_config.filmapi.host} для фильмов {film_ids}"
                 )
                 raise EmptyServerResponse("Получен пустой ответ от сервиса фильмов")
 

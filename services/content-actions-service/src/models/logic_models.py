@@ -27,3 +27,19 @@ class ReviewRepositorySchema(BaseModel):
 
 class ReviewScoreSchema(ReviewRepositorySchema):
     user_score: int | None
+
+
+class ReviewLikeNotifyContext(BaseModel):
+    film_id: UUID
+    liked_by_user_id: UUID
+    review_id: UUID
+    is_like: bool
+
+
+class ReviewLikeNotify(BaseModel):
+    user_id: UUID
+    event_type: str = "USER_REVIEW_LIKED"
+    source: str = "CONTENT-ACTIONS-SERVICE"
+    method: str = "WEBSOCKET"
+    priority: str = "HIGH"
+    event_data: ReviewLikeNotifyContext

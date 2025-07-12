@@ -129,12 +129,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      pg-import:
-        condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
-    ports:
-      - "8000:8000"
     healthcheck:
       test: [
         "CMD-SHELL",
@@ -163,8 +159,11 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
-    ports:
-      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   content-actions-api:
@@ -181,11 +180,19 @@ services:
       redis:
         condition: service_healthy
       async-api:
-        condition: service_started
+        condition: service_healthy
+      notification:
+        condition: service_healthy
     cpus: "1"
     mem_limit: 256M
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000//content-api/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
-
   admin-panel:
     container_name: admin-panel
     build:
@@ -241,7 +248,7 @@ services:
     restart: "no"
 
   notification:
-    container_name: notification-container
+    container_name: notification
     env_file:
       - .env
     build:
@@ -250,9 +257,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
       auth-api:
         condition: service_healthy
-    restart: always
+      async-api:
+        condition: service_healthy
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "always"
 
   nginx:
     container_name: nginx

@@ -50,6 +50,17 @@ class MongoDB(BaseModel):
         return f"mongodb://{self.host}:{self.port}"
 
 
+class NotifyApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8001
+    profile_path: str = "/notification/api/v1/notifications/single-notification"
+    timeout_sec: int = 30
+
+    @property
+    def get_notify_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
@@ -85,6 +96,7 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     mongodb: MongoDB = MongoDB()  # type: ignore
     server: Server = Server()
+    notifyapi: NotifyApi = NotifyApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

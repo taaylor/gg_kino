@@ -60,9 +60,20 @@ class JWTSettings(BaseModel):
     cache_key_drop_session: str = "session:drop:{user_id}:{session_id}"
 
 
+class NotifyApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8001
+    profile_path: str = "/notification/api/v1/notifications/single-notification"
+    timeout_sec: int = 30
+
+    @property
+    def get_notify_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class AppConfig(BaseSettings):
-    auth_secret_key: str
-    api_keys: set[str]
+    auth_secret_key: str = ""
+    api_keys: set[str] = {""}
     project_name: str = "auth-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/auth/openapi"
@@ -71,10 +82,18 @@ class AppConfig(BaseSettings):
     default_role: str = "UNSUB_USER"
     tracing: bool = False  # включение/выключение трассировки
 
+    confirmation_host: str = "localhost"
+    confirmation_path: str = "/auth/api/v1/sessions/verify-email?token={token}&user_id={user_id}"
+
+    @property
+    def get_confirmation_link(self) -> str:
+        return f"http://{self.confirmation_host}{self.confirmation_path}"
+
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
     server: Server = Server()
     jwt: JWTSettings = JWTSettings()
+    notifyapi: NotifyApi = NotifyApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

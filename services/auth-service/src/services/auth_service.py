@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Any
 
 import aiohttp
+from adapter.notification_adapter import NotificationAdapter, get_notifier
 from api.v1.auth.schemas import (
     EntryPoint,
     LoginRequest,
@@ -25,7 +26,12 @@ from core.oauth_conf import providers_conf
 from db.cache import Cache, get_cache
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
-from models.logic_models import OAuthUserInfo, SessionUserData
+from models.logic_models import (
+    OAuthUserInfo,
+    RegisteredNotify,
+    RegisteredNotifyContext,
+    SessionUserData,
+)
 from models.models import SocialAccount, User, UserCred, UserMailConfirmation, UserProfileSettings
 from models.models_types import ProvidersEnum
 from services.auth_repository import AuthRepository, get_auth_repository
@@ -46,6 +52,17 @@ CACHE_KEY_DROP_SESSION = app_config.jwt.cache_key_drop_session
 
 
 class RegisterService(BaseAuthService):
+
+    def __init__(
+        self,
+        repository: AuthRepository,
+        session: AsyncSession,
+        session_maker: SessionMaker,
+        notifier: NotificationAdapter,
+    ):
+        super().__init__(repository, session, session_maker)
+        self.notifier = notifier
+
     @traced("create_user_process")
     async def create_user(
         self,
@@ -121,7 +138,7 @@ class RegisterService(BaseAuthService):
             username=user.username,
             user_agent=user_agent,
             role_code=user.role_code,
-            permissions=user_permissions,
+            permissions=user_permissions,  # type: ignore
         )
 
         # Создание экземпляра сессии и токенов
@@ -147,12 +164,13 @@ class RegisterService(BaseAuthService):
             f"Для пользоватлея {user.username} создана новая сессия: {user_session.session_id=}",
         )
 
-        # Тут необходимо будет отправить событие в сервис нотификации о регистрации пользователя
-        # вынести его в отдельный метод и реализовать через create_tasks в фоне
-        logger.info(
-            f"Ссылка для подтверждения почты пользователя {user.id}: "
-            f"http://localhost/auth/api/v1/sessions/verify-email?token={token}&user_id={user.id}"
-        )
+        confirmation_link = app_config.get_confirmation_link.format(token=token, user_id=user.id)
+
+        logger.info(f"Ссылка для подтверждения почты пользователя {user.id}: {confirmation_link}")
+
+        sent_notify_id = await self._send_registered_notify(user, confirmation_link)
+
+        logger.info(f"Пользователю была отправлена нотификация о регистрации: {sent_notify_id}")
 
         return RegisterResponse(
             user_id=user.id,
@@ -166,6 +184,12 @@ class RegisterService(BaseAuthService):
             user_timezone=user_settings.user_timezone,
             is_verified_email=user_cred.is_verified_email,
         )
+
+    async def _send_registered_notify(self, user: User, confirmation_link: str) -> str:
+        notify = RegisteredNotify(
+            user_id=user.id, event_data=RegisteredNotifyContext(confirmation_link=confirmation_link)
+        )
+        return await self.notifier.send_registered_notify(notify)
 
 
 class LoginService(BaseAuthService):
@@ -710,11 +734,13 @@ def get_register_service(
     session: AsyncSession = Depends(get_session),
     repository: AuthRepository = Depends(get_auth_repository),
     session_maker: SessionMaker = Depends(get_auth_session_maker),
+    notifier: NotificationAdapter = Depends(get_notifier),
 ) -> RegisterService:
     return RegisterService(
         repository=repository,
         session=session,
         session_maker=session_maker,
+        notifier=notifier,
     )
 
 
