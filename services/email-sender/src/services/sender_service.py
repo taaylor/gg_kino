@@ -1,4 +1,3 @@
-# services/email_service.py
 import json
 import logging
 from email.message import EmailMessage
