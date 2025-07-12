@@ -50,7 +50,7 @@ class MongoDB(BaseModel):
         return f"mongodb://{self.host}:{self.port}"
 
 
-class NotifyApi(BaseModel):
+class NotificationAPI(BaseModel):
     host: str = "localhost"
     port: int = 8001
     profile_path: str = "/notification/api/v1/notifications/single-notification"
@@ -96,7 +96,7 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     mongodb: MongoDB = MongoDB()  # type: ignore
     server: Server = Server()
-    notifyapi: NotifyApi = NotifyApi()
+    notification_api: NotificationAPI = NotificationAPI()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
