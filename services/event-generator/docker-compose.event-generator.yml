@@ -8,8 +8,8 @@ services:
     image: event-generator:latest
     env_file:
       - ../../.env
-    ports:
-      - 8077:8000
+    expose:
+      - 8000:8000
     cpus: "1"
     mem_limit: 256M
     depends_on:
