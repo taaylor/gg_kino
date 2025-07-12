@@ -24,6 +24,7 @@ class LinkService(BaseService):
 
     async def create_short_link(self, request_body: ShortLinkRequest) -> ShortLinkResponse:
         """Функция создаёт короткую ссылку и записывает её в БД"""
+
         logger.info(f"Получен запрос на сокращение ссылки: {request_body.url}")
 
         # Создаём новый path для короткой ссылки и проверяем, что такого ещё нет в БД

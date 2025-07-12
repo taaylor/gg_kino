@@ -127,19 +127,19 @@ down-notification-v:
 
 # ws sender
 ws-sender-start:
-	docker compose up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
+	docker compose up --build -d rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
 	docker compose logs -f ws-sender-worker
 
 
 # event-generator
 event-generator-up:
-	docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification event-generator celery-beat
+	docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbit-init notification event-generator celery-beat
 
 event-generator-down-v:
-	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres
+	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbit-init elasticsearch redis notification event-generator celery-beat postgres
 
 event-generator-reload:
-	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat
+	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat
 
 
 # Link service
@@ -152,3 +152,8 @@ up-link-logs:
 
 down-link-v:
 	docker compose --profile production down -v postgres link nginx
+
+# Запуск всех сервисов контекста нотификаций
+up-notification-context:
+	docker compose --profile production up --build -d postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
+	docker compose logs -f notification
