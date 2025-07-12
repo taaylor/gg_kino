@@ -77,7 +77,6 @@ class AppConfig(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     cache_expire_in_seconds_for_email: int = 300 * 10 * 10  # время кэширование ответа (сек.)
-    update_status_url: str = ""
 
     rabbitmq: RabbitMQ = RabbitMQ()
     postgres: Postgres = Postgres()
