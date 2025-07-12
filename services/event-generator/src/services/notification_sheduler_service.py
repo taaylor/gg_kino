@@ -93,7 +93,7 @@ class FilmSchedulerService:
         recommended_films = RecomendedFilmsSchema(recommended_films=validated_films)
         payload = self.prepare_payload(recommended_films=recommended_films)
         result = await self.send_films_to_notification(
-            url=app_config.notificationapi.send_to_mass_notification_url,
+            url=app_config.notification_api.send_to_mass_notification_url,
             response_schema=payload,
         )
         logger.info(f"execute_task: выполнен с результатом {result}")

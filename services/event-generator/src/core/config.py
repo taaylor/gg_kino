@@ -79,7 +79,7 @@ class AppConfig(BaseSettings):
     redis: Redis = Redis()
     server: Server = Server()
     filmapi: FilmApi = FilmApi()
-    notificationapi: NotificationApi = NotificationApi()
+    notification_api: NotificationApi = NotificationApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

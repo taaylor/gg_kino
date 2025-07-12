@@ -1,39 +1,5 @@
-from enum import StrEnum
-
+from models.enums import Priority
 from pydantic import BaseModel, ConfigDict, Field
-
-
-class Priority(StrEnum):
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
-
-
-"""
-{'id': '58885bed-1eec-4c3a-9f0d-53a18c559c01',
- 'user_id': 'c138e471-4ef9-449f-a831-f1932fc4aca6',
- 'method': 'EMAIL',
- 'source': 'content-api',
- 'status': 'PROCESSING',
- 'target_sent_at': '2025-07-02T19:08:29.205500Z',
- 'actual_sent_at': None,
- 'added_queue_at': None,
- 'priority': 'LOW',
- 'event_type': 'USER_REGISTERED',
- 'event_data': {'email': 'user@user.user',
-                'gender': 'MALE',
-                'username': 'user',
-                'last_name': 'user',
-                'created_at': False,
-                'first_name': 'user',
-                'is_verified_email': False,
-                'is_fictional_email': False,
-                'is_email_notify_allowed': True},
-                'user_timezone': 'Europe/Moscow',
-                'template_id': None,
-                'mass_notification_id': None
-                 }
-"""
 
 
 class EventSchemaMessage(BaseModel):

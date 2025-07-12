@@ -4,8 +4,6 @@ from logging.config import fileConfig
 from alembic import context
 from core.config import app_config
 from db.postgres import Base
-
-# from models import models
 from models.models import Template
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -31,6 +29,14 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def include_object(object, name, type_, reflected, compare_to) -> bool:
+    # Включаем только объекты из схемы 'email_sender'
+    if hasattr(object, "schema"):
+        if object.schema not in {"email_sender"}:
+            return False
+    return True
 
 
 def run_migrations_offline() -> None:
@@ -64,6 +70,7 @@ def do_run_migrations(connection: Connection) -> None:
         target_metadata=target_metadata,
         include_schemas=True,
         version_table="alembic_version_email_sender",
+        include_object=include_object,
     )
 
     with context.begin_transaction():

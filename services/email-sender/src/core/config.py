@@ -2,8 +2,6 @@ import logging
 import os
 
 import dotenv
-
-# from core.logger_config import LoggerSettings
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -85,7 +83,7 @@ class AppConfig(BaseSettings):
     postgres: Postgres = Postgres()
     redis: Redis = Redis()
     smtp: SmtpConfig = SmtpConfig()
-    notificationapi: NotificationApi = NotificationApi()
+    notification_api: NotificationApi = NotificationApi()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -96,8 +94,6 @@ class AppConfig(BaseSettings):
 
 
 def _get_config() -> AppConfig:
-    # log = LoggerSettings()
-    # log.apply()
 
     app_config = AppConfig()
     logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")

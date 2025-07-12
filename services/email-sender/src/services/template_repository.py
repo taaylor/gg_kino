@@ -13,5 +13,5 @@ class TamplateRepository:
             ).scalar_one_or_none()
 
 
-def get_tamplate_repository():
+def get_tamplate_repository() -> TamplateRepository:
     return TamplateRepository()

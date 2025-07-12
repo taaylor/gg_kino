@@ -2,20 +2,10 @@ import asyncio
 import logging
 import signal
 
-from aio_pika.abc import AbstractIncomingMessage
 from services.processors.event_handler import EventHandler, get_event_handler
 from storage.messagebroker import get_message_broker
 
 logger = logging.getLogger(__name__)
-
-
-async def dummy_callback(message: AbstractIncomingMessage) -> None:
-    """
-    Заглушка–обработчик: просто выводит тело сообщения в лог и ACK.
-    """
-    body = message.body.decode()
-    logger.info(f"[DUMMY] Получено сообщение из {message.routing_key}: {body}")
-    await message.ack()
 
 
 async def main():
@@ -41,7 +31,6 @@ async def main():
         asyncio.create_task(
             broker.consumer(
                 queue_name=q,
-                # callback=dummy_callback
                 callback=event_handler.event_handler,
             ),
             name=f"consumer:{q}",
