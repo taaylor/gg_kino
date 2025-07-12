@@ -29,7 +29,7 @@ class NotificationAdapter(AbstractNotification):
             f"на комментарий пользователя {notify.user_id}"
         )
 
-        url = app_config.notifyapi.get_notify_url
+        url = app_config.notification_api.get_notify_url
         logger.debug(f"Сформирована строка отправки нотификации: {url}")
 
         data = notify.model_dump(mode="json")
@@ -37,11 +37,11 @@ class NotificationAdapter(AbstractNotification):
 
         return await self._send(url, data)
 
-    @handle_http_errors(service_name=app_config.notifyapi.host)
+    @handle_http_errors(service_name=app_config.notification_api.host)
     async def _send(self, url: str, data: dict) -> str:
         """Отправляет запрос в сервис нотификаций"""
         async with httpx.AsyncClient(
-            timeout=httpx.Timeout(app_config.notifyapi.timeout_sec)
+            timeout=httpx.Timeout(app_config.notification_api.timeout_sec)
         ) as client:
 
             response = await client.post(url=url, json=data)
@@ -49,12 +49,14 @@ class NotificationAdapter(AbstractNotification):
             response.raise_for_status()
 
             if not response.content:
-                logger.error(f"Пустой ответ от сервиса {app_config.notifyapi.host}")
+                logger.error(f"Пустой ответ от сервиса {app_config.notification_api.host}")
                 raise EmptyServerResponse(
-                    f"Получен пустой ответ от сервиса {app_config.notifyapi.host}"
+                    f"Получен пустой ответ от сервиса {app_config.notification_api.host}"
                 )
             response_json = response.json()
-            logger.debug(f"Получен ответ от сервиса {app_config.notifyapi.host}: {response_json}")
+            logger.debug(
+                f"Получен ответ от сервиса {app_config.notification_api.host}: {response_json}"
+            )
 
             return response_json.get("notification_id")
 
