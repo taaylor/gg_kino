@@ -39,6 +39,7 @@ HTML_TEMPLATE_USER_REGISTERED = """
 
 <h1>Здравствуйте {{username}}</h1>
 <p>Спасибо за регистрацию.</p>
+<p>Ссылка на подтверждение почты: {{confirmation_link}}.</p>
 
 </body>
 </html>
