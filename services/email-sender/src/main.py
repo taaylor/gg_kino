@@ -20,23 +20,25 @@ async def main():
 
     # 2) Список очередей, которые будем слушать
     queues = [
+        "auto-mailing.launched.notification.email-sender",
         "user.registered.notification.email-sender",
         "manager-mailing.launched.notification.email-sender",
-        "auto-mailing.launched.notification.email-sender",
     ]
     event_handler: EventHandler = get_event_handler()
 
     # 3) Запускаем задачи‑консьюмеры
-    tasks = [
-        asyncio.create_task(
-            broker.consumer(
-                queue_name=q,
-                callback=event_handler.event_handler,
-            ),
-            name=f"consumer:{q}",
+    tasks = []
+    for q in queues:
+        logger.info(f"Запускаем consumer для очереди: {q}")
+        tasks.append(
+            asyncio.create_task(
+                broker.consumer(
+                    queue_name=q,
+                    callback=event_handler.event_handler,
+                ),
+                name=f"consumer:{q}",
+            )
         )
-        for q in queues
-    ]
     logger.info("Все консьюмеры запущены. Ждём сообщений…")
 
     # 4) Ждём SIGINT/SIGTERM для graceful shutdown

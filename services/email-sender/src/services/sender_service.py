@@ -57,8 +57,8 @@ class SenderSerivce:
             logger.info(
                 f"Ключ {cache_key_send_email} не найден в кеше, его значение {email_has_been_sent}."
             )
-            template = await self.repository.get_tamplate_by_id(event_data.get("template_id"))
 
+            template = await self.repository.get_tamplate_by_id(event_data.get("template_id"))
             if template:
                 logger.info(
                     f"Шаблон найден в БД {template.content}, тип данных {type(template.content)}"

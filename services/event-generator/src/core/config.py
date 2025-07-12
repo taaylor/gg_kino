@@ -42,7 +42,8 @@ class FilmApi(BaseModel):
 class NotificationApi(BaseModel):
     host: str = "localhost"
     port: int = 8002
-    profile_path: str = "/notification/api/v1/notifications/mock-get-regular-mass-sending"
+    # profile_path: str = "/notification/api/v1/notifications/mock-get-regular-mass-sending"
+    profile_path: str = "/notification/api/v1/notifications/mass-notification"
 
     @property
     def send_to_mass_notification_url(self) -> str:
