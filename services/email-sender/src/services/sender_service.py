@@ -64,7 +64,10 @@ class SenderSerivce:
                     f"Шаблон найден в БД {template.content}, тип данных {type(template.content)}"
                 )
                 if event_type == EventType.USER_REGISTERED:
-                    context_for_email = {"username": event_data.get("username", "unknown")}
+                    context_for_email = {
+                        "username": event_data.get("username", "unknown"),
+                        "confirmation_link": event_data.get("confirmation_link", "error_link"),
+                    }
                 elif event_type == EventType.AUTO_MASS_NOTIFY:
                     context_for_email = {
                         "username": event_data.get("username", "unknown"),
