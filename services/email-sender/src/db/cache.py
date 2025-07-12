@@ -76,5 +76,5 @@ cache_conn = Redis(
 )
 
 
-async def get_cache() -> Cache:
+def get_cache() -> Cache:
     return RedisCache(cache_conn)

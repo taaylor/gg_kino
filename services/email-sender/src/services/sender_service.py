@@ -54,6 +54,10 @@ class SenderSerivce:
         email_has_been_sent = await self.cache.get(cache_key_send_email)
         logger.info(f"Парсинг сообщения \n event_data: {event_data} \n event_type: {event_type}")
         if not email_has_been_sent:
+
+            logger.info(
+                f"Ключ {cache_key_send_email} не найден в кеше, его значение {email_has_been_sent}."
+            )
             template = await self.repository.get_tamplate_by_id(event_data.get("template_id"))
 
             if template:

@@ -39,6 +39,9 @@ async def main():
         new_template = Template(
             # id=uuid.uuid4(),
             id=UUID("f69248f5-4f6c-4cd4-82ca-e8f6cd68483f"),
+            name="Registration tamplate",
+            description="Template for registration",
+            template_type="SOME-TYPE",
             content=HTML_TEMPLATE,
         )
         session.add(new_template)

@@ -37,13 +37,13 @@ class EventHandler:
         success = await self.service.send_email(validated_body)
         if success:
             update_status_body.sent_success.append(validated_body.id)
-            status_code = self._update_status(
+            status_code = await self._update_status(
                 url=app_config.notificationapi.update_status_url, payload=update_status_body
             )
             logger.info(f"Успех: статус код обновления статуса сообщения: {status_code}")
             return await message.ack()
         update_status_body.failure.append(validated_body.id)
-        status_code = self._update_status(
+        status_code = await self._update_status(
             url=app_config.notificationapi.update_status_url, payload=update_status_body
         )
         logger.error(f"Ошибка: статус код обновления статуса сообщения: {status_code}")

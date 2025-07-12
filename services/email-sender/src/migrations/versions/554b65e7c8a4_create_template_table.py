@@ -1,8 +1,8 @@
 """create template table
 
-Revision ID: 9fc81b41456c
+Revision ID: 554b65e7c8a4
 Revises: 1991c0a7fe0b
-Create Date: 2025-07-06 17:07:49.085768
+Create Date: 2025-07-12 13:05:19.957097
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "9fc81b41456c"
+revision: str = "554b65e7c8a4"
 down_revision: Union[str, None] = "1991c0a7fe0b"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,9 @@ def upgrade() -> None:
     op.create_table(
         "template",
         sa.Column("id", sa.Uuid(), nullable=False, comment="Уникальный идентификатор шаблона"),
+        sa.Column("name", sa.String(length=100), nullable=False, comment="Наименование шаблона"),
+        sa.Column("description", sa.String(length=500), nullable=False, comment="Описание шаблона"),
+        sa.Column("template_type", sa.String(length=100), nullable=False, comment="Тип шаблона"),
         sa.Column("content", sa.Text(), nullable=False, comment="HTML код шаблона"),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
