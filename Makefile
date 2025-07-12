@@ -153,8 +153,11 @@ down-link-v:
 
 # Запуск всех сервисов контекста нотификаций
 up-notification-context:
-	docker compose --profile production up --build -d email-sender postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
+	docker compose --profile production up --build -d email-sender event-generator celery-beat postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
 	docker compose logs -f notification
+
+down-v-notification-context:
+	docker compose --profile production down -v email-sender event-generator celery-beat postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification rabbitmq-1 rabbitmq-2 rabbitmq-3 elasticsearch mailhog es-init
 
 
 # -=-=-=-=- EMAIL-SENDER SECTION -=-=-=-=-

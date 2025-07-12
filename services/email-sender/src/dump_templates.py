@@ -19,7 +19,7 @@ HTML_TEMPLATE_MASS_NOTIFY = """
   <ul>
     {% for film in recommended_films %}
       <li>
-        <strong> {{film.title}} </strong>
+        <strong> {{film.film_title}} </strong>
         {% if film.imdb_rating is not none %}
           — рейтинг IMDB: {{film.imdb_rating}}
         {% endif %}

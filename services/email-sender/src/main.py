@@ -8,6 +8,12 @@ from storage.messagebroker import get_message_broker
 logger = logging.getLogger(__name__)
 
 
+async def dummy_callback(message):
+    body = message.body.decode()
+    logger.info(f"[DUMMY] from {message.routing_key}: {body}")
+    await message.ack()
+
+
 async def main():
     # Настраиваем логирование
     logging.basicConfig(
@@ -20,23 +26,40 @@ async def main():
 
     # 2) Список очередей, которые будем слушать
     queues = [
+        "auto-mailing.launched.notification.email-sender",
         "user.registered.notification.email-sender",
         "manager-mailing.launched.notification.email-sender",
-        "auto-mailing.launched.notification.email-sender",
     ]
     event_handler: EventHandler = get_event_handler()
 
     # 3) Запускаем задачи‑консьюмеры
-    tasks = [
-        asyncio.create_task(
-            broker.consumer(
-                queue_name=q,
-                callback=event_handler.event_handler,
-            ),
-            name=f"consumer:{q}",
+    # !-=-=-=-=-=-
+    tasks = []
+    for q in queues:
+        logger.info(f"Запускаем consumer для очереди: {q}")
+        tasks.append(
+            asyncio.create_task(
+                broker.consumer(
+                    queue_name=q,
+                    # callback=dummy_callback,
+                    callback=event_handler.event_handler,
+                ),
+                name=f"consumer:{q}",
+            )
         )
-        for q in queues
-    ]
+    # !-=-=-=-=-=-
+    # ?-=-=-=-=-=-
+    # tasks = [
+    #     asyncio.create_task(
+    #         broker.consumer(
+    #             queue_name=q,
+    #             callback=event_handler.event_handler,
+    #         ),
+    #         name=f"consumer:{q}",
+    #     )
+    #     for q in queues
+    # ]
+    # ?-=-=-=-=-=-
     logger.info("Все консьюмеры запущены. Ждём сообщений…")
 
     # 4) Ждём SIGINT/SIGTERM для graceful shutdown
