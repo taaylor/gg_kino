@@ -17,7 +17,7 @@ class Template(Base):
         default=uuid.uuid4,
         comment="Уникальный идентификатор шаблона",
     )
-    template_name: Mapped[str] = (mapped_column(String(100), comment="Наименование шаблона"),)
+    name: Mapped[str] = mapped_column(String(100), comment="Наименование шаблона")
     description: Mapped[str] = mapped_column(String(500), comment="Описание шаблона")
     template_type: Mapped[str] = mapped_column(String(100), comment="Тип шаблона")
     content: Mapped[str] = mapped_column(

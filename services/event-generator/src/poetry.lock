@@ -239,17 +239,6 @@ files = [
 ]
 
 [[package]]
-name = "backoff-async"
-version = "2.0.0"
-description = "Function decoration for backoff and retry async functions"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "backoff-async-2.0.0.tar.gz", hash = "sha256:953254ed20c8743b4358df9c0b4fd09d59ff1882bb4725848b9e80ff5820c4fe"},
-]
-
-[[package]]
 name = "billiard"
 version = "4.2.1"
 description = "Python multiprocessing fork with improvements and bugfixes"
@@ -2877,4 +2866,4 @@ test = ["pytest", "pytest-asyncio"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "d9c24a61d3d9993b83d3031bb136e48a99a94968861cea9f9c21ad1a2879da94"
+content-hash = "9ede864866d398849059a948dd4a7def97b01dbe22d722dca54b3cdd415c2bd9"

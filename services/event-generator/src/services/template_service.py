@@ -38,11 +38,11 @@ class TemplateService:
             description=request_body.description,
             template_type=request_body.template_type,
             content=request_body.content,
-            template_name=request_body.name,
+            name=request_body.name,
         )
         logger.info(repr(template))
         template_create = await self.repository.create_or_update_object(self.session, template)
-        return TemplateResponse(**template_create)
+        return TemplateResponse.model_validate(template_create)
 
 
 def get_template_service(

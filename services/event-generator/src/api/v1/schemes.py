@@ -8,7 +8,7 @@ import lxml.html
 from fastapi import HTTPException, status
 from jinja2 import Template as JinjaTemplate
 from jinja2 import TemplateSyntaxError
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,8 @@ class TemplateBase(BaseModel):
     description: str = Field(..., description="Описание шаблона")
     template_type: str = Field(..., description="Тип шаблона (например, email, sms и т.д.)")
     content: str = Field(..., description="HTML код шаблона")
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TemplateRequest(TemplateBase):
