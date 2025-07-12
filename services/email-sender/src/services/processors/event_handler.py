@@ -27,7 +27,9 @@ class EventHandler:
         """
         try:  # noqa: WPS229
             logger.info("Начинает выполняться обработка сообщения")
+            logger.info(f"Сообщение выглядит так: {message}")
             body = json.loads(message.body.decode())
+            logger.info(f"Body сообщения выглядит так: {body}")
             validated_body = EventSchemaMessage.model_validate(body)
             update_status_body = UpdateStatusSchema()
 
