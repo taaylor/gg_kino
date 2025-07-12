@@ -2,8 +2,6 @@ import logging
 import os
 
 import dotenv
-
-# from core.logger_config import LoggerSettings
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -79,7 +77,6 @@ class AppConfig(BaseSettings):
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     cache_expire_in_seconds_for_email: int = 300 * 10 * 10  # время кэширование ответа (сек.)
-    update_status_url: str = ""
 
     rabbitmq: RabbitMQ = RabbitMQ()
     postgres: Postgres = Postgres()
@@ -96,8 +93,6 @@ class AppConfig(BaseSettings):
 
 
 def _get_config() -> AppConfig:
-    # log = LoggerSettings()
-    # log.apply()
 
     app_config = AppConfig()
     logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")

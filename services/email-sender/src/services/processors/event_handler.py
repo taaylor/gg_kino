@@ -8,7 +8,7 @@ import httpx
 from aio_pika.abc import AbstractIncomingMessage
 from core.config import app_config
 from httpx import HTTPStatusError, RequestError
-from models.schemas import EventSchemaMessage, UpdateStatusSchema
+from models.logic_models import EventSchemaMessage, UpdateStatusSchema
 from services.sender_service import SenderSerivce, get_sender_service
 
 logger = logging.getLogger(__name__)
@@ -38,13 +38,13 @@ class EventHandler:
         if success:
             update_status_body.sent_success.append(validated_body.id)
             status_code = await self._update_status(
-                url=app_config.notificationapi.update_status_url, payload=update_status_body
+                url=app_config.notification_api.update_status_url, payload=update_status_body
             )
             logger.info(f"Успех: статус код обновления статуса сообщения: {status_code}")
             return await message.ack()
         update_status_body.failure.append(validated_body.id)
         status_code = await self._update_status(
-            url=app_config.notificationapi.update_status_url, payload=update_status_body
+            url=app_config.notification_api.update_status_url, payload=update_status_body
         )
         logger.error(f"Ошибка: статус код обновления статуса сообщения: {status_code}")
         return await message.nack(requeue=False)

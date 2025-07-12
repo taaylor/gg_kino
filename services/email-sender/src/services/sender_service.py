@@ -1,4 +1,3 @@
-# services/email_service.py
 import json
 import logging
 from email.message import EmailMessage
@@ -9,7 +8,7 @@ from core.config import app_config
 from db.cache import Cache, get_cache
 from jinja2 import BaseLoader, Environment, select_autoescape
 from models.enums import EventType
-from models.schemas import EventSchemaMessage
+from models.logic_models import EventSchemaMessage
 from services.template_repository import TamplateRepository, get_tamplate_repository
 
 logger = logging.getLogger(__name__)
@@ -67,9 +66,15 @@ class SenderSerivce:
                 if event_type == EventType.USER_REGISTERED:
                     context_for_email = {"username": event_data.get("username", "unknown")}
                 elif event_type == EventType.AUTO_MASS_NOTIFY:
-                    context_for_email = {"username": event_data.get("username", "unknown")}
+                    context_for_email = {
+                        "username": event_data.get("username", "unknown"),
+                        "recommended_films": event_data.get("recommended_films", []),
+                    }
                 elif event_type == EventType.MANAGER_MASS_NOTIFY:
-                    context_for_email = {"username": event_data.get("username", "unknown")}
+                    context_for_email = {
+                        "username": event_data.get("username", "unknown"),
+                        "recommended_films": event_data.get("recommended_films", []),
+                    }
                 else:
                     cache_key_invalid_event_type_send_email = (
                         CACHE_KEY_INVALID_EVENT_TYPE_SEND_EMAIL.format(
