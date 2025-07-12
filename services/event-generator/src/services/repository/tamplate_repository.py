@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
 
 
-class TemplateRepository(BaseRepository):
+class TemplateRepository(BaseRepository[Template]):
 
     @sqlalchemy_universal_decorator
     async def fetch_template_by_id(
@@ -19,4 +19,4 @@ class TemplateRepository(BaseRepository):
 
 
 def get_template_repository() -> TemplateRepository:
-    return TemplateRepository()
+    return TemplateRepository(Template)

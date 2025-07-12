@@ -1,14 +1,23 @@
-from typing import Generic, TypeVar
-
 from db.postgres import Base
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import sqlalchemy_universal_decorator
 
-T = TypeVar("T", bound=Base)
 
+class BaseRepository[T: Base]:
+    """Базовый репозиторий для работы с хранилищем данных."""
 
-class BaseRepository(Generic[T]):
-    """Базовый репозиторий для работы с хрвнилищем данных."""
+    def __init__(self, model: type[T]) -> None:
+        self.model = model
+
+    @sqlalchemy_universal_decorator
+    async def fetch_all_from_db(
+        self,
+        session: AsyncSession,
+    ) -> list[T]:
+        stmt = select(self.model)
+        result = await session.execute(stmt)
+        return list(result.scalars().all())
 
     @sqlalchemy_universal_decorator
     async def create_all_objects(

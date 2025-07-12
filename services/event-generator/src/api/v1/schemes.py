@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -8,6 +8,7 @@ import lxml.html
 from fastapi import HTTPException, status
 from jinja2 import Template as JinjaTemplate
 from jinja2 import TemplateSyntaxError
+from models.enums import NotificationMethod, Priority
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 logger = logging.getLogger(__name__)
@@ -67,3 +68,49 @@ class TemplateResponse(TemplateBase):
     id: UUID
     created_at: datetime
     updated_at: datetime = Field(exclude=True)
+
+
+class GetAllTemplatesResponse(BaseModel):
+    templates: list[TemplateResponse] = Field(..., description="Список всех шаблонов")
+
+
+class CreateMassNotifyRequest(BaseModel):
+    """Запрос на создание массовой рассылки всем пользователям"""
+
+    method: NotificationMethod = Field(..., description="Канал для уведомления пользователя")
+    priority: Priority = Field(
+        Priority.HIGH,
+        description="Приоритет, с которым будет отправлено уведомление. HIGH доставляются без учёта таймзоны пользователя",  # noqa: E501
+    )
+    event_data: dict = Field(
+        default_factory=dict,
+        description="Контекст события, которое привело к запросу на нотификацию",
+    )
+    target_sent_at: datetime | None = Field(
+        datetime.now(timezone.utc), description="Желаемое время отправки уведомления"
+    )
+    template_id: UUID | None = Field(
+        default=None,
+        description="Идентификатор шаблона, который будет использоваться для массовой рассылки",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "method": "EMAIL",
+                    "priority": "HIGH",
+                    "target_sent_at": "2025-07-12T17:48:17.762107Z",
+                    "template_id": "f69248f5-4f6c-4cd4-82ca-e8f6cd68483f",
+                }
+            ]
+        }
+    }
+
+
+class CreateMassNotifyResponse(BaseModel):
+    """Ответ о создании массовой рассылки"""
+
+    notification_id: UUID = Field(
+        ..., description="Уникальный идентификатор экземпляра уведомления"
+    )

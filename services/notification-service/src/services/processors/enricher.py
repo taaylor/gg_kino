@@ -149,6 +149,7 @@ class NotificationEnricher:  # noqa: WPS214
             notify.user_timezone = user_profile.user_timezone
             notify.event_data.update(
                 {
+                    "template_id": notify.template_id,
                     "first_name": user_profile.first_name,
                     "last_name": user_profile.last_name,
                     "gender": user_profile.gender,
@@ -156,7 +157,7 @@ class NotificationEnricher:  # noqa: WPS214
                     "is_fictional_email": user_profile.is_fictional_email,
                     "is_email_notify_allowed": user_profile.is_email_notify_allowed,
                     "is_verified_email": user_profile.is_verified_email,
-                    "created_at": user_profile.is_verified_email,
+                    "created_at": user_profile.created_at,
                 }
             )
 
@@ -206,6 +207,7 @@ class NotificationEnricher:  # noqa: WPS214
             notify.user_timezone = user_profile.user_timezone
             notify.event_data.update(
                 {
+                    "template_id": notify.template_id,
                     "liked_by": user_profile.username,
                     "reviewed_film_name": film.title,
                 }
@@ -247,7 +249,7 @@ class NotificationEnricher:  # noqa: WPS214
                     "is_fictional_email": user_profile.is_fictional_email,
                     "is_email_notify_allowed": user_profile.is_email_notify_allowed,
                     "is_verified_email": user_profile.is_verified_email,
-                    "created_at": user_profile.is_verified_email,
+                    "created_at": user_profile.created_at,
                 }
             )
 
@@ -285,6 +287,7 @@ class NotificationEnricher:  # noqa: WPS214
             notify.user_timezone = user_profile.user_timezone
             notify.event_data.update(
                 {
+                    "template_id": notify.template_id,
                     "first_name": user_profile.first_name,
                     "last_name": user_profile.last_name,
                     "gender": user_profile.gender,
@@ -292,7 +295,7 @@ class NotificationEnricher:  # noqa: WPS214
                     "is_fictional_email": user_profile.is_fictional_email,
                     "is_email_notify_allowed": user_profile.is_email_notify_allowed,
                     "is_verified_email": user_profile.is_verified_email,
-                    "created_at": user_profile.is_verified_email,
+                    "created_at": user_profile.created_at,
                 }
             )
 

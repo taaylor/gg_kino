@@ -1,18 +1,16 @@
 import logging
 
-from api.v1 import admin_api
+from api.v1 import notify_api, template_api
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from rate_limite_utils import RequestContextMiddleware
 from tracer_utils import init_tracer, request_id_middleware
 from utils.connectors import lifespan
 from utils.exceptions_handlers import setup_exception_handlers
 
 logger = logging.getLogger(__name__)
 
-# Инициализация Sentry/GlitchTip ПЕРЕД созданием приложения
 if app_config.is_glitchtip_enabled:
     logger.info("GlitchTip Включен")
 
@@ -26,7 +24,7 @@ if app_config.is_glitchtip_enabled:
             StarletteIntegration(),
             FastApiIntegration(),
         ],
-        traces_sample_rate=1.0,  # Отслеживает 100% транзакций
+        traces_sample_rate=1.0,
         environment="development",
     )
 
@@ -54,6 +52,8 @@ setup_exception_handlers(app)
 
 
 # Добавляю миддлвар для доступа Request во всех эндпоинтах
-app.add_middleware(RequestContextMiddleware)
 SERVICE_PATH = "/event-generator/api/v1/"
-app.include_router(admin_api.router, prefix=f"{SERVICE_PATH}admin", tags=["Админ-панель"])
+app.include_router(
+    template_api.router, prefix=f"{SERVICE_PATH}admin", tags=["Управление шаблонами"]
+)
+app.include_router(notify_api.router, prefix=f"{SERVICE_PATH}notify", tags=["Создание рассылок"])

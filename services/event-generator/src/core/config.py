@@ -21,10 +21,28 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
+class Redis(BaseModel):
+    host: str = "localhost"
+    port: int = 6379
+    user: str = "redis_user"
+    password: str = "Parol123"
+    db: int = 0
+
+
+class FilmApi(BaseModel):
+    host: str = "localhost"
+    port: int = 8001
+    profile_path: str = "/async/api/v1/films/"
+
+    @property
+    def get_last_films_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
 class NotificationAPI(BaseModel):
     host: str = "localhost"
-    port: int = 8002
-    profile_path: str = "/notification/api/v1/notifications/mock-get-regular-mass-sending"
+    port: int = 8001
+    profile_path: str = "/notification/api/v1/notifications/mass-notification"
 
     @property
     def send_to_mass_notification_url(self) -> str:
@@ -43,18 +61,38 @@ class Postgres(BaseModel):
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"  # noqa: WPS221, E501
 
 
+class RabbitMQ(BaseModel):
+    host1: str = "localhost"
+    host2: str = "localhost"
+    host3: str = "localhost"
+    port: int = 5672
+
+    user: str = "user"
+    password: str = "pass"
+
+    @property
+    def get_host(self) -> str:
+        # broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@rabbitmq-1:5672//",
+        return f"amqp://{self.user}:{self.password}@{self.host1}:{self.port}//"
+
+
 class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
     project_name: str = "event-generator"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # noqa: WPS221
-    docs_url: str = "/generator/openapi"
-    openapi_url: str = "/generator/openapi.json"
+    docs_url: str = "/event-generator/openapi"
+    openapi_url: str = "/event-generator/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
+    cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
 
     postgres: Postgres = Postgres()
+
+    rabbitmq: RabbitMQ = RabbitMQ()
+    redis: Redis = Redis()
     server: Server = Server()
+    filmapi: FilmApi = FilmApi()
     notification_api: NotificationAPI = NotificationAPI()
 
     model_config = SettingsConfigDict(

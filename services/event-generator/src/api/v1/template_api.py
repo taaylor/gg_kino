@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.schemes import TemplateRequest, TemplateResponse
+from api.v1.schemes import GetAllTemplatesResponse, TemplateRequest, TemplateResponse
 from fastapi import APIRouter, Body, Depends, Path
 from services.template_service import TemplateService, get_template_service
 
@@ -36,3 +36,15 @@ async def create_tamplate(
     request_body: Annotated[TemplateRequest, Body()],
 ) -> TemplateResponse:
     return await template_service.create_template(request_body)
+
+
+# TODO: Добавить пагинацию
+@router.get(
+    path="/templates",
+    summary="Получить список шаблонов",
+    description="Этот метод возвращает все шаблоны.",
+)
+async def get_all_templates(
+    template_service: Annotated[TemplateService, Depends(get_template_service)],
+) -> GetAllTemplatesResponse:
+    return await template_service.fetch_templates()

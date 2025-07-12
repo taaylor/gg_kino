@@ -37,7 +37,7 @@ class ClientRepository:
         self,
         url: str,
         params: dict[str, Any] | None = None,
-        timeout: float = 0.5,
+        timeout: float = 10,
         **kwargs: Any,
     ) -> dict[str, Any] | list[Any]:
         """
@@ -86,7 +86,7 @@ class ClientRepository:
         self,
         url: str,
         json_data: dict[str, Any] | list[Any],
-        timeout: float = 0.5,
+        timeout: float = 10,
         **kwargs: Any,
     ) -> dict[str, Any] | list[Any]:
         """
@@ -112,3 +112,7 @@ class ClientRepository:
                 logger.error(f"POST запрос по {url} получил ошибку: {e!r}")
                 raise e
             return result
+
+
+def get_http_adapter() -> ClientRepository:
+    return ClientRepository()

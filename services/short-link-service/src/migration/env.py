@@ -62,7 +62,6 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         include_schemas=True,
-        # изменяем наименование таблицы для хранения миграций чтобы не было конфликтов с auth-api
         version_table="alembic_version_link_service",
         include_object=include_object,
     )

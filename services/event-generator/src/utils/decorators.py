@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import logging
 import random
 from functools import wraps
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 def redis_handler_exceptions[**P, R](
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
-    @wraps(func)
+    @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
         try:
             return await func(*args, **kwargs)

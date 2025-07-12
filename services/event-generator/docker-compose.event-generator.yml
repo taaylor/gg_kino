@@ -1,6 +1,7 @@
 services:
 
   event-generator:
+    container_name: generator
     build:
       context: ../..
       dockerfile: services/event-generator/src/Dockerfile
@@ -12,17 +13,14 @@ services:
     cpus: "1"
     mem_limit: 256M
     depends_on:
-      rabbitmq-1:
-        condition: service_healthy
-      # rabbitmq-2:
-      #   condition: service_healthy
-      # rabbitmq-3:
-      #   condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
 
     restart: always
 
 
   celery-beat:
+    container_name: celery-beat
     image: event-generator:latest   # <— и здесь тоже
     command: ["./scripts/run_celery.sh", "celery_beat"]
     working_dir: /opt/app          # на всякий случай

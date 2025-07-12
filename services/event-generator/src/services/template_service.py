@@ -2,7 +2,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.schemes import TemplateRequest, TemplateResponse
+from api.v1.schemes import GetAllTemplatesResponse, TemplateRequest, TemplateResponse
 from db.postgres import get_session
 from fastapi import Depends, HTTPException, status
 from jinja2 import Template as JinjaTemplate
@@ -43,6 +43,22 @@ class TemplateService:
         logger.info(repr(template))
         template_create = await self.repository.create_or_update_object(self.session, template)
         return TemplateResponse.model_validate(template_create)
+
+    async def fetch_templates(self) -> GetAllTemplatesResponse:
+        logger.info("Поступил запрос на получение всех шаблонов")
+
+        templates = await self.repository.fetch_all_from_db(self.session)
+
+        if templates:
+            logger.info(f"Получен список из: {len(templates)} шаблонов")
+
+            return GetAllTemplatesResponse(
+                templates=[TemplateResponse.model_validate(template) for template in templates]
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Не найдено ни одного шаблона"
+        )
 
 
 def get_template_service(

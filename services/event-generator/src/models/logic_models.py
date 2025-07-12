@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
+from models.enums import EventType, NotificationMethod, Priority
 from pydantic import BaseModel, Field
 
 
@@ -56,3 +57,15 @@ class ResponseToMassNotificationSchema(BaseModel):
         ...,
         description="UUID шаблона для email.",
     )
+
+
+class MassNotification(BaseModel):
+    """Запрос на создание массовой рассылки всем пользователям"""
+
+    event_type: EventType = EventType.MANAGER_MASS_NOTIFY
+    source: str = "EVENT-GENERATOR"
+    method: NotificationMethod
+    priority: Priority = Priority.HIGH
+    event_data: dict = Field(default_factory=dict)
+    target_sent_at: datetime | None = Field(datetime.now(timezone.utc))
+    template_id: UUID
