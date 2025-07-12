@@ -4,20 +4,20 @@ from utils.decorators import sqlalchemy_universal_decorator
 
 
 class BaseRepository[T: Base]:
-    """Базовый репозиторий для работы с хрвнилищем данных."""
+    """Базовый репозиторий для работы с хранилищем данных."""
 
     @sqlalchemy_universal_decorator
-    async def create_all_objects(
+    async def create_object(
         self,
         session: AsyncSession,
-        objects: list[T],
-    ) -> list[T]:
-        session.add_all(objects)
+        object: T,
+    ) -> T:
+        session.add(object)
         await session.flush()
-        return objects
+        return object
 
     @sqlalchemy_universal_decorator
-    async def create_or_update_object(
+    async def update_object(
         self,
         session: AsyncSession,
         object: T,
