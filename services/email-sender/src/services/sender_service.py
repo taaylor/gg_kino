@@ -46,8 +46,8 @@ class SenderSerivce:
         user_id = validated_body.user_id
         event_id = validated_body.id
         cache_key_send_email = CACHE_KEY_SEND_EMAIL.format(
-            user_id=validated_body.user_id,
-            event_id=validated_body.id,
+            user_id=user_id,
+            event_id=event_id,
         )
 
         logger.info(f"Проверяем статус в кеше по ключу {cache_key_send_email}")
