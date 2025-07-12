@@ -1,0 +1,40 @@
+
+# include:
+#   - ../../infra/rabbit/docker-compose.rabbit.yml
+services:
+
+  email-sender:
+    build:
+      context: ../..
+      dockerfile: services/email-sender/src/Dockerfile
+    env_file:
+      - ../../.env
+    ports:
+      - 8077:8000
+    cpus: "1"
+    mem_limit: 256M
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    restart: always
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
+volumes:
+  rabbitmq_data:

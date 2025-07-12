@@ -119,7 +119,6 @@ down-notification:
 down-notification-v:
 	docker compose --profile production down -v postgres pg-import auth-api async-api jaeger nginx notification
 
-
 # ws sender
 ws-sender-start:
 	docker compose up --build -d rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
@@ -138,3 +137,12 @@ event-generator-reload:
 
 event-generator-local:
 	cd services/event-generator/src/ && uvicorn main:app --port 8009 --reload
+# -=-=-=-=- EMAIL-SENDER SECTION -=-=-=-=-
+up-email-sender:
+	docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
+
+down-email-sender-v:
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog
+
+reload-email-sender:
+	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog && docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import

@@ -7,6 +7,7 @@ include:
   - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
   - ./services/event-generator/docker-compose.event-generator.yml
+  - ./services/email-sender/docker-compose.email-sender.yml
 
 services:
   elasticsearch:
@@ -211,11 +212,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
       - ./backup/postgres_dump-auth/dumps:/dumps
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
