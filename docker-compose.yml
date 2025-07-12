@@ -38,15 +38,9 @@ services:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "6831:6831/udp"   # принимает трейсы в формате jaeger.thrift по compact thrift protocol
-      - "6832:6832/udp"   # принимает трейсы в формате jaeger.thrift по binary thrift protocol
-      - "5778:5778"       # порт для конфигурации сэмплирования
       - "16686:16686"     # порт веб-интерфейса
       - "4317:4317"       # порт OTLP gRPC
       - "4318:4318"       # порт OTLP HTTP
-      - "14250:14250"     # принимает трейсы в модели данных jaeger.proto
-      - "14268:14268"     # принимает трейсы напрямую от клиентов в формате jaeger.thrift
-      - "9411:9411"       # порт совместимости с Zipkin
     restart: always
 
   kibana:
@@ -110,6 +104,8 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
+    expose:
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
       interval: 30s
@@ -181,9 +177,18 @@ services:
       redis:
         condition: service_healthy
       async-api:
-        condition: service_started
+        condition: service_healthy
+      notification:
+        condition: service_healthy
     cpus: "1"
     mem_limit: 256M
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000//content-api/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: always
 
   admin-panel:
@@ -243,7 +248,7 @@ services:
     restart: "no"
 
   notification:
-    container_name: notification-container
+    container_name: notification
     env_file:
       - .env
     build:
@@ -258,7 +263,14 @@ services:
         condition: service_healthy
       async-api:
         condition: service_healthy
-    restart: "on-failure"
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "always"
 
   ws-sender-worker:
     container_name: ws-sender-worker

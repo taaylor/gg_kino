@@ -105,3 +105,23 @@ class TestProfile:
             assert len(response_body) == expected_answer.get("cnt_response_profile")
         elif not query_data.get("test_valid"):
             assert status == expected_answer.get("status")
+
+    async def test_fetch_all_users_profiles(
+        self,
+        create_user,
+        make_post_request,
+    ):
+        headers = {"X-Api-Key": test_conf.api_key}
+        await self._fill_database_users(51, create_user)
+
+        response_body, status = await make_post_request(
+            "/internal/fetch-all-profiles",
+            headers=headers,
+            params={"page_size": 25, "page_number": 1},
+        )
+
+        assert status == HTTPStatus.OK
+        assert len(response_body.get("profiles")) == 25
+        assert response_body.get("page_current") == 1
+        assert response_body.get("page_size") == 25
+        assert response_body.get("page_total") == 3

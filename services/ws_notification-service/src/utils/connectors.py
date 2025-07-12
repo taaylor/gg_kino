@@ -59,6 +59,7 @@ async def setup_dependencies(app: web.Application):  # noqa: WPS210, WPS213
         name="message_broker_consumer",
     )
     logger.info("Consumer rabbitmq запущен в фоновом режиме")
+    asyncio.create_task(monitor_task(consumer_task, "message_broker_consumer"))
 
     supplier_task = asyncio.create_task(
         supplier_processor.supplier_processor(), name="supplier_processor"

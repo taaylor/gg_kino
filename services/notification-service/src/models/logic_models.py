@@ -48,3 +48,10 @@ class NotificationLogic(BaseModel):
     mass_notification_id: UUID | None
 
     model_config = {"from_attributes": True}  # Включаем поддержку атрибутов ORM
+
+
+class ProfilePaginate(BaseModel):
+    profiles: list[UserProfile]
+    page_current: int
+    page_size: int
+    page_total: int

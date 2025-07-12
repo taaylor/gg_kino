@@ -3,8 +3,9 @@ from functools import lru_cache
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.internal.schemes import ProfileInternalResponse
+from api.v1.internal.schemes import ProfileInternalResponse, ProfilePaginateInternalResponse
 from api.v1.profile.schemas import ProfileResponse
+from api.v1.schemes_base import UserProfileBase
 from core.config import app_config
 from db.cache import Cache, get_cache
 from db.postgres import get_session
@@ -54,6 +55,7 @@ class ProfileService:
     async def fetch_users_profiles_list(
         self, user_ids: list[UUID]
     ) -> list[ProfileInternalResponse]:
+        """Метод для получения профилей пользователей по их идентификаторам."""
         adapter = TypeAdapter(list[ProfileResponse])
         profiles = await self.repository.fetch_list_profiles_by_ids(self.session_db, user_ids)
 
@@ -64,6 +66,42 @@ class ProfileService:
         logger.info(f"Получены профили {len(profiles)} пользователей")
         profiles_response = adapter.validate_python(profiles)
         return profiles_response
+
+    async def fetch_all_users_profiles(
+        self, page_size: int = 50, page_number: int = 1
+    ) -> ProfilePaginateInternalResponse:
+        """Метод для получения профилей всех пользователей с пагинацией."""
+
+        adapter = TypeAdapter(list[UserProfileBase])
+        profiles_dto = ProfilePaginateInternalResponse(
+            profiles=[],
+            page_size=page_size,
+            page_current=page_number,
+            page_total=1,
+        )
+
+        count = await self.repository.fetch_all_profiles_count(self.session_db)
+        page_all = (count + page_size - 1) // page_size
+
+        if not count:
+            logger.info("Не найдено профилей пользователей в базе данных")
+            return profiles_dto
+
+        profiles = await self.repository.fetch_all_profiles(
+            self.session_db, page_size=page_size, page_number=page_number
+        )
+
+        if not profiles:
+            logger.info(
+                f"Не найдено профилей пользователей по параметрам пагинации \
+                {page_size=} и {page_number=}"
+            )
+            return profiles_dto
+
+        logger.info(f"Получены профили {len(profiles)} пользователей")
+        profiles_dto.profiles = adapter.validate_python(profiles)
+        profiles_dto.page_total = page_all
+        return profiles_dto
 
 
 @lru_cache()

@@ -70,6 +70,73 @@ class UpdateSendingStatusResponse(BaseModel):
     updated: list[UUID] = Field(default_factory=list, description="Список обновлённых уведомлений")
 
 
+class MassNotificationRequest(BaseModel):
+    """Запрос на создание массовой рассылки всем пользователям"""
+
+    event_type: EventType = Field(
+        EventType.AUTO_MASS_NOTIFY,
+        description="Тип уведомления (действие/ситуация, которые привели к отправке уведомления)",
+    )
+    source: str = Field(..., description="Сервис запрашивающий уведомление")
+    method: NotificationMethod = Field(..., description="Канал для уведомления пользователя")
+    priority: Priority = Field(
+        Priority.LOW,
+        description="Приоритет, с которым будет отправлено уведомление. HIGH доставляются без учёта таймзоны пользователя",  # noqa: E501
+    )
+    event_data: dict = Field(
+        default_factory=dict,
+        description="Контекст события, которое привело к запросу на нотификацию",
+    )
+    target_sent_at: datetime | None = Field(
+        datetime.now(timezone.utc), description="Желаемое время отправки уведомления"
+    )
+    template_id: UUID | None = Field(
+        default=None,
+        description="Идентификатор шаблона, который будет использоваться для массовой рассылки",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "event_type": "AUTO_MASS_NOTIFY",
+                    "source": "event-generator",
+                    "method": "EMAIL",
+                    "priority": "HIGH",
+                    "template_id": "d3b2f1c4-5e6f-4c8b-9f3d-2e1f5a6b7c8d",
+                    "event_data": {
+                        "recommended_films": [
+                            {
+                                "film_id": "26ee1cee-741a-417f-ad75-2890d8f69e8e",
+                                "film_title": "Горбатая гора",
+                                "imdb_rating": 10,
+                            },
+                            {
+                                "film_id": "8bd861d1-357e-4649-8799-6915090d90db",
+                                "film_title": "Властелин колец",
+                                "imdb_rating": 9.5,
+                            },
+                            {
+                                "film_id": "3a573f34-6071-425a-91aa-97cb229c44cf",
+                                "film_title": "Звёздные войны",
+                                "imdb_rating": 8.7,
+                            },
+                        ]
+                    },
+                }
+            ]
+        }
+    }
+
+
+class MassNotificationResponse(BaseModel):
+    """Ответ о создании массовой рассылки"""
+
+    notification_id: UUID = Field(
+        ..., description="Уникальный идентификатор экземпляра уведомления"
+    )
+
+
 # ! -=-=-=-=-=-=- схемы для моковой ручки принятия массовой рассылки -=-=-=-=-=-=-
 class FilmListSchema(BaseModel):
     """Схема для ответа API, представляющая полную информацию о фильме."""

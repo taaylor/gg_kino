@@ -5,6 +5,7 @@ from functools import wraps
 from typing import Any, Callable, Coroutine, Type
 
 from fastapi import HTTPException, status
+from redis.asyncio import ConnectionError, RedisError, TimeoutError
 from sqlalchemy.exc import (
     DBAPIError,
     DisconnectionError,
@@ -139,5 +140,26 @@ def sqlalchemy_universal_decorator[**P, R](
         result = await func(*args, **kwargs)  # type: ignore
         await session.commit()
         return result
+
+    return wrapper
+
+
+def redis_handler_exceptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
+        try:
+            return await func(*args, **kwargs)
+        except ConnectionError as error:
+            logger.error(f"[RedisCache] Ошибка соединения: {error}")
+            return None
+        except TimeoutError as error:
+            logger.error(f"[RedisCache] Timeout соединения: {error}")
+            return None
+        except RedisError as error:
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
+            return None
 
     return wrapper
