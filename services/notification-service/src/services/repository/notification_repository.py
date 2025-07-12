@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 from utils.decorators import sqlalchemy_universal_decorator
+from utils.serialization_utils import make_serializable
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,10 @@ class NotificationRepository(BaseRepository):  # noqa: WPS214
 
             # Принудительно помечаем JSON поле как измененное иначе sqlalchemy его не обновит
             flag_modified(notify, "event_data")
-
+            # Костыль исправляет баг сериализации UUID в json
+            # TODO: Исправить, использовать модель pydantic
+            if "event_data" in notify.__dict__:
+                setattr(notify, "event_data", make_serializable(notify.event_data))
         await session.flush()
         logger.info(f"Обновлено {updated_count} уведомлений")
 

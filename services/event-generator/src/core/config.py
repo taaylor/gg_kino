@@ -39,15 +39,26 @@ class FilmApi(BaseModel):
         return f"http://{self.host}:{self.port}{self.profile_path}"
 
 
-class NotificationApi(BaseModel):
+class NotificationAPI(BaseModel):
     host: str = "localhost"
-    port: int = 8002
-    # profile_path: str = "/notification/api/v1/notifications/mock-get-regular-mass-sending"
+    port: int = 8001
     profile_path: str = "/notification/api/v1/notifications/mass-notification"
 
     @property
     def send_to_mass_notification_url(self) -> str:
         return f"http://{self.host}:{self.port}{self.profile_path}"
+
+
+class Postgres(BaseModel):
+    host: str = "localhost"
+    port: int = 5432
+    user: str = "postgres"
+    password: str = "postgres"
+    db: str = "pg_db"
+
+    @property
+    def ASYNC_DATABASE_URL(self):
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"  # noqa: WPS221, E501
 
 
 class RabbitMQ(BaseModel):
@@ -76,11 +87,13 @@ class AppConfig(BaseSettings):
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
 
+    postgres: Postgres = Postgres()
+
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
     filmapi: FilmApi = FilmApi()
-    notification_api: NotificationApi = NotificationApi()
+    notification_api: NotificationAPI = NotificationAPI()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

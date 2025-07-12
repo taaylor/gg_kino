@@ -98,74 +98,11 @@ up-local-auth:
 up-local-link:
 	cd services/short-link-service/src/ && uvicorn main:app --port 8009 --reload
 
-# Rabbit only
-up-rabbit:
-	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
-	echo "ui on: http://127.0.0.1:4444/"
+event-generator-local:
+	cd services/event-generator/src/ && uvicorn main:app --port 8009 --reload
 
-up-rabbit-logs:
-	docker compose up -d --build rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx && \
-	docker compose logs -f rabbitmq-1
-
-down-rabbit:
-	docker compose down -v rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx
-
-# Notification service
-up-notification:
-	docker compose --profile production up --build -d postgres pg-import auth-api async-api jaeger nginx notification
-
-up-notification-logs:
-	docker compose --profile production up --build -d postgres pg-import auth-api content-actions-api async-api jaeger nginx notification && \
-	docker compose logs -f $(srv)
-
-down-notification:
-	docker compose --profile production down postgres pg-import auth-api async-api jaeger nginx notification
-
-down-notification-v:
-	docker compose --profile production down -v postgres pg-import auth-api async-api jaeger nginx notification
-
-# ws sender
-ws-sender-start:
-	docker compose up --build -d rabbit-init nginx ws-sender-worker redis postgres pg-import auth-api jaeger notification async-api
-	docker compose logs -f ws-sender-worker
-
-
-# event-generator
-event-generator-up:
-	docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbit-init notification event-generator celery-beat
-
-event-generator-down-v:
-	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbit-init elasticsearch redis notification event-generator celery-beat postgres
-
-event-generator-reload:
-	docker compose -f $(COMPOSE_FILE) down -v async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init elasticsearch redis notification event-generator celery-beat postgres && docker compose -f $(COMPOSE_FILE) up --build -d async-api es-init kibana nginx rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init notification-api event-generator celery-beat
-
-
-up-link:
-	docker compose --profile production up --build -d postgres link nginx
-
-up-link-logs:
-	docker compose --profile production up --build -d postgres link nginx && \
-	docker compose logs -f $(srv)
-
-down-link-v:
-	docker compose --profile production down -v postgres link nginx
 
 # Запуск всех сервисов контекста нотификаций
 up-notification-context:
 	docker compose --profile production up --build -d email-sender event-generator celery-beat postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
 	docker compose logs -f notification
-
-down-v-notification-context:
-	docker compose --profile production down -v email-sender event-generator celery-beat postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification rabbitmq-1 rabbitmq-2 rabbitmq-3 elasticsearch mailhog es-init
-
-
-# -=-=-=-=- EMAIL-SENDER SECTION -=-=-=-=-
-up-email-sender:
-	docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import
-
-down-email-sender-v:
-	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog
-
-reload-email-sender:
-	docker compose -f $(COMPOSE_FILE) down -v email-sender rabbitmq-1 rabbitmq-2 rabbitmq-3 rabbit-init nginx notification pg-import auth-api redis postgres elasticsearch mailhog && docker compose -f $(COMPOSE_FILE) up --build -d email-sender nginx notification pg-import

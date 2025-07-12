@@ -166,6 +166,8 @@ class RegisterService(BaseAuthService):
 
         confirmation_link = app_config.get_confirmation_link.format(token=token, user_id=user.id)
 
+        # TODO: Сократить ссылку через сокращатель
+
         logger.info(f"Ссылка для подтверждения почты пользователя {user.id}: {confirmation_link}")
 
         sent_notify_id = await self._send_registered_notify(user, confirmation_link)
