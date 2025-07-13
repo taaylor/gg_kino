@@ -105,21 +105,20 @@ class NotificationEnricher:  # noqa: WPS214
         mass_type = []
 
         for notify in notifications:
-            if notify.event_type == EventType.TEST:
-                test_type.append(notify)
-            elif notify.event_type == EventType.USER_REVIEW_LIKED:
-                film_review_liked_type.append(notify)
-            elif notify.event_type == EventType.USER_REGISTERED:
-                user_registered_type.append(notify)
-            elif (
-                notify.event_type == EventType.MANAGER_MASS_NOTIFY
-                or notify.event_type == EventType.AUTO_MASS_NOTIFY
-            ):
-                mass_type.append(notify)
-            else:
-                logger.warning(
-                    f"Поступило уведомление: {notify.id} с неизвестным типом: {notify.event_type}"
-                )
+            match notify.event_type:
+                case EventType.TEST:
+                    test_type.append(notify)
+                case EventType.USER_REVIEW_LIKED:
+                    film_review_liked_type.append(notify)
+                case EventType.USER_REGISTERED:
+                    user_registered_type.append(notify)
+                case EventType.MANAGER_MASS_NOTIFY | EventType.AUTO_MASS_NOTIFY:
+                    mass_type.append(notify)
+                case _:
+                    logger.warning(
+                        f"Поступило уведомление: {notify.id} "
+                        f"с неизвестным типом: {notify.event_type}"
+                    )
 
         return test_type, film_review_liked_type, user_registered_type, mass_type  # noqa: WPS210
 
