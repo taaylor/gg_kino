@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 
 class DelayedNotificationProcessor:  # noqa: WPS214
 
-    __slots__ = ("repository", "supplier", "sender")
+    __slots__ = (
+        "repository",
+        "sender",
+    )
 
     def __init__(
         self,
@@ -36,8 +39,6 @@ class DelayedNotificationProcessor:  # noqa: WPS214
                 while notifications := await self.repository.fetch_delayed_notifications(  # noqa: WPS332, E501
                     session, limit=app_config.single_notify_batch
                 ):
-
-                    logger.info(f"Из БД получено: {len(notifications)} отложенных уведомлений")
 
                     logger.info(f"Отложенных уведомлений в процессе отправки в очередь: {len(notifications)}")  # type: ignore # noqa: E501
                     sending_failed, sent_to_queue = await self.sender.push_to_queue(notifications)  # type: ignore # noqa: E501
