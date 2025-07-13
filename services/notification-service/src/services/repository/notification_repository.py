@@ -163,8 +163,6 @@ class NotificationRepository(BaseRepository):  # noqa: WPS214
         db_notifications: list[MassNotification] = await self._get_delayed_notifications_list(
             session=session,
             mass_notification=True,
-            # notification_model=MassNotification,
-            # target_sent_at=MassNotification.target_start_sending_at,
         )
 
         for notify in db_notifications:
