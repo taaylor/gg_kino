@@ -52,9 +52,8 @@ class FilmSchedulerService:
             event_type=EventType.AUTO_MASS_NOTIFY,
             method="EMAIL",
             priority=Priority.HIGH,
-            source="event-generator",
-            # TODO: template_id хардкодом
-            template_id=UUID("104c743c-030c-41f9-a714-62392a46e71d"),
+            source=app_config.project_name.upper(),
+            template_id=UUID(app_config.templates["fresh_films"]),
         )
 
     async def send_films_to_notification(

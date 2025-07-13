@@ -99,7 +99,7 @@ class SenderSerivce:
                 successfully_sent = (
                     await self._send_email_via_smtp(  # successfully_sent - True/False
                         to=event_data.get("email"),
-                        subject="Спасибо за регистрацию",
+                        subject="Важное сообщение от кинотеатра Золотой Граммофон!",
                         html_body=rendered_template,
                     )
                 )

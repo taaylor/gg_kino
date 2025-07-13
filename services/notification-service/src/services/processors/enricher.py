@@ -288,6 +288,7 @@ class NotificationEnricher:  # noqa: WPS214
             notify.event_data.update(
                 {
                     "template_id": notify.template_id,
+                    "username": user_profile.username,
                     "first_name": user_profile.first_name,
                     "last_name": user_profile.last_name,
                     "gender": user_profile.gender,

@@ -1,7 +1,7 @@
 import logging
-import os
 
 import dotenv
+from celery.schedules import crontab
 from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -80,15 +80,21 @@ class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
     project_name: str = "event-generator"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # noqa: WPS221
     docs_url: str = "/event-generator/openapi"
     openapi_url: str = "/event-generator/openapi.json"
     tracing: bool = False  # включение/выключение трассировки
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     default_http_timeout: float = 3.0
 
-    postgres: Postgres = Postgres()
+    celery_intervals: dict = {
+        "test_reminder_get_fresh_films_10_seconds": 40,  # каждые 40 сек.
+        "reminder_get_fresh_films_each_friday": crontab(
+            minute=0, hour=9, day_of_week="fri"
+        ),  # каждую неделю в пятницу утром
+    }
+    templates: dict = {"fresh_films": "104c743c-030c-41f9-a714-62392a46e71d"}
 
+    postgres: Postgres = Postgres()
     rabbitmq: RabbitMQ = RabbitMQ()
     redis: Redis = Redis()
     server: Server = Server()
@@ -108,7 +114,10 @@ def _get_config() -> AppConfig:
     log.apply()
 
     app_config = AppConfig()
-    logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")
+    logger.info(
+        "app_config.initialized:"
+        f"{app_config.model_dump_json(exclude={"celery_intervals"}, indent=4)}"
+    )
     return app_config
 
 
