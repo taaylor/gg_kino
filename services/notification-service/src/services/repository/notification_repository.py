@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from functools import lru_cache
+from typing import TypeVar
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -14,6 +15,8 @@ from utils.decorators import sqlalchemy_universal_decorator
 from utils.serialization_utils import make_serializable
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T", Notification, MassNotification)
 
 
 class NotificationRepository(BaseRepository):  # noqa: WPS214
@@ -52,18 +55,9 @@ class NotificationRepository(BaseRepository):  # noqa: WPS214
         self, session: AsyncSession, limit: int = 10
     ) -> list[Notification]:
         """Получает отложенные уведомления и сразу меняет их статус на PROCESSING"""
-        now_utc = datetime.now(ZoneInfo("UTC"))
-        stmt = (
-            select(Notification)
-            .where(
-                Notification.status == NotificationStatus.DELAYED,
-                Notification.target_sent_at <= now_utc,
-            )
-            .limit(limit)
-            .with_for_update(skip_locked=True)
+        db_notifications: list[Notification] = await self._get_delayed_notifications_list(
+            session=session
         )
-        result = await session.execute(stmt)
-        db_notifications = list(result.scalars().all())
 
         # Сразу меняем статус, чтобы другие процессы их не взяли
         for notify in db_notifications:
@@ -166,24 +160,56 @@ class NotificationRepository(BaseRepository):  # noqa: WPS214
         self, session: AsyncSession, limit: int = 10
     ) -> int:
         """Проверяет и обновляет массовые уведомления, которые были отложены"""
-        now_utc = datetime.now(ZoneInfo("UTC"))
-        stmt = (
-            select(MassNotification)
-            .where(
-                MassNotification.status == MassNotificationStatus.DELAYED,
-                MassNotification.target_start_sending_at <= now_utc,
-            )
-            .limit(limit)
-            .with_for_update(skip_locked=True)
+        db_notifications: list[MassNotification] = await self._get_delayed_notifications_list(
+            session=session,
+            mass_notification=True,
+            # notification_model=MassNotification,
+            # target_sent_at=MassNotification.target_start_sending_at,
         )
-        result = await session.execute(stmt)
-        db_notifications = list(result.scalars().all())
 
         for notify in db_notifications:
             notify.status = MassNotificationStatus.SENDING
 
         await session.flush()
         return len(db_notifications)
+
+    async def _get_delayed_notifications_list(
+        self,
+        session: AsyncSession,
+        limit: int = 10,
+        mass_notification: bool = False,
+    ) -> list[T]:
+        """
+        Извлекает отложенные уведомления из одной из двух моделей.
+
+        :param session: AsyncSession для работы с БД.
+        :param limit: Максимальное число записей для выборки.
+        :param mass_notification:
+            False — выбирает из Notification (по полю target_sent_at),
+            True — из MassNotification (по полю target_start_sending_at).
+        :return:
+            Список экземпляров Notification или MassNotification,
+            в зависимости от флага mass_notification.
+        """
+        if mass_notification:
+            notification_model = MassNotification
+            target_sent_at = MassNotification.target_start_sending_at
+        else:
+            notification_model = Notification
+            target_sent_at = Notification.target_sent_at
+
+        now_utc = datetime.now(ZoneInfo("UTC"))
+        stmt = (
+            select(notification_model)
+            .where(
+                notification_model.status == NotificationStatus.DELAYED,
+                target_sent_at <= now_utc,
+            )
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        executed_query = await session.execute(stmt)
+        return list(executed_query.scalars().all())
 
 
 @lru_cache
