@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
+from core.config import app_config
 from models.enums import EventType, NotificationMethod, Priority
 from pydantic import BaseModel, Field
 
@@ -63,7 +64,7 @@ class MassNotification(BaseModel):
     """Запрос на создание массовой рассылки всем пользователям"""
 
     event_type: EventType = EventType.MANAGER_MASS_NOTIFY
-    source: str = "EVENT-GENERATOR"
+    source: str = app_config.project_name.upper()
     method: NotificationMethod
     priority: Priority = Priority.HIGH
     event_data: dict = Field(default_factory=dict)

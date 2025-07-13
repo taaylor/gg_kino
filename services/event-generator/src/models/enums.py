@@ -13,4 +13,5 @@ class Priority(StrEnum):
 
 
 class EventType(StrEnum):
+    AUTO_MASS_NOTIFY = "AUTO_MASS_NOTIFY"
     MANAGER_MASS_NOTIFY = "MANAGER_MASS_NOTIFY"
