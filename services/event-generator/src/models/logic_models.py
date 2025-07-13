@@ -64,7 +64,7 @@ class MassNotification(BaseModel):
     """Запрос на создание массовой рассылки всем пользователям"""
 
     event_type: EventType = EventType.MANAGER_MASS_NOTIFY
-    source: str = (app_config.project_name.upper(),)
+    source: str = app_config.project_name.upper()
     method: NotificationMethod
     priority: Priority = Priority.HIGH
     event_data: dict = Field(default_factory=dict)
