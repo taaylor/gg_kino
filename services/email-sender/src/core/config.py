@@ -55,6 +55,14 @@ class RabbitMQ(BaseModel):
     manager_mailing_queue: str = "manager-mailing.launched.notification.email-sender"
     auto_mailing_queue: str = "auto-mailing.launched.notification.email-sender"
 
+    @property
+    def get_queue_list(self):
+        return [
+            self.registered_queue,
+            self.manager_mailing_queue,
+            self.auto_mailing_queue,
+        ]
+
 
 class SmtpConfig(BaseModel):
     email_yandex_kinoservice: str = "skipped_work@yandex.ru"
