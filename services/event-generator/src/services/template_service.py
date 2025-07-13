@@ -27,20 +27,17 @@ class TemplateService:
 
         template = await self.repository.fetch_template_by_id(self.session, template_id)
         if not template:
-            raise HTTPException(status_code=status.HTTP_200_OK, detail="Шаблон не найден")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Шаблон не найден")
         jinja_template = JinjaTemplate(template.content)
         return jinja_template.render(**params)
 
     async def create_template(self, request_body: TemplateRequest) -> TemplateResponse:
-
-        logger.error(request_body)
         template = TemplateModel(
             description=request_body.description,
             template_type=request_body.template_type,
             content=request_body.content,
             name=request_body.name,
         )
-        logger.info(repr(template))
         template_create = await self.repository.create_or_update_object(self.session, template)
         return TemplateResponse.model_validate(template_create)
 
