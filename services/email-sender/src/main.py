@@ -2,6 +2,7 @@ import asyncio
 import logging
 import signal
 
+from core.config import app_config
 from services.processors.event_handler import EventHandler, get_event_handler
 from storage.messagebroker import get_message_broker
 
@@ -18,17 +19,11 @@ async def main():
     # 1) Получаем глобальный брокер
     broker = get_message_broker()
 
-    # 2) Список очередей, которые будем слушать
-    queues = [
-        "auto-mailing.launched.notification.email-sender",
-        "user.registered.notification.email-sender",
-        "manager-mailing.launched.notification.email-sender",
-    ]
     event_handler: EventHandler = get_event_handler()
 
     # 3) Запускаем задачи‑консьюмеры
     tasks = []
-    for q in queues:
+    for q in app_config.rabbitmq.get_queue_list:
         logger.info(f"Запускаем consumer для очереди: {q}")
         tasks.append(
             asyncio.create_task(
