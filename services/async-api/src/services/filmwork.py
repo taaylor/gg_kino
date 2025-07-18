@@ -210,22 +210,49 @@ class FilmRepository:
         return total
 
     async def get_film_by_vectors_from_db(self, vectors: list[float]):
-        body_search_by_vectors = {
-            "size": 10,  # сколько документов хотите получить
+        """
+        {
             "knn": {
-                "embedding": {  # имя вашего поля‑вектора
-                    "vector": vectors,  # запросный 384‑мерный вектор
-                    # TODO топ‑K ближайших вернуть (потом высчитывать динамически)
-                    "k": 10,
-                    # num_candidates - сколько узлов HNSW обойти чем больше,
-                    # тем глубже обход графа — выше шанс найти хоть что‑то
-                    "num_candidates": 100,
-                }
+                "field": "image-vector",
+                "query_vector": [-5, 9, -12],
+                "k": 10,
+                "num_candidates": 100
             },
+            "fields": [ "title", "file-type" ]
         }
+
+        {
+            "knn": {
+                "field": "byte-image-vector",
+                "query_vector": [-5, 9],
+                "k": 10,
+                "num_candidates": 100
+            },
+            "fields": [ "title" ]
+        }
+        """
+        body_query = {
+            "size": 10,
+            "knn": {"field": "embedding", "query_vector": vectors, "k": 10, "num_candidates": 100},
+        }
+        # body_query = {
+        #     "size": 10,
+        #     "query": {
+        #         "knn": {
+        #             "embedding": {  # имя вашего поля‑вектора
+        #                 "vector": vectors,  # запросный 384‑мерный вектор
+        #                 # TODO топ‑K ближайших вернуть (потом высчитывать динамически)
+        #                 "k": 10,
+        #                 # num_candidates - сколько узлов HNSW обойти чем больше,
+        #                 # тем глубже обход графа — выше шанс найти хоть что‑то
+        #                 "num_candidates": 100,
+        #             }
+        #         },
+        #     }
+        # }
         films = await self.repository.get_list(
             index=self.FILMS_INDEX_ES,
-            body=body_search_by_vectors,
+            body=body_query,
         )
         return films
 
