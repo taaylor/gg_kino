@@ -1,8 +1,10 @@
 from enum import StrEnum
 from uuid import UUID
 
+from core.config import app_config
+from fastapi import HTTPException, status
 from models.schemas_logic import FilmLogic, GenreLogic, PersonLogic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class FilmsType(StrEnum):
@@ -87,8 +89,28 @@ class FilmSorted(StrEnum):
 
 
 class SearchByVectorsRequest(BaseModel):
-    pass
+    vectors: list[float] = Field(
+        ...,
+        description=(
+            "Векторы для поиска фильма, количество"
+            f" должно быть ровно {app_config.embedding_dims}."
+        ),
+    )
+
+    @field_validator("vectors")
+    @classmethod
+    def validator_vectors(cls, vectors: list[float]):
+        if len(vectors) != app_config.embedding_dims:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Количество векторов должно равняться {app_config.embedding_dims},"
+                    f" пришло {len(vectors)}."
+                ),
+            )
+        return vectors
 
 
 class SearchByVectorsResponse(BaseModel):
-    pass
+    # TODO: временная схема, потом поменять на то чтобы отдавала весь фильм
+    uuid: UUID = Field(..., description="Уникальный идентификатор фильма.")

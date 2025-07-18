@@ -5,7 +5,13 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted, FilmsType
+from api.v1.filmwork.schemas import (  # SearchByVectorsRequest,
+    FilmDetailResponse,
+    FilmListResponse,
+    FilmSorted,
+    FilmsType,
+    SearchByVectorsResponse,
+)
 from api.v1.internal.schemas import FilmInternalResponse
 from auth_utils import Permissions
 from core.config import app_config
@@ -202,6 +208,26 @@ class FilmRepository:
             f"Получено количество фильмов {total=}, сохраняю результат в кеш. Тип {categories}",
         )
         return total
+
+    async def get_film_by_vectors_from_db(self, vectors: list[float]):
+        body_search_by_vectors = {
+            "size": 10,  # сколько документов хотите получить
+            "knn": {
+                "embedding": {  # имя вашего поля‑вектора
+                    "vector": vectors,  # запросный 384‑мерный вектор
+                    # TODO топ‑K ближайших вернуть (потом высчитывать динамически)
+                    "k": 10,
+                    # num_candidates - сколько узлов HNSW обойти чем больше,
+                    # тем глубже обход графа — выше шанс найти хоть что‑то
+                    "num_candidates": 100,
+                }
+            },
+        }
+        films = await self.repository.get_list(
+            index=self.FILMS_INDEX_ES,
+            body=body_search_by_vectors,
+        )
+        return films
 
 
 class FilmService:
@@ -407,6 +433,20 @@ class FilmService:
         films = [FilmInternalResponse.transform_from_FilmLogic(film) for film in films_from_db]
 
         return films
+
+    async def get_films_by_vectors(
+        self,
+        vectors: list[float],
+    ):  # -> list[FilmInternalResponse]:
+
+        films_from_db = await self.repository.get_film_by_vectors_from_db(vectors=vectors)
+        # films = [FilmInternalResponse.transform_from_FilmLogic(film) for film in films_from_db]
+        # TODO uuid=film["id"] идёт как временная реализация, дальше схема будет насыщеннее
+        films = [SearchByVectorsResponse(uuid=film["id"]) for film in films_from_db]
+
+        return films
+
+    #
 
 
 @lru_cache

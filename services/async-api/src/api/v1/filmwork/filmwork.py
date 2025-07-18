@@ -177,7 +177,8 @@ async def search_by_vectors(
     # page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
     # ? -=-=-=-=- Под вопросом, нужна ли здесь сортировка и пагинация-=-=-=-=-
 ) -> SearchByVectorsResponse:
-    films = await film_service.get_list_film(
+    films = await film_service.get_films_by_vectors(
+        vectors=request_body.vectors,
         # sort=sort,
         # page_size=page_size,
         # page_number=page_number,
