@@ -1,9 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
+from api.v1.filmwork.schemas import (
+    FilmDetailResponse,
+    FilmListResponse,
+    FilmSorted,
+    SearchByVectorsRequest,
+    SearchByVectorsResponse,
+)
 from auth_utils import LibAuthJWT, Permissions, auth_dep
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()
@@ -144,4 +150,36 @@ async def film_list(
         user_permissions=user_permissions,
     )
 
+    return films
+
+
+@router.post(
+    path="/search-by-vectors",
+    # summary="Ставит/обновляет оценку поставленную авторизованным пользователем",
+    # description="Создание оценки фильма пользователем",
+    # response_description="Статус операции создания/обновления с сообщением о результате",
+    status_code=status.HTTP_200_OK,
+)
+async def search_by_vectors(
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    request_body: Annotated[
+        SearchByVectorsRequest, Body(description="Данные для добавления лайка в формате JSON")
+    ],
+    # ? -=-=-=-=- Под вопросом, нужна ли здесь сортировка и пагинация-=-=-=-=-
+    # sort: Annotated[
+    #     FilmSorted,
+    #     Query(description="Сортировка по рейтингу кинопроизведения"),
+    # ] = FilmSorted.RATING_DESC,
+    # page_size: Annotated[
+    #     int,
+    #     Query(ge=1, le=100, description="Количество записей на странице"),
+    # ] = 50,
+    # page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+    # ? -=-=-=-=- Под вопросом, нужна ли здесь сортировка и пагинация-=-=-=-=-
+) -> SearchByVectorsResponse:
+    films = await film_service.get_list_film(
+        # sort=sort,
+        # page_size=page_size,
+        # page_number=page_number,
+    )
     return films

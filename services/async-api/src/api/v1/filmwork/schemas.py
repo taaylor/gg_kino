@@ -84,3 +84,11 @@ class FilmSorted(StrEnum):
 
     def __str__(self):
         return self.value
+
+
+class SearchByVectorsRequest(BaseModel):
+    pass
+
+
+class SearchByVectorsResponse(BaseModel):
+    pass
