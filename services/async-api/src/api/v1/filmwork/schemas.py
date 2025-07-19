@@ -92,7 +92,7 @@ class SearchByVectorRequest(BaseModel):
     vector: list[float] = Field(
         ...,
         description=(
-            "Векторы для поиска фильма, количество"
+            "Вектор для поиска фильма, количество"
             f" должно быть ровно {app_config.embedding_dims}."
         ),
     )

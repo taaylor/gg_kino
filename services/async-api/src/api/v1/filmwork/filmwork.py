@@ -169,7 +169,8 @@ async def film_list(
 async def search_by_vector(
     film_service: Annotated[FilmService, Depends(get_film_service)],
     request_body: Annotated[
-        SearchByVectorRequest, Body(description="Данные для добавления лайка в формате JSON")
+        SearchByVectorRequest,
+        Body(description="JSON с одним эмбеддинг‑вектором (список из 384 float)"),
     ],
     page_size: Annotated[
         int,
@@ -177,6 +178,9 @@ async def search_by_vector(
     ] = 50,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> list[FilmListResponse]:
+    """
+    Endpoint для поискового запроса по семантическому эмбеддингу для кинопроизведений.
+    """
     films = await film_service.get_films_by_vector(
         vector=request_body.vector,
         page_size=page_size,
