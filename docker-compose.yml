@@ -19,7 +19,7 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     command: bin/elasticsearch
     ports:
-      - "9200:9200"
+      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
     expose:
       - ${ELASTIC_PORT}
     volumes:

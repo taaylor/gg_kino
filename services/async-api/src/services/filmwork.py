@@ -5,12 +5,7 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from api.v1.filmwork.schemas import (  # SearchByVectorRequest,
-    FilmDetailResponse,
-    FilmListResponse,
-    FilmSorted,
-    FilmsType,
-)
+from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted, FilmsType
 from api.v1.internal.schemas import FilmInternalResponse
 from auth_utils import Permissions
 from core.config import app_config

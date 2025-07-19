@@ -20,7 +20,7 @@ services:
     expose:
       - ${ELASTIC_PORT}
     ports:
-      - "9200:9200"
+      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     cpus: "2"
@@ -71,8 +71,7 @@ services:
       context: .
       dockerfile: backup/elastic_dump/dump_loader/Dockerfile
     environment:
-      - ELASTIC_HOST=elasticsearch
-      # - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_HOST=${ELASTIC_HOST}
       - ELASTIC_PORT=${ELASTIC_PORT}
     depends_on:
       elasticsearch:
