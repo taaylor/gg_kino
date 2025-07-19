@@ -1,3 +1,14 @@
+"""
+Файл нужен для дампа тестовых данных, для демонстрации, что всё работает.
+После ревью и проверки, что реализованный код в async-api работает
+его можно будет удалить, или перместить в docs/
+запускается:
+ - если подняли локально:
+    python3 services/async-api/src/scripts/prepare_data_for_checking.py
+ - если подняли через docker-compose.yml:
+    docker compose exec async-api python scripts/prepare_data_for_checking.py
+"""
+
 import asyncio
 import random
 
@@ -77,25 +88,3 @@ if __name__ == "__main__":
     data_near_vectors = prepare_near_vectors(film_uuids_for_near_embedding)
     data_far_vectors = prepare_far_vectors(film_uuids_for_far_embedding)
     asyncio.run(main(data_near_vectors, data_far_vectors))
-"""
-    async def update(
-        self,
-        *,
-        index: str,
-        id: str,
-        detect_noop: t.Optional[bool] = None,
-        doc: t.Optional[t.Mapping[str, t.Any]] = None,
-
-
-coll = Elasticsearch()
-coll.update(index='stories-test',doc_type='news',id=hit.meta.id,
-                body={"doc": {"stanford": 1, "parsed_sents": parsed }})
-
-
-POST /movies/_update/3d825f60-9fff-4dfe-b294-1a45fa1e115d
-        {
-            "doc": {
-                "embedding": [0.123, -0.417, … /* ровно 384 float */]
-            }
-        }
-"""

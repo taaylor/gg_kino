@@ -5,8 +5,7 @@ from api.v1.filmwork.schemas import (
     FilmDetailResponse,
     FilmListResponse,
     FilmSorted,
-    SearchByVectorsRequest,
-    SearchByVectorsResponse,
+    SearchByVectorRequest,
 )
 from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Body, Depends, Path, Query, status
@@ -154,34 +153,32 @@ async def film_list(
 
 
 @router.post(
-    path="/search-by-vectors",
-    # summary="Ставит/обновляет оценку поставленную авторизованным пользователем",
-    # description="Создание оценки фильма пользователем",
-    # response_description="Статус операции создания/обновления с сообщением о результате",
+    path="/search-by-vector",
+    summary="Поиск фильмов по семантическому вектору",
+    description=(
+        "Принимает на вход JSON с эмбеддингом (список из 384 float-значений), "
+        "полученным от NL-сервиса, и возвращает страницу фильмов, упорядоченных "
+        "по косинусному сходству этого вектора к эмбеддингам фильмов."
+    ),
+    response_description=(
+        "Список фильмов в формате FilmListResponse," " отсортированный по релевантности"
+    ),
     status_code=status.HTTP_200_OK,
+    response_model=list[FilmListResponse],
 )
-async def search_by_vectors(
+async def search_by_vector(
     film_service: Annotated[FilmService, Depends(get_film_service)],
     request_body: Annotated[
-        SearchByVectorsRequest, Body(description="Данные для добавления лайка в формате JSON")
+        SearchByVectorRequest, Body(description="Данные для добавления лайка в формате JSON")
     ],
-    # ? -=-=-=-=- Под вопросом, нужна ли здесь сортировка и пагинация-=-=-=-=-
-    # sort: Annotated[
-    #     FilmSorted,
-    #     Query(description="Сортировка по рейтингу кинопроизведения"),
-    # ] = FilmSorted.RATING_DESC,
-    # page_size: Annotated[
-    #     int,
-    #     Query(ge=1, le=100, description="Количество записей на странице"),
-    # ] = 50,
-    # page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
-    # ? -=-=-=-=- Под вопросом, нужна ли здесь сортировка и пагинация-=-=-=-=-
-) -> list[SearchByVectorsResponse]:
-    page_size = 50
-    page_number = 1
-    films = await film_service.get_films_by_vectors(
-        vectors=request_body.vectors,
-        # sort=sort,
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
+    ] = 50,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+) -> list[FilmListResponse]:
+    films = await film_service.get_films_by_vector(
+        vector=request_body.vector,
         page_size=page_size,
         page_number=page_number,
     )

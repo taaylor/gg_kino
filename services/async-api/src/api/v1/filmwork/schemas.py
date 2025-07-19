@@ -88,8 +88,8 @@ class FilmSorted(StrEnum):
         return self.value
 
 
-class SearchByVectorsRequest(BaseModel):
-    vectors: list[float] = Field(
+class SearchByVectorRequest(BaseModel):
+    vector: list[float] = Field(
         ...,
         description=(
             "Векторы для поиска фильма, количество"
@@ -97,27 +97,15 @@ class SearchByVectorsRequest(BaseModel):
         ),
     )
 
-    @field_validator("vectors")
+    @field_validator("vector")
     @classmethod
-    def validator_vectors(cls, vectors: list[float]):
-        if len(vectors) != app_config.embedding_dims:
+    def validator_vector(cls, vector: list[float]):
+        if len(vector) != app_config.embedding_dims:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
                     f"Количество векторов должно равняться {app_config.embedding_dims},"
-                    f" пришло {len(vectors)}."
+                    f" пришло {len(vector)}."
                 ),
             )
-        return vectors
-
-
-class SearchByVectorsResponse(BaseModel):
-    # TODO: временная схема, потом поменять на то чтобы отдавала весь фильм
-    uuid: UUID = Field(..., description="Уникальный идентификатор фильма.")
-    vectors: list[float] = Field(
-        ...,
-        description=(
-            "Векторы для поиска фильма, количество"
-            f" должно быть ровно {app_config.embedding_dims}."
-        ),
-    )
+        return vector

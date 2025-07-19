@@ -5,12 +5,11 @@ from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
-from api.v1.filmwork.schemas import (  # SearchByVectorsRequest,
+from api.v1.filmwork.schemas import (  # SearchByVectorRequest,
     FilmDetailResponse,
     FilmListResponse,
     FilmSorted,
     FilmsType,
-    SearchByVectorsResponse,
 )
 from api.v1.internal.schemas import FilmInternalResponse
 from auth_utils import Permissions
@@ -209,59 +208,17 @@ class FilmRepository:
         )
         return total
 
-    async def get_film_by_vectors_from_db(self, vectors: list[float], page_size, page_number):
-        """
-        {
-            "knn": {
-                "field": "image-vector",
-                "query_vector": [-5, 9, -12],
-                "k": 10,
-                "num_candidates": 100
-            },
-            "fields": [ "title", "file-type" ]
-        }
-
-        {
-            "knn": {
-                "field": "byte-image-vector",
-                "query_vector": [-5, 9],
-                "k": 10,
-                "num_candidates": 100
-            },
-            "fields": [ "title" ]
-        }
-        {
-            "knn": {
-                "field": "image-vector",
-                "query_vector": [0.1, -2],
-                "k": 15,
-                "num_candidates": 100
-            },
-            "fields": [ "title" ],
-            "rescore": {
-                "window_size": 10,
-                "query": {
-                "rescore_query": {
-                    "script_score": {
-                    "query": {
-                        "match_all": {}
-                    },
-                    "script": {
-                        "source": "cosineSimilarity(params.query_vector, 'image-vector') + 1.0",
-                        "params": {
-                        "query_vector": [0.1, -2]
-                        }
-                    }
-                    }
-                }
-                }
-            }
-        }
-        """
+    async def get_film_by_vector_from_db(
+        self, vector: list[float], page_size: int = 50, page_number: int = 1
+    ):
         # ! -=-=-=-=- актуальный рабочий вариант -=-=-=-=-
         body_query = {
-            "size": 10,
-            "knn": {"field": "embedding", "query_vector": vectors, "k": 10, "num_candidates": 100},
+            "knn": {
+                "field": "embedding",
+                "query_vector": vector,
+                "k": page_size * page_number,
+                "num_candidates": 100,
+            },
             "rescore": {
                 "window_size": 10,
                 "query": {
@@ -270,22 +227,13 @@ class FilmRepository:
                             "query": {"match_all": {}},
                             "script": {
                                 "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",  # noqa: E501
-                                "params": {"query_vector": vectors},
+                                "params": {"query_vector": vector},
                             },
                         }
                     }
                 },
             },
         }
-        # body_query = {
-        #     "size": 10,
-        #     "knn": {
-        #         "field": "embedding",
-        #         "query_vector": vectors,
-        #         "k": 10,
-        #         "num_candidates": 100
-        #     },
-        # }
         # ! -=-=-=-=- актуальный рабочий вариант -=-=-=-=-
 
         # body_query = {
@@ -306,8 +254,20 @@ class FilmRepository:
         films = await self.repository.get_list(
             index=self.FILMS_INDEX_ES,
             body=body_query,
+            page_number=page_number,
+            page_size=page_size,
         )
-        return films
+        if not films:
+            logger.info(
+                (
+                    "FilmRepository.get_film_by_vector_from_db:"
+                    " В результате запроса по веторному поиску в ElasticSearch ничего не нашлось"
+                ),
+            )
+            return []
+
+        film_list = [FilmLogic.model_validate(film) for film in films]
+        return film_list
 
 
 class FilmService:
@@ -514,26 +474,27 @@ class FilmService:
 
         return films
 
-    async def get_films_by_vectors(
+    async def get_films_by_vector(
         self,
-        vectors: list[float],
+        vector: list[float],
         page_size: int = 50,
         page_number: int = 1,
-    ):  # -> list[FilmInternalResponse]:
+    ) -> list[FilmListResponse]:
 
-        films_from_db = await self.repository.get_film_by_vectors_from_db(
-            vectors=vectors, page_size=page_size, page_number=page_number
+        films_from_db = await self.repository.get_film_by_vector_from_db(
+            vector=vector, page_size=page_size, page_number=page_number
         )
-        # films = [FilmInternalResponse.transform_from_FilmLogic(film) for film in films_from_db]
-        # TODO uuid=film["id"] идёт как временная реализация, дальше схема будет насыщеннее
         films = [
-            SearchByVectorsResponse(uuid=film["id"], vectors=film["embedding"])
+            FilmListResponse(
+                uuid=film.id,
+                title=film.title,
+                imdb_rating=film.imdb_rating,
+                type=film.type,
+            )
             for film in films_from_db
         ]
 
         return films
-
-    #
 
 
 @lru_cache

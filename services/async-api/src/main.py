@@ -11,7 +11,7 @@ from utils import exceptions_handlers
 from utils.connectors import lifespan
 
 app = FastAPI(
-    title="Read-only API для онлайн-кинотеатра",
+    title="API фильмов для онлайн-кинотеатра",
     description="Информация о кинопроизведениях, жанрах и персонах, "
     "участвовавших в создании произведения",
     version="1.0.0",
