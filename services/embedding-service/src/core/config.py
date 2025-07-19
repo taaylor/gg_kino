@@ -15,6 +15,11 @@ class Server(BaseModel):
     worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
+class AIModel(BaseModel):
+    model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    truncate_dim: int = 256  # Обрезает размерность эмбеддинга
+
+
 class AppConfig(BaseSettings):
     debug: bool = True
     project_name: str = "embedding-service"
@@ -22,6 +27,7 @@ class AppConfig(BaseSettings):
     openapi_url: str = "/embedding-service/openapi.json"
 
     server: Server = Server()
+    ai_model: AIModel = AIModel()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

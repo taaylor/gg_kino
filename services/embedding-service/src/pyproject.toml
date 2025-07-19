@@ -9,7 +9,8 @@ dependencies = [
     "fastapi[all] (==0.115.12)",
     "uvicorn (==0.34.1)",
     "gunicorn (==23.0.0)",
-    "pydantic-settings (==2.9.1)"
+    "pydantic-settings (==2.9.1)",
+    "sentence-transformers (==5.0.0)"
 ]
 
 [tool.poetry]

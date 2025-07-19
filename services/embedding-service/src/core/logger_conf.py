@@ -1,3 +1,4 @@
+from logging import WARNING
 from logging import config as logging_config
 from typing import Any
 
@@ -58,6 +59,10 @@ class LoggerSettings(BaseSettings):
                 "uvicorn.access": {
                     "handlers": ["access"],
                     "level": self.log_level,
+                    "propagate": False,
+                },
+                "urllib3.connectionpool": {
+                    "level": WARNING,
                     "propagate": False,
                 },
             },
