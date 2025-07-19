@@ -269,9 +269,7 @@ class FilmRepository:
                         "script_score": {
                             "query": {"match_all": {}},
                             "script": {
-                                "source": (
-                                    "cosineSimilarity(params.query_vector, 'embedding')" " + 1.0"
-                                ),
+                                "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",  # noqa: E501
                                 "params": {"query_vector": vectors},
                             },
                         }
