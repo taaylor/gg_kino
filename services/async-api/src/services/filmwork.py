@@ -209,7 +209,7 @@ class FilmRepository:
         )
         return total
 
-    async def get_film_by_vectors_from_db(self, vectors: list[float]):
+    async def get_film_by_vectors_from_db(self, vectors: list[float], page_size, page_number):
         """
         {
             "knn": {
@@ -230,11 +230,66 @@ class FilmRepository:
             },
             "fields": [ "title" ]
         }
+        {
+            "knn": {
+                "field": "image-vector",
+                "query_vector": [0.1, -2],
+                "k": 15,
+                "num_candidates": 100
+            },
+            "fields": [ "title" ],
+            "rescore": {
+                "window_size": 10,
+                "query": {
+                "rescore_query": {
+                    "script_score": {
+                    "query": {
+                        "match_all": {}
+                    },
+                    "script": {
+                        "source": "cosineSimilarity(params.query_vector, 'image-vector') + 1.0",
+                        "params": {
+                        "query_vector": [0.1, -2]
+                        }
+                    }
+                    }
+                }
+                }
+            }
+        }
         """
+        # ! -=-=-=-=- актуальный рабочий вариант -=-=-=-=-
         body_query = {
             "size": 10,
             "knn": {"field": "embedding", "query_vector": vectors, "k": 10, "num_candidates": 100},
+            "rescore": {
+                "window_size": 10,
+                "query": {
+                    "rescore_query": {
+                        "script_score": {
+                            "query": {"match_all": {}},
+                            "script": {
+                                "source": (
+                                    "cosineSimilarity(params.query_vector, 'embedding')" " + 1.0"
+                                ),
+                                "params": {"query_vector": vectors},
+                            },
+                        }
+                    }
+                },
+            },
         }
+        # body_query = {
+        #     "size": 10,
+        #     "knn": {
+        #         "field": "embedding",
+        #         "query_vector": vectors,
+        #         "k": 10,
+        #         "num_candidates": 100
+        #     },
+        # }
+        # ! -=-=-=-=- актуальный рабочий вариант -=-=-=-=-
+
         # body_query = {
         #     "size": 10,
         #     "query": {
@@ -464,12 +519,19 @@ class FilmService:
     async def get_films_by_vectors(
         self,
         vectors: list[float],
+        page_size: int = 50,
+        page_number: int = 1,
     ):  # -> list[FilmInternalResponse]:
 
-        films_from_db = await self.repository.get_film_by_vectors_from_db(vectors=vectors)
+        films_from_db = await self.repository.get_film_by_vectors_from_db(
+            vectors=vectors, page_size=page_size, page_number=page_number
+        )
         # films = [FilmInternalResponse.transform_from_FilmLogic(film) for film in films_from_db]
         # TODO uuid=film["id"] идёт как временная реализация, дальше схема будет насыщеннее
-        films = [SearchByVectorsResponse(uuid=film["id"]) for film in films_from_db]
+        films = [
+            SearchByVectorsResponse(uuid=film["id"], vectors=film["embedding"])
+            for film in films_from_db
+        ]
 
         return films
 

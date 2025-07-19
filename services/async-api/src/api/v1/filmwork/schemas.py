@@ -114,3 +114,10 @@ class SearchByVectorsRequest(BaseModel):
 class SearchByVectorsResponse(BaseModel):
     # TODO: временная схема, потом поменять на то чтобы отдавала весь фильм
     uuid: UUID = Field(..., description="Уникальный идентификатор фильма.")
+    vectors: list[float] = Field(
+        ...,
+        description=(
+            "Векторы для поиска фильма, количество"
+            f" должно быть ровно {app_config.embedding_dims}."
+        ),
+    )
