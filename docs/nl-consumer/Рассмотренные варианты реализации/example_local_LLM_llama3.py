@@ -93,7 +93,7 @@ async def analyze_query(query: str):
     Если жанр или тематика не упоминаются явно, установи соответствующее значение has_genre или has_theme в false и score в 0.
 
     Запрос: "{query}"
-    """  # noqa: E501
+    """
 
     async with httpx.AsyncClient(timeout=httpx.Timeout(30)) as client:
         data = {"model": "llama3", "prompt": prompt, "stream": False, "format": format}
