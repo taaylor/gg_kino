@@ -89,6 +89,7 @@ class FilmSorted(StrEnum):
 
 
 class SearchByVectorRequest(BaseModel):
+    # TODO: vector возможно поменять на base64 кодировку и дальше его декодировать
     vector: list[float] = Field(
         ...,
         description=(

@@ -8,7 +8,8 @@ from api.v1.filmwork.schemas import (
     SearchByVectorRequest,
 )
 from auth_utils import LibAuthJWT, Permissions, auth_dep
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from core.config import app_config
+from fastapi import APIRouter, Body, Depends, Path, Query
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()
@@ -156,21 +157,25 @@ async def film_list(
     path="/search-by-vector",
     summary="Поиск фильмов по семантическому вектору",
     description=(
-        "Принимает на вход JSON с эмбеддингом (список из 384 float-значений), "
-        "полученным от NL-сервиса, и возвращает страницу фильмов, упорядоченных "
-        "по косинусному сходству этого вектора к эмбеддингам фильмов."
+        "Принимает на вход JSON с эмбеддингом"
+        f" (список из {app_config.embedding_dims} float-значений),"
+        " полученным от NL-сервиса, и возвращает страницу фильмов, упорядоченных "
+        " по косинусному сходству этого вектора к эмбеддингам фильмов."
     ),
     response_description=(
         "Список фильмов в формате FilmListResponse," " отсортированный по релевантности"
     ),
-    status_code=status.HTTP_200_OK,
     response_model=list[FilmListResponse],
 )
 async def search_by_vector(
     film_service: Annotated[FilmService, Depends(get_film_service)],
     request_body: Annotated[
         SearchByVectorRequest,
-        Body(description="JSON с одним эмбеддинг‑вектором (список из 384 float)"),
+        Body(
+            description=(
+                f"JSON с одним эмбеддинг‑вектором (список из {app_config.embedding_dims} float)"
+            )
+        ),
     ],
     page_size: Annotated[
         int,
