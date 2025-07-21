@@ -19,6 +19,8 @@ services:
     command: bin/elasticsearch
     expose:
       - ${ELASTIC_PORT}
+    ports:
+      - "${ELASTIC_PORT}:${ELASTIC_PORT}"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     cpus: "2"

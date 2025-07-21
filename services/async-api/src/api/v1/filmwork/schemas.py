@@ -1,8 +1,10 @@
 from enum import StrEnum
 from uuid import UUID
 
+from core.config import app_config
+from fastapi import HTTPException, status
 from models.schemas_logic import FilmLogic, GenreLogic, PersonLogic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class FilmsType(StrEnum):
@@ -84,3 +86,27 @@ class FilmSorted(StrEnum):
 
     def __str__(self):
         return self.value
+
+
+class SearchByVectorRequest(BaseModel):
+    # TODO: vector возможно поменять на base64 кодировку и дальше его декодировать
+    vector: list[float] = Field(
+        ...,
+        description=(
+            "Вектор для поиска фильма, количество"
+            f" должно быть ровно {app_config.embedding_dims}."
+        ),
+    )
+
+    @field_validator("vector")
+    @classmethod
+    def validator_vector(cls, vector: list[float]):
+        if len(vector) != app_config.embedding_dims:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Количество векторов должно равняться {app_config.embedding_dims},"
+                    f" пришло {len(vector)}."
+                ),
+            )
+        return vector

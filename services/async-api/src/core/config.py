@@ -45,6 +45,7 @@ class AppConfig(BaseSettings):
     openapi_url: str = "/async/openapi.json"
     cache_expire_in_seconds: int = 300
     tracing: bool = False  # включение/выключение трассировки
+    embedding_dims: int = 768
 
     elastic: Elastic = Elastic()
     redis: Redis = Redis()

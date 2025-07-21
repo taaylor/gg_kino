@@ -1,9 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
+from api.v1.filmwork.schemas import (
+    FilmDetailResponse,
+    FilmListResponse,
+    FilmSorted,
+    SearchByVectorRequest,
+)
 from auth_utils import LibAuthJWT, Permissions, auth_dep
-from fastapi import APIRouter, Depends, Path, Query
+from core.config import app_config
+from fastapi import APIRouter, Body, Depends, Path, Query
 from services.filmwork import FilmService, get_film_service
 
 router = APIRouter()
@@ -144,4 +150,45 @@ async def film_list(
         user_permissions=user_permissions,
     )
 
+    return films
+
+
+@router.post(
+    path="/search-by-vector",
+    summary="Поиск фильмов по семантическому вектору",
+    description=(
+        "Принимает на вход JSON с эмбеддингом"
+        f" (список из {app_config.embedding_dims} float-значений),"
+        " полученным от NL-сервиса, и возвращает страницу фильмов, упорядоченных "
+        " по косинусному сходству этого вектора к эмбеддингам фильмов."
+    ),
+    response_description=(
+        "Список фильмов в формате FilmListResponse," " отсортированный по релевантности"
+    ),
+    response_model=list[FilmListResponse],
+)
+async def search_by_vector(
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    request_body: Annotated[
+        SearchByVectorRequest,
+        Body(
+            description=(
+                f"JSON с одним эмбеддинг‑вектором (список из {app_config.embedding_dims} float)"
+            )
+        ),
+    ],
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
+    ] = 50,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+) -> list[FilmListResponse]:
+    """
+    Endpoint для поискового запроса по семантическому эмбеддингу для кинопроизведений.
+    """
+    films = await film_service.get_films_by_vector(
+        vector=request_body.vector,
+        page_size=page_size,
+        page_number=page_number,
+    )
     return films
