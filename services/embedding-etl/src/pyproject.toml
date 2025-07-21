@@ -1,0 +1,27 @@
+[project]
+name = "embedding-etl"
+version = "0.1.0"
+description = "embedding-etl microservice"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "six>=1.17.0,<2.0.0",
+    "python-dotenv>=1.1.0,<2.0.0",
+    "pydantic-settings>=2.8.1,<3.0.0",
+    "aiohttp (>=3.11.18,<4.0.0)",
+    "httpx>=0.28.1",
+    "elasticsearch[async]>=8.13.2,<9.0.0",
+    "redis>=5.0.4,<6.0.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"

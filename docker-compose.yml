@@ -33,6 +33,24 @@ services:
       retries: 5
     restart: "always"
 
+  embedding-etl:
+    container_name: embedding-etl
+    build:
+      context: .
+      dockerfile: ./services/embedding-etl/src/Dockerfile
+    env_file:
+      - ./.env
+    environment: []
+    # depends_on:
+      # redis:
+      #   condition: service_healthy
+      # elasticsearch:
+      #   condition: service_healthy
+      # es-init:
+      #   condition: service_completed_successfully
+    restart: "always"
+
+
   jaeger:
     container_name: jaeger-container
     image: jaegertracing/all-in-one:1.68.0
