@@ -1,6 +1,10 @@
 # Используем базовый образ
 FROM ollama/ollama:latest
 
+# Инструкция https://hub.docker.com/r/ollama/ollama
+# Документация к API https://ollama.icu/api/#Create_a_Model
+# Документация общая: https://ollama.qubitpi.org/
+
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /entrypoint.sh
