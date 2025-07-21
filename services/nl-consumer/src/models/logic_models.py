@@ -6,6 +6,6 @@ class LlmResponse(BaseModel):
     theme: str | None = None
     has_genre: bool = False
     has_theme: bool = False
-    genres_scores: float = 0.0
-    theme_scores: float = 0.0
+    genres_scores: float = 0
+    theme_scores: float = 0
     status: str

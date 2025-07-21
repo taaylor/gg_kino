@@ -22,7 +22,7 @@ async def monitor_tasks(task: asyncio.Task, task_name: str) -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:  # noqa: WPS217, WPS210, WPS213
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     engine = create_async_engine(
         url=app_config.postgres.ASYNC_DATABASE_URL,
         echo=False,

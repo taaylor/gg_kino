@@ -14,7 +14,7 @@ class LlmSupplier:
         self.timeout = timeout
 
     @handle_http_errors(service_name=app_config.llm.host)
-    async def execute_nlp(self, genres: set[str], query: str) -> LlmResponse:
+    async def execute_nlp(self, genres: set[str], query: str) -> LlmResponse:  # noqa: WPS210
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
 

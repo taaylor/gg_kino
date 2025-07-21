@@ -25,39 +25,40 @@ repos:
         language_version: python3.12
         args: ["--line-length=100"]
         exclude: >
-            (?x)^(
-                \.git/.*|
-                \.venv/.*|
-                build/.*|
-                dist/.*|
-                docs/.*|
-                migrations/.*|
-                migration/.*
-            )$
+          (?x)^(
+              \.git/.*|
+              \.venv/.*|
+              build/.*|
+              dist/.*|
+              docs/.*|
+              .*/migrations/.*|
+              .*/migration/.*|
+          )$
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.0
     hooks:
       - id: flake8
         language_version: python3.12
-        args: [
-          "--max-line-length=100",
-          "--extend-ignore=E203,W503",
-          "--per-file-ignores=__init__.py:F401"
-        ]
+        args:
+          [
+            "--max-line-length=100",
+            "--extend-ignore=E203,W503",
+            "--per-file-ignores=__init__.py:F401",
+          ]
         exclude: >
-            (?x)^(
-                \.git/.*|
-                \.venv/.*|
-                build/.*|
-                dist/.*|
-                docs/.*|
-                .*/migrations/.*|
-                .*/migration/.*|
-                services/auth-service/src/migration/.*|
-                services/notification-service/src/migration/.*|
-                backup/.*
-            )$
+          (?x)^(
+              \.git/.*|
+              \.venv/.*|
+              build/.*|
+              dist/.*|
+              docs/.*|
+              .*/migrations/.*|
+              .*/migration/.*|
+              services/auth-service/src/migration/.*|
+              services/notification-service/src/migration/.*|
+              backup/.*
+          )$
 
   - repo: https://github.com/wemake-services/wemake-python-styleguide
     rev: 1.1.0
@@ -70,47 +71,62 @@ repos:
           - "--max-line-length=100"
           - "--extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237,WPS202,WPS115,WPS201,WPS232,WPS432,WPS229"
           - "--select=WPS"
-        files: ^(services/content-actions-service/src|services/notification-service/src|services/ws_notification-service/src)/
-        exclude: ^services/notification-service/src/migration/.*
+        files: ^(services/content-actions-service/src|services/notification-service/src|services/ws_notification-service/src|services/nl-consumer/src)/
+        exclude: >
+          (?x)^(
+              \.git/.*|
+              \.venv/.*|
+              build/.*|
+              dist/.*|
+              docs/.*|
+              .*/migrations/.*|
+              .*/migration/.*|
+              services/auth-service/src/migration/.*|
+              services/notification-service/src/migration/.*|
+              backup/.*
+          )$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
       - id: mypy
         name: mypy-content-actions-service
-        args: [
-          "--config-file=pyproject.toml",
-          "--no-implicit-reexport",
-          "--show-error-context",
-          "--verbose",
-          "--explicit-package-bases"
-        ]
+        args:
+          [
+            "--config-file=pyproject.toml",
+            "--no-implicit-reexport",
+            "--show-error-context",
+            "--verbose",
+            "--explicit-package-bases",
+          ]
         files: ^services/content-actions-service/src/
         additional_dependencies:
           - mypy==1.13.0
           - types-ujson
       - id: mypy
         name: mypy-notification-service
-        args: [
-          "--config-file=pyproject.toml",
-          "--no-implicit-reexport",
-          "--show-error-context",
-          "--verbose",
-          "--explicit-package-bases"
-        ]
+        args:
+          [
+            "--config-file=pyproject.toml",
+            "--no-implicit-reexport",
+            "--show-error-context",
+            "--verbose",
+            "--explicit-package-bases",
+          ]
         files: ^services/notification-service/src/
         additional_dependencies:
           - mypy==1.13.0
           - types-ujson
       - id: mypy
         name: mypy-ws-sender
-        args: [
-          "--config-file=pyproject.toml",
-          "--no-implicit-reexport",
-          "--show-error-context",
-          "--verbose",
-          "--explicit-package-bases"
-        ]
+        args:
+          [
+            "--config-file=pyproject.toml",
+            "--no-implicit-reexport",
+            "--show-error-context",
+            "--verbose",
+            "--explicit-package-bases",
+          ]
         files: ^services/ws_notification-service/src/
         additional_dependencies:
           - mypy==1.13.0
