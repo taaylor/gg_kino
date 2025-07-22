@@ -1,9 +1,10 @@
 import random
 import time
 from functools import wraps
-from typing import Any, Callable, Type
+from typing import Any, Callable, Coroutine, Type
 
 from core.logger_config import get_logger
+from redis.asyncio import ConnectionError, RedisError, TimeoutError
 
 logger = get_logger(__name__)
 
@@ -48,3 +49,21 @@ def backoff(
         return wrapper
 
     return func_wrapper
+
+
+def redis_handler_exceptions[**P, R](
+    func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R | None]]:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
+        try:
+            return await func(*args, **kwargs)
+        except ConnectionError as error:
+            logger.error(f"[RedisCache] Ошибка соединения: {error}")
+        except TimeoutError as error:
+            logger.error(f"[RedisCache] Timeout соединения: {error}")
+        except RedisError as error:
+            logger.error(
+                f"[RedisCache] Неизвестная ошибка при работе с ключом: {error}",
+            )
+
+    return wrapper

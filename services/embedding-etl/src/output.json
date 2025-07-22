@@ -1,0 +1,848 @@
+{
+    "took": 5,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 999,
+            "relation": "eq"
+        },
+        "max_score": null,
+        "hits": [
+            {
+                "_index": "movies",
+                "_id": "00af52ec-9345-4d66-adbe-50eb917f463a",
+                "_score": null,
+                "_source": {
+                    "id": "00af52ec-9345-4d66-adbe-50eb917f463a",
+                    "imdb_rating": 3.5,
+                    "title": "Star Slammer",
+                    "description": "Two women who have been unjustly confined to a prison planet plot their escape, all the while having to put up with lesbian guards, crazed wardens and mutant rodents.",
+                    "genres_names": [
+                        "Sci-Fi",
+                        "Action",
+                        "Comedy"
+                    ],
+                    "directors_names": [
+                        "Fred Olen Ray"
+                    ],
+                    "actors_names": [
+                        "Marya Gant",
+                        "Ross Hagen",
+                        "Suzy Stokey",
+                        "Sandy Brooke"
+                    ],
+                    "writers_names": [
+                        "Fred Olen Ray",
+                        "Michael Sonye",
+                        "Miriam L. Preissel"
+                    ],
+                    "directors": [
+                        {
+                            "id": "a2fd6df4-9f3c-4a26-8d59-914470d2aea0",
+                            "name": "Fred Olen Ray"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "a91ff1c9-98a3-46af-a0d0-e9f2a2b4f51e",
+                            "name": "Suzy Stokey"
+                        },
+                        {
+                            "id": "040147e3-0965-4117-8112-55a2087e0b84",
+                            "name": "Marya Gant"
+                        },
+                        {
+                            "id": "f51f4731-3c26-4a72-9d68-cd0cd3d90a26",
+                            "name": "Ross Hagen"
+                        },
+                        {
+                            "id": "b258f144-d771-4fa2-b6a2-42805c13ce4a",
+                            "name": "Sandy Brooke"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "a2fd6df4-9f3c-4a26-8d59-914470d2aea0",
+                            "name": "Fred Olen Ray"
+                        },
+                        {
+                            "id": "82416ac7-26fa-40a6-a433-1c756c0fad6e",
+                            "name": "Miriam L. Preissel"
+                        },
+                        {
+                            "id": "dac61d8f-f36e-4351-a4d8-9048b87d00a6",
+                            "name": "Michael Sonye"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "5373d043-3f41-4ea8-9947-4b746c601bbd",
+                            "name": "Comedy"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "00af52ec-9345-4d66-adbe-50eb917f463a"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "00e2e781-7af9-4f82-b4e9-14a488a3e184",
+                "_score": null,
+                "_source": {
+                    "id": "00e2e781-7af9-4f82-b4e9-14a488a3e184",
+                    "imdb_rating": 8.1,
+                    "title": "Star Wars: X-Wing",
+                    "description": "Be a Rebel pilot during the Galactic Civil War. Fly the most famous Star Wars starfighters in furious battles against Imperial pilots.",
+                    "genres_names": [
+                        "Sci-Fi",
+                        "Action"
+                    ],
+                    "directors_names": [],
+                    "actors_names": [
+                        "Nick Jameson",
+                        "Clive Revill",
+                        "Erik Bauersfeld"
+                    ],
+                    "writers_names": [
+                        "David Wessman",
+                        "Edward Kilham",
+                        "Lawrence Holland"
+                    ],
+                    "directors": [],
+                    "actors": [
+                        {
+                            "id": "087de4c7-8d61-4337-beae-d5ce3c440b00",
+                            "name": "Nick Jameson"
+                        },
+                        {
+                            "id": "ccf38643-1f0a-4b04-bcb5-dd27dde321f6",
+                            "name": "Clive Revill"
+                        },
+                        {
+                            "id": "bdd44e92-7498-445b-998e-0c2bd9591052",
+                            "name": "Erik Bauersfeld"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "4d2b6d34-a5d7-46f8-8f42-80f754226c11",
+                            "name": "Lawrence Holland"
+                        },
+                        {
+                            "id": "e03e9083-891b-48c4-b075-4b39c45979ac",
+                            "name": "David Wessman"
+                        },
+                        {
+                            "id": "567bedb8-982c-444a-af7d-df47cac1906d",
+                            "name": "Edward Kilham"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "00e2e781-7af9-4f82-b4e9-14a488a3e184"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "01ab9e34-4ceb-4337-bb69-68a1b0de46b2",
+                "_score": null,
+                "_source": {
+                    "id": "01ab9e34-4ceb-4337-bb69-68a1b0de46b2",
+                    "imdb_rating": 6.9,
+                    "title": "Axl Rose: The Prettiest Star",
+                    "description": "A biography of Axl Rose.",
+                    "genres_names": [
+                        "Music",
+                        "Documentary",
+                        "Biography"
+                    ],
+                    "directors_names": [
+                        "Angela Turner"
+                    ],
+                    "actors_names": [
+                        "Gilby Clarke",
+                        "Bernard Baur",
+                        "Steven Adler",
+                        "Barbara Church"
+                    ],
+                    "writers_names": [
+                        "Angela Turner"
+                    ],
+                    "directors": [
+                        {
+                            "id": "37c36461-9a0d-4fd9-b257-fae0b2b6e8ad",
+                            "name": "Angela Turner"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "1fe46055-fceb-4714-90be-5c3a8728d020",
+                            "name": "Barbara Church"
+                        },
+                        {
+                            "id": "89734888-0254-4040-b87c-30e2cb144d0d",
+                            "name": "Bernard Baur"
+                        },
+                        {
+                            "id": "8aee78d1-87f4-4269-bb10-3d58ab009c2c",
+                            "name": "Steven Adler"
+                        },
+                        {
+                            "id": "0cce8da2-8839-4a78-a878-45f5252588c9",
+                            "name": "Gilby Clarke"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "37c36461-9a0d-4fd9-b257-fae0b2b6e8ad",
+                            "name": "Angela Turner"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "56b541ab-4d66-4021-8708-397762bff2d4",
+                            "name": "Music"
+                        },
+                        {
+                            "id": "ca124c76-9760-4406-bfa0-409b1e38d200",
+                            "name": "Biography"
+                        },
+                        {
+                            "id": "6d141ad2-d407-4252-bda4-95590aaf062a",
+                            "name": "Documentary"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "01ab9e34-4ceb-4337-bb69-68a1b0de46b2"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "01cd80e2-5db8-4914-9a80-74f15a3a1a24",
+                "_score": null,
+                "_source": {
+                    "id": "01cd80e2-5db8-4914-9a80-74f15a3a1a24",
+                    "imdb_rating": 6.9,
+                    "title": "Perry Mason: The Case of the All-Star Assassin",
+                    "description": "Thatcher Horton is owner of a Denver sports arena and a couple of sports teams. Bobby Spencer a friend of Ken was one of his hockey players. It seems that Horton verbally promised him that he would take care of him if he gets injured, which happened. Now it seems that Horton is reneging and he has asked Ken to represent him in his suit against Horton. Bobby threatened Horton and not long after that Horton was killed and the murder weapon was found in Bobby's possession. So Perry comes to help defend Bobby. It seems that Horton was not liked by other people including his wife and son, and it also seems that the killer was a professional assassin, so did one of them hire him?",
+                    "genres_names": [
+                        "Drama",
+                        "Mystery",
+                        "Crime"
+                    ],
+                    "directors_names": [
+                        "Christian I. Nyby II"
+                    ],
+                    "actors_names": [
+                        "Barbara Hale",
+                        "Raymond Burr",
+                        "Alexandra Paul",
+                        "William R. Moses"
+                    ],
+                    "writers_names": [
+                        "Dean Hargrove",
+                        "Joel Steiger",
+                        "Robert Hamilton"
+                    ],
+                    "directors": [
+                        {
+                            "id": "7a7ee963-6c88-42d5-906c-fe4dac5913a0",
+                            "name": "Christian I. Nyby II"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "f897aaf2-0e39-462e-9181-79412cfb3b4b",
+                            "name": "William R. Moses"
+                        },
+                        {
+                            "id": "b6d704c8-dc2d-41dc-9619-b3e5099a61e6",
+                            "name": "Raymond Burr"
+                        },
+                        {
+                            "id": "7f6bf45e-c94f-447a-8440-968a50fbd01d",
+                            "name": "Barbara Hale"
+                        },
+                        {
+                            "id": "64a4a502-2794-4bf0-a370-b73274aa37ad",
+                            "name": "Alexandra Paul"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "7e0a3634-e433-4264-955d-82094e588562",
+                            "name": "Joel Steiger"
+                        },
+                        {
+                            "id": "5e1cdf38-dbb2-41d8-89e2-a20d0563acc3",
+                            "name": "Dean Hargrove"
+                        },
+                        {
+                            "id": "ec011e65-36d8-4147-95e9-4c1c1f41afb2",
+                            "name": "Robert Hamilton"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "ca88141b-a6b4-450d-bbc3-efa940e4953f",
+                            "name": "Mystery"
+                        },
+                        {
+                            "id": "1cacff68-643e-4ddd-8f57-84b62538081a",
+                            "name": "Drama"
+                        },
+                        {
+                            "id": "63c24835-34d3-4279-8d81-3c5f4ddb0cdc",
+                            "name": "Crime"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "01cd80e2-5db8-4914-9a80-74f15a3a1a24"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "01f81c66-d968-4375-bbb0-65103aa214d1",
+                "_score": null,
+                "_source": {
+                    "id": "01f81c66-d968-4375-bbb0-65103aa214d1",
+                    "imdb_rating": 8.2,
+                    "title": "Carrie Underwood: An All-Star Holiday Special",
+                    "description": null,
+                    "genres_names": [
+                        "Music"
+                    ],
+                    "directors_names": [
+                        "Nigel Lythgoe",
+                        "Adam Shankman"
+                    ],
+                    "actors_names": [
+                        "Americus Abesamis",
+                        "Bo Bice",
+                        "Carrie Underwood",
+                        "Christina Applegate"
+                    ],
+                    "writers_names": [],
+                    "directors": [
+                        {
+                            "id": "b99b5cc0-4f1f-4c72-bc3f-8bbab3540358",
+                            "name": "Nigel Lythgoe"
+                        },
+                        {
+                            "id": "8ebafeb2-170d-4cb6-a4e1-62ce14355627",
+                            "name": "Adam Shankman"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "acb691d0-694b-4444-bbe6-6a5ec4dd5763",
+                            "name": "Bo Bice"
+                        },
+                        {
+                            "id": "8b197ae2-38c2-48c7-8cf6-6dc234d16efb",
+                            "name": "Americus Abesamis"
+                        },
+                        {
+                            "id": "57ce8bb4-e1c8-4a5d-bd57-694c6ee7f317",
+                            "name": "Christina Applegate"
+                        },
+                        {
+                            "id": "cbceaa01-910c-4f0e-b992-7faf7d27131a",
+                            "name": "Carrie Underwood"
+                        }
+                    ],
+                    "writers": [],
+                    "genres": [
+                        {
+                            "id": "56b541ab-4d66-4021-8708-397762bff2d4",
+                            "name": "Music"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "01f81c66-d968-4375-bbb0-65103aa214d1"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "020adfa7-7251-4fb9-b6db-07b60664cb67",
+                "_score": null,
+                "_source": {
+                    "id": "020adfa7-7251-4fb9-b6db-07b60664cb67",
+                    "imdb_rating": 6.9,
+                    "title": "Star Trek",
+                    "description": "Kirk and Spock team up against the Gorn.",
+                    "genres_names": [
+                        "Adventure",
+                        "Sci-Fi",
+                        "Action"
+                    ],
+                    "directors_names": [],
+                    "actors_names": [
+                        "Chris Pine",
+                        "Zachary Quinto",
+                        "John Cho",
+                        "Simon Pegg"
+                    ],
+                    "writers_names": [
+                        "Marianne Krawczyk",
+                        "Roberto Orci",
+                        "Alex Kurtzman"
+                    ],
+                    "directors": [],
+                    "actors": [
+                        {
+                            "id": "9f38323f-5912-40d2-a90c-b56899746f2a",
+                            "name": "Chris Pine"
+                        },
+                        {
+                            "id": "8a34f121-7ce6-4021-b467-abec993fc6cd",
+                            "name": "Zachary Quinto"
+                        },
+                        {
+                            "id": "f89a9bad-5bd3-446d-bbdf-e1fd0d217e5d",
+                            "name": "John Cho"
+                        },
+                        {
+                            "id": "2cf03687-ebc3-47dc-a99f-602f6cc55f7a",
+                            "name": "Simon Pegg"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "9b58c99a-e5a3-4f24-8f67-a038665758d6",
+                            "name": "Roberto Orci"
+                        },
+                        {
+                            "id": "82b7dffe-6254-4598-b6ef-5be747193946",
+                            "name": "Alex Kurtzman"
+                        },
+                        {
+                            "id": "69e600f2-2cc2-4473-be29-3e61ebfd883c",
+                            "name": "Marianne Krawczyk"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "020adfa7-7251-4fb9-b6db-07b60664cb67"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "0236282f-8ea5-418e-ab9b-13662a4688a9",
+                "_score": null,
+                "_source": {
+                    "id": "0236282f-8ea5-418e-ab9b-13662a4688a9",
+                    "imdb_rating": 6.2,
+                    "title": "Buzz Lightyear of Star Command: The Adventure Begins",
+                    "description": "After a successful mission in which his partner, Warp Darkmatter, fell in battle, Buzz Lightyear vows never to put another partner at risk and works solo. This vow, however is challenged by Star Command who assigns young Mira Nova to be Warp's replacement over Buzz's objections. In addition, the LGMs suggest he tries a new robot for an assistant while a lowly janitor, Booster, has his dreams of joining the Space Rangers. Together, this group of disparate heroes find they must work together to save the galaxy when Emporer Zurg hatches his grandest scheme for conquest yet.",
+                    "genres_names": [
+                        "Animation",
+                        "Action",
+                        "Comedy",
+                        "Adventure",
+                        "Sci-Fi",
+                        "Family"
+                    ],
+                    "directors_names": [
+                        "Tad Stones"
+                    ],
+                    "actors_names": [
+                        "Larry Miller",
+                        "Stephen Furst",
+                        "Nicole Sullivan",
+                        "Tim Allen"
+                    ],
+                    "writers_names": [
+                        "Robert Schooley",
+                        "Bill Motz",
+                        "Bob Roth",
+                        "Mark McCorkle"
+                    ],
+                    "directors": [
+                        {
+                            "id": "5e10f380-ac97-4c71-a920-d75b6f2f0b10",
+                            "name": "Tad Stones"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "06cf22cd-e7f8-4d1f-9c72-fddc61be084a",
+                            "name": "Nicole Sullivan"
+                        },
+                        {
+                            "id": "57c0c78d-8c7f-45e9-bee0-f5c940b68f86",
+                            "name": "Larry Miller"
+                        },
+                        {
+                            "id": "fb6717bf-4be2-4f2f-96d0-e73d995d0ff9",
+                            "name": "Stephen Furst"
+                        },
+                        {
+                            "id": "60e64205-b2a3-403f-a625-78b77cceb267",
+                            "name": "Tim Allen"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "d9aed3ed-3943-4040-bc9d-1e45f6efcec8",
+                            "name": "Robert Schooley"
+                        },
+                        {
+                            "id": "c576f59c-df96-4f8f-901b-44de16ffac6b",
+                            "name": "Mark McCorkle"
+                        },
+                        {
+                            "id": "948d3351-ee5c-48c2-9553-3acd196e7e6b",
+                            "name": "Bill Motz"
+                        },
+                        {
+                            "id": "6e50ec85-bd49-45e6-9f2c-cd22a828c973",
+                            "name": "Bob Roth"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "6a0a479b-cfec-41ac-b520-41b2b007b611",
+                            "name": "Animation"
+                        },
+                        {
+                            "id": "55c723c1-6d90-4a04-a44b-e9792040251a",
+                            "name": "Family"
+                        },
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        },
+                        {
+                            "id": "5373d043-3f41-4ea8-9947-4b746c601bbd",
+                            "name": "Comedy"
+                        },
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        }
+                    ],
+                    "type": "ARCHIVED",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "0236282f-8ea5-418e-ab9b-13662a4688a9"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "025c58cd-1b7e-43be-9ffb-8571a613579b",
+                "_score": null,
+                "_source": {
+                    "id": "025c58cd-1b7e-43be-9ffb-8571a613579b",
+                    "imdb_rating": 8.3,
+                    "title": "Star Wars: Episode VI - Return of the Jedi",
+                    "description": "Luke Skywalker battles horrible Jabba the Hut and cruel Darth Vader to save his comrades in the Rebel Alliance and triumph over the Galactic Empire. Han Solo and Princess Leia reaffirm their love and team with Chewbacca, Lando Calrissian, the Ewoks and the androids C-3PO and R2-D2 to aid in the disruption of the Dark Side and the defeat of the evil emperor.",
+                    "genres_names": [
+                        "Adventure",
+                        "Action",
+                        "Fantasy",
+                        "Sci-Fi"
+                    ],
+                    "directors_names": [
+                        "Richard Marquand"
+                    ],
+                    "actors_names": [
+                        "Harrison Ford",
+                        "Mark Hamill",
+                        "Billy Dee Williams",
+                        "Carrie Fisher"
+                    ],
+                    "writers_names": [
+                        "George Lucas",
+                        "Lawrence Kasdan"
+                    ],
+                    "directors": [
+                        {
+                            "id": "3214cf58-8dbf-40ab-9185-77213933507e",
+                            "name": "Richard Marquand"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "26e83050-29ef-4163-a99d-b546cac208f8",
+                            "name": "Mark Hamill"
+                        },
+                        {
+                            "id": "b5d2b63a-ed1f-4e46-8320-cf52a32be358",
+                            "name": "Carrie Fisher"
+                        },
+                        {
+                            "id": "efdd1787-8871-4aa9-b1d7-f68e55b913ed",
+                            "name": "Billy Dee Williams"
+                        },
+                        {
+                            "id": "5b4bf1bc-3397-4e83-9b17-8b10c6544ed1",
+                            "name": "Harrison Ford"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "3217bc91-bcfc-44eb-a609-82d228115c50",
+                            "name": "Lawrence Kasdan"
+                        },
+                        {
+                            "id": "a5a8f573-3cee-4ccc-8a2b-91cb9f55250a",
+                            "name": "George Lucas"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "b92ef010-5e4c-4fd0-99d6-41b6456272cd",
+                            "name": "Fantasy"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "025c58cd-1b7e-43be-9ffb-8571a613579b"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "027ba6c5-d805-402a-addf-484b34292625",
+                "_score": null,
+                "_source": {
+                    "id": "027ba6c5-d805-402a-addf-484b34292625",
+                    "imdb_rating": 3.1,
+                    "title": "Chasing the Star",
+                    "description": "Three Magi Priests journey the unforgiving desert in search of the new born King.",
+                    "genres_names": [
+                        "Adventure"
+                    ],
+                    "directors_names": [
+                        "Bret Miller"
+                    ],
+                    "actors_names": [
+                        "Terence Knox",
+                        "Rance Howard",
+                        "Yancy Butler",
+                        "Johnny Rey Diaz"
+                    ],
+                    "writers_names": [
+                        "DJ Perry"
+                    ],
+                    "directors": [
+                        {
+                            "id": "6ac5a43d-b7b5-4dba-adc2-0e48118c91be",
+                            "name": "Bret Miller"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "ef7c2589-fdd5-4410-a14e-b354989fa674",
+                            "name": "Rance Howard"
+                        },
+                        {
+                            "id": "3bb17a72-15b9-495d-afc9-b36512d99c48",
+                            "name": "Johnny Rey Diaz"
+                        },
+                        {
+                            "id": "079a361b-2574-4fc9-98e9-4107dc5b6a71",
+                            "name": "Yancy Butler"
+                        },
+                        {
+                            "id": "8e6051e5-8478-4090-8081-84fe3759fd23",
+                            "name": "Terence Knox"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "606c74bd-ab92-4748-a5da-759f9cba91f8",
+                            "name": "DJ Perry"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        }
+                    ],
+                    "type": "ARCHIVED",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "027ba6c5-d805-402a-addf-484b34292625"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "02c24a84-1667-4f98-b459-f08933befa3d",
+                "_score": null,
+                "_source": {
+                    "id": "02c24a84-1667-4f98-b459-f08933befa3d",
+                    "imdb_rating": 6.1,
+                    "title": "Star in the Dust",
+                    "description": "The sheriff of Gunlock is planning to hang Sam Hall, who shot three farmers found on cattle land, at sundown. At the casino, betting is 8 to 3 he won't make it. The cattlemen are set to rescue Sam; the farmers hope to lynch him before he can be rescued; and Hall schemes for escape with his girl Nellie. But Sheriff Jorden is most concerned with finding out who hired Hall: a leading suspect is the sheriff's future brother-in-law.",
+                    "genres_names": [
+                        "Drama",
+                        "Romance",
+                        "Western"
+                    ],
+                    "directors_names": [
+                        "Charles F. Haas"
+                    ],
+                    "actors_names": [
+                        "Coleen Gray",
+                        "Mamie Van Doren",
+                        "John Agar",
+                        "Richard Boone"
+                    ],
+                    "writers_names": [
+                        "Oscar Brodney",
+                        "Lee Leighton"
+                    ],
+                    "directors": [
+                        {
+                            "id": "d4a57f9f-293f-41a0-a67d-fa8895f30c67",
+                            "name": "Charles F. Haas"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "771f8445-19ea-4947-8153-3b038674508a",
+                            "name": "John Agar"
+                        },
+                        {
+                            "id": "a74b53ea-2e9b-4de4-b37f-15cef4ec8ba3",
+                            "name": "Mamie Van Doren"
+                        },
+                        {
+                            "id": "a8f78bbb-66b8-4508-8d86-e2e309ac8346",
+                            "name": "Coleen Gray"
+                        },
+                        {
+                            "id": "c03ee7bb-6617-4a98-8cbd-3875e402015e",
+                            "name": "Richard Boone"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "f4db9cfb-8af0-4c13-bc45-4f8a87f9811a",
+                            "name": "Oscar Brodney"
+                        },
+                        {
+                            "id": "3ce3f12a-d6b4-450a-9d03-940b63b8e587",
+                            "name": "Lee Leighton"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "0b105f87-e0a5-45dc-8ce7-f8632088f390",
+                            "name": "Western"
+                        },
+                        {
+                            "id": "1cacff68-643e-4ddd-8f57-84b62538081a",
+                            "name": "Drama"
+                        },
+                        {
+                            "id": "237fd1e4-c98e-454e-aa13-8a13fb7547b5",
+                            "name": "Romance"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "02c24a84-1667-4f98-b459-f08933befa3d"
+                ]
+            }
+        ]
+    }
+}

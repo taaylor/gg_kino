@@ -89,7 +89,11 @@ import time
 from core.config import app_config
 from core.logger_config import get_logger
 from db.cache import get_cache
+from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
+
+# from pprint import pprint as pp
+
 
 logger = get_logger(__name__)
 
@@ -98,6 +102,7 @@ LAST_RUN = "embedding-etl:unix_timestamp:last-run:"
 
 
 async def main():
+    elastic_client = AsyncElasticsearch(app_config.elastic.get_es_host)
     cache_conn = Redis(
         host=app_config.redis.host,
         port=app_config.redis.port,
@@ -110,11 +115,21 @@ async def main():
         retry_on_error=False,
         retry_on_timeout=False,
     )
-    cache = get_cache(cache_conn)
+    cache = await get_cache(cache_conn)
     if last_run := await cache.get(LAST_RUN):
         logger.info(f"Время last_run: {last_run}")
     else:
         last_run = int(time.time() * 1000)
     run_start = int(time.time() * 1000)
-    run_start
-    pass
+    search_after = None
+    query = {
+        # "size": 500,
+        "size": 10,
+        "sort": [{"updated_at": "asc"}, {"id": "asc"}],
+        "query": {"range": {"updated_at": {"gt": last_run, "lte": run_start}}},
+    }
+    if search_after is not None:
+        query["search_after"] = search_after
+    documents = await elastic_client.search(index="movies", body=query)
+    parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
+    return parsed_documents

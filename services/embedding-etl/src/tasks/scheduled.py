@@ -1,4 +1,5 @@
 import asyncio
+from pprint import pprint as pp
 
 from core.logger_config import get_logger
 from services.mvp import main
@@ -14,7 +15,7 @@ logger = get_logger(__name__)
 def remind_10_seconds():
     logger.info("logging from celery task")
     result = asyncio.run(main())
-    result
+    pp(result)
     return True
 
 

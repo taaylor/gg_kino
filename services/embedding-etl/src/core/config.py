@@ -16,6 +16,7 @@ class Elastic(BaseModel):
     host: str = "localhost"
     port: int = 9200
 
+    @property
     def get_es_host(self) -> str:
         return f"http://{self.host}:{self.port}"
 

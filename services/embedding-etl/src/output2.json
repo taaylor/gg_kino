@@ -1,0 +1,727 @@
+{
+    "took": 10,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 999,
+            "relation": "eq"
+        },
+        "max_score": null,
+        "hits": [
+            {
+                "_index": "movies",
+                "_id": "0312ed51-8833-413f-bff5-0e139c11264a",
+                "_score": null,
+                "_source": {
+                    "id": "0312ed51-8833-413f-bff5-0e139c11264a",
+                    "imdb_rating": 8.7,
+                    "title": "Star Wars: Episode V - The Empire Strikes Back",
+                    "description": "Luke Skywalker, Han Solo, Princess Leia and Chewbacca face attack by the Imperial forces and its AT-AT walkers on the ice planet Hoth. While Han and Leia escape in the Millennium Falcon, Luke travels to Dagobah in search of Yoda. Only with the Jedi master's help will Luke survive when the dark side of the Force beckons him into the ultimate duel with Darth Vader.",
+                    "genres_names": [
+                        "Adventure",
+                        "Action",
+                        "Fantasy",
+                        "Sci-Fi"
+                    ],
+                    "directors_names": [
+                        "Irvin Kershner"
+                    ],
+                    "actors_names": [
+                        "Mark Hamill",
+                        "Harrison Ford",
+                        "Billy Dee Williams",
+                        "Carrie Fisher"
+                    ],
+                    "writers_names": [
+                        "Leigh Brackett",
+                        "George Lucas",
+                        "Lawrence Kasdan"
+                    ],
+                    "directors": [
+                        {
+                            "id": "1989ed1e-0c0b-4872-9dfb-f5ed13c764e2",
+                            "name": "Irvin Kershner"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "5b4bf1bc-3397-4e83-9b17-8b10c6544ed1",
+                            "name": "Harrison Ford"
+                        },
+                        {
+                            "id": "efdd1787-8871-4aa9-b1d7-f68e55b913ed",
+                            "name": "Billy Dee Williams"
+                        },
+                        {
+                            "id": "b5d2b63a-ed1f-4e46-8320-cf52a32be358",
+                            "name": "Carrie Fisher"
+                        },
+                        {
+                            "id": "26e83050-29ef-4163-a99d-b546cac208f8",
+                            "name": "Mark Hamill"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "3217bc91-bcfc-44eb-a609-82d228115c50",
+                            "name": "Lawrence Kasdan"
+                        },
+                        {
+                            "id": "a5a8f573-3cee-4ccc-8a2b-91cb9f55250a",
+                            "name": "George Lucas"
+                        },
+                        {
+                            "id": "ed149438-4d76-45c9-861b-d3ed48ccbf0c",
+                            "name": "Leigh Brackett"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "b92ef010-5e4c-4fd0-99d6-41b6456272cd",
+                            "name": "Fantasy"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "0312ed51-8833-413f-bff5-0e139c11264a"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "0352be33-bb3a-455b-80dd-444202dff23d",
+                "_score": null,
+                "_source": {
+                    "id": "0352be33-bb3a-455b-80dd-444202dff23d",
+                    "imdb_rating": 6.3,
+                    "title": "A Five Star Life",
+                    "description": "Forty-something Irene had a dream job that made her life easy: she was indeed a luxury hotel inspector and her work got carried out in a wonderful ever-renewed setting, from Paris to Gstaad to Berlin to Morocco to China... But does a dream job necessarily mean a dream life? Irene tried not to ask herself the question too openly. Yes she was single but she had manged to remain on good terms with Andrea, her former life companion. For sure she was childless but she occasionally took care of her two little nieces. And it was such fun to play the mystery guest in those magnificent hotels... Things could have gone on that way hadn't one day Irene met Kate Sherman...",
+                    "genres_names": [
+                        "Drama",
+                        "Romance"
+                    ],
+                    "directors_names": [
+                        "Maria Sole Tognazzi"
+                    ],
+                    "actors_names": [
+                        "Gianmarco Tognazzi",
+                        "Fabrizia Sacchi",
+                        "Stefano Accorsi",
+                        "Margherita Buy"
+                    ],
+                    "writers_names": [
+                        "Francesca Marciano",
+                        "Maria Sole Tognazzi",
+                        "Ivan Cotroneo"
+                    ],
+                    "directors": [
+                        {
+                            "id": "d2fde670-a308-48dd-bd0d-768c2ffb77c0",
+                            "name": "Maria Sole Tognazzi"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "a07bddad-754d-40a6-b790-517ee499289c",
+                            "name": "Margherita Buy"
+                        },
+                        {
+                            "id": "b121cbac-0740-41d6-b4d3-0d9dbc3dc4e9",
+                            "name": "Fabrizia Sacchi"
+                        },
+                        {
+                            "id": "0fb02c97-290c-44ae-b1f2-65670b1ba24f",
+                            "name": "Gianmarco Tognazzi"
+                        },
+                        {
+                            "id": "56da9681-253d-442c-9bb9-8838360fee7a",
+                            "name": "Stefano Accorsi"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "0cbad2db-c1cf-4754-8a7b-a63f56439339",
+                            "name": "Francesca Marciano"
+                        },
+                        {
+                            "id": "2350be79-eece-4092-86eb-c76d1077b7b9",
+                            "name": "Ivan Cotroneo"
+                        },
+                        {
+                            "id": "d2fde670-a308-48dd-bd0d-768c2ffb77c0",
+                            "name": "Maria Sole Tognazzi"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "237fd1e4-c98e-454e-aa13-8a13fb7547b5",
+                            "name": "Romance"
+                        },
+                        {
+                            "id": "1cacff68-643e-4ddd-8f57-84b62538081a",
+                            "name": "Drama"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "0352be33-bb3a-455b-80dd-444202dff23d"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "035c0aa4-ab66-4088-af9e-b66e76e90059",
+                "_score": null,
+                "_source": {
+                    "id": "035c0aa4-ab66-4088-af9e-b66e76e90059",
+                    "imdb_rating": 8,
+                    "title": "Star Trek: The Experience - Borg Invasion 4D",
+                    "description": "A combination of an interactive 3D movie and a stage performance, Borg Invasion 4D was a Star Trek: Voyager-based attraction, part of the Star Trek: The Experience series of attractions at the Las Vegas Hilton in Paradise, Nevada. Borg Invasion 4D ran from 2004 to 2008. The audience enters a small theater where physically present actors portraying the Star Fleet crew greet them. The story is told through prerecorded 3D film sequences and actors' interaction with them and the audience. The story takes place some time after the end of the ST: Voyager series. The audience takes the roll of guests on a secret space station where Doctor from Voyager works with researches on creating a new DNA strain that will be resistant to the Borg's assimilation techniques. The guests are there to have themselves tested and help the research in case their DNA contains the resistant strain. Then the Borg attack. Actors lead the audience through a couple of hallways as other actors dressed as the Borg assimilate the researchers. Finally, the audience and the \"surviving\" actors reach another small theater that represents an escape shuttle and there a new series of prerecorded 3D film sequences starts. The shuttle launches but the Borg cube with the Queen inside captures it. As the Queen taunts the audience, the Borg are tearing the shuttle apart. Just as they are about to reach the audience, a familiar, charmingly raspy, friendly female voice is heard as well as the sound of proton torpedoes. She disagrees that resistance is futile and is there to prove it.",
+                    "genres_names": [
+                        "Adventure",
+                        "Sci-Fi",
+                        "Short"
+                    ],
+                    "directors_names": [
+                        "Ty Granoroli"
+                    ],
+                    "actors_names": [
+                        "Jade Carter",
+                        "Eric Braun",
+                        "Max Freeman",
+                        "C. Clayton Blackwell"
+                    ],
+                    "writers_names": [
+                        "Lisa Klink"
+                    ],
+                    "directors": [
+                        {
+                            "id": "1a5f5829-c0f3-4da7-a840-64e094cfa77b",
+                            "name": "Ty Granoroli"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "98351b4e-5928-4d95-8d12-1d2e47b6f7ee",
+                            "name": "Max Freeman"
+                        },
+                        {
+                            "id": "f71d37d2-d099-4901-9e0d-56961bfd8a3e",
+                            "name": "C. Clayton Blackwell"
+                        },
+                        {
+                            "id": "67589109-500f-4983-8e34-08488a050240",
+                            "name": "Jade Carter"
+                        },
+                        {
+                            "id": "d10aa84b-422a-42db-92de-5fb1224c0c2b",
+                            "name": "Eric Braun"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "aa25d631-7e5f-4ee5-954b-fc6b430765ad",
+                            "name": "Lisa Klink"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        },
+                        {
+                            "id": "a886d0ec-c3f3-4b16-b973-dedcf5bfa395",
+                            "name": "Short"
+                        }
+                    ],
+                    "type": "ARCHIVED",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "035c0aa4-ab66-4088-af9e-b66e76e90059"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "03b0c429-a63f-4045-a485-538a36c89264",
+                "_score": null,
+                "_source": {
+                    "id": "03b0c429-a63f-4045-a485-538a36c89264",
+                    "imdb_rating": 6,
+                    "title": "Pop Star",
+                    "description": "When a former teen idol succeeds at a major comeback he has a violent meltdown in his penthouse suite at a fashionable hotel.",
+                    "genres_names": [
+                        "Thriller"
+                    ],
+                    "directors_names": [
+                        "Robert La Force"
+                    ],
+                    "actors_names": [
+                        "Nirut Sirichanya",
+                        "Bongkoj Khongmalai",
+                        "Monthol Jira"
+                    ],
+                    "writers_names": [
+                        "Robert La Force"
+                    ],
+                    "directors": [
+                        {
+                            "id": "cf50fdfa-54d7-4d0c-9463-a5bb892d490d",
+                            "name": "Robert La Force"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "293ab291-2bba-4204-b5ba-48043548357c",
+                            "name": "Nirut Sirichanya"
+                        },
+                        {
+                            "id": "02ef4094-0a0d-428b-94a5-1c99d74acff6",
+                            "name": "Monthol Jira"
+                        },
+                        {
+                            "id": "21778021-0ec3-4172-a85a-305dff51ab6e",
+                            "name": "Bongkoj Khongmalai"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "cf50fdfa-54d7-4d0c-9463-a5bb892d490d",
+                            "name": "Robert La Force"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "526769d7-df18-4661-9aa6-49ed24e9dfd8",
+                            "name": "Thriller"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "03b0c429-a63f-4045-a485-538a36c89264"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "0441036a-b238-47ad-9ff5-03e04fe2b979",
+                "_score": null,
+                "_source": {
+                    "id": "0441036a-b238-47ad-9ff5-03e04fe2b979",
+                    "imdb_rating": 7.2,
+                    "title": "Top Star Yoo Baek",
+                    "description": "Yoo Baek is a former idol group member. He is now a popular singer and actor. He doesn't try to be a good guy to attract people. Yoo Baek is self-centered and he is brutally honest to ...",
+                    "genres_names": [
+                        "Romance",
+                        "Comedy"
+                    ],
+                    "directors_names": [],
+                    "actors_names": [
+                        "Jin Heo",
+                        "Sang-Yeob Lee"
+                    ],
+                    "writers_names": [],
+                    "directors": [],
+                    "actors": [
+                        {
+                            "id": "5ef31e25-ed5a-4d3f-b2e1-fd138639f6d6",
+                            "name": "Sang-Yeob Lee"
+                        },
+                        {
+                            "id": "3e9c58e4-a46a-4061-861e-6f9f4f6f5ffc",
+                            "name": "Jin Heo"
+                        }
+                    ],
+                    "writers": [],
+                    "genres": [
+                        {
+                            "id": "5373d043-3f41-4ea8-9947-4b746c601bbd",
+                            "name": "Comedy"
+                        },
+                        {
+                            "id": "237fd1e4-c98e-454e-aa13-8a13fb7547b5",
+                            "name": "Romance"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "0441036a-b238-47ad-9ff5-03e04fe2b979"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "044beafe-fe25-4edc-95f4-adbb8979c35b",
+                "_score": null,
+                "_source": {
+                    "id": "044beafe-fe25-4edc-95f4-adbb8979c35b",
+                    "imdb_rating": 6.6,
+                    "title": "Star Wars: The Clone Wars",
+                    "description": null,
+                    "genres_names": [
+                        "Adventure",
+                        "Sci-Fi",
+                        "Action"
+                    ],
+                    "directors_names": [
+                        "Greg Borrud"
+                    ],
+                    "actors_names": [
+                        "Corey Burton",
+                        "Mat Lucas",
+                        "André Sogliuzzo",
+                        "Grey Griffin"
+                    ],
+                    "writers_names": [
+                        "Justin Lambros"
+                    ],
+                    "directors": [
+                        {
+                            "id": "ebbff707-b815-4938-8e7b-489906ac8290",
+                            "name": "Greg Borrud"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "6dd77305-18ee-4d2e-9215-fd1a496ccfdf",
+                            "name": "Mat Lucas"
+                        },
+                        {
+                            "id": "96185bee-1b14-4320-84ff-def00c07593c",
+                            "name": "André Sogliuzzo"
+                        },
+                        {
+                            "id": "dbedbfbc-67c9-4637-a215-9cc861f3dd0b",
+                            "name": "Corey Burton"
+                        },
+                        {
+                            "id": "b4e1b2bd-7f36-4322-8a96-0baecf121424",
+                            "name": "Grey Griffin"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "b4a391f9-d806-49a3-962f-39607b07e173",
+                            "name": "Justin Lambros"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "044beafe-fe25-4edc-95f4-adbb8979c35b"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "045f2518-5c38-48df-9c48-639520ab57af",
+                "_score": null,
+                "_source": {
+                    "id": "045f2518-5c38-48df-9c48-639520ab57af",
+                    "imdb_rating": 7.3,
+                    "title": "A Star Is Born",
+                    "description": "Esther Blodgett is just another starry-eyed farm kid trying to break into the movies. Waitressing at a Hollywood party, she catches the eye of alcoholic star Norman Maine, is given a test, and is caught up in the Hollywood glamor machine (ruthlessly satirized). She and her idol Norman marry; but his career abruptly dwindles to nothing",
+                    "genres_names": [
+                        "Drama",
+                        "Romance"
+                    ],
+                    "directors_names": [
+                        "William A. Wellman",
+                        "Jack Conway"
+                    ],
+                    "actors_names": [
+                        "Janet Gaynor",
+                        "Fredric March",
+                        "Adolphe Menjou",
+                        "May Robson"
+                    ],
+                    "writers_names": [
+                        "William A. Wellman",
+                        "Alan Campbell",
+                        "Dorothy Parker",
+                        "Robert Carson"
+                    ],
+                    "directors": [
+                        {
+                            "id": "d2232192-4d4e-4199-b7a3-f345b53d315c",
+                            "name": "Jack Conway"
+                        },
+                        {
+                            "id": "5ac68e18-a84c-4a98-a2ba-85d1bc85e0a4",
+                            "name": "William A. Wellman"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "1c6da0a2-233f-4640-a198-360ec518ba78",
+                            "name": "May Robson"
+                        },
+                        {
+                            "id": "5f6a9006-dba4-4b63-ac34-b56c3e8a7e8f",
+                            "name": "Fredric March"
+                        },
+                        {
+                            "id": "a7300f08-d78b-4776-bb81-f197bf9f45e3",
+                            "name": "Janet Gaynor"
+                        },
+                        {
+                            "id": "d2a4bb4a-b1bb-48f0-a006-cd1202ee4d15",
+                            "name": "Adolphe Menjou"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "2a2e7dfb-06ff-4c43-889d-05544f531d4d",
+                            "name": "Dorothy Parker"
+                        },
+                        {
+                            "id": "e259d88e-b693-436a-9fed-a10204b8fd91",
+                            "name": "Robert Carson"
+                        },
+                        {
+                            "id": "ce1799d3-0010-47ca-8635-b5ff1156a01d",
+                            "name": "Alan Campbell"
+                        },
+                        {
+                            "id": "5ac68e18-a84c-4a98-a2ba-85d1bc85e0a4",
+                            "name": "William A. Wellman"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "237fd1e4-c98e-454e-aa13-8a13fb7547b5",
+                            "name": "Romance"
+                        },
+                        {
+                            "id": "1cacff68-643e-4ddd-8f57-84b62538081a",
+                            "name": "Drama"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "045f2518-5c38-48df-9c48-639520ab57af"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "04b4f5a0-843c-42e8-bbaf-405425b221f1",
+                "_score": null,
+                "_source": {
+                    "id": "04b4f5a0-843c-42e8-bbaf-405425b221f1",
+                    "imdb_rating": 6.8,
+                    "title": "Angry Birds Star Wars",
+                    "description": "A retelling of the original Star Wars trilogy with Angry Birds characters.",
+                    "genres_names": [
+                        "Adventure",
+                        "Action",
+                        "Sci-Fi"
+                    ],
+                    "directors_names": [],
+                    "actors_names": [
+                        "Stephen Chang"
+                    ],
+                    "writers_names": [],
+                    "directors": [],
+                    "actors": [
+                        {
+                            "id": "a2295c27-f6b1-4c5f-9f8c-db088905996b",
+                            "name": "Stephen Chang"
+                        }
+                    ],
+                    "writers": [],
+                    "genres": [
+                        {
+                            "id": "120a21cf-9097-479e-904a-13dd7198c1dd",
+                            "name": "Adventure"
+                        },
+                        {
+                            "id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
+                            "name": "Action"
+                        },
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        }
+                    ],
+                    "type": "PAID",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "04b4f5a0-843c-42e8-bbaf-405425b221f1"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "0542917e-c045-42f8-b59f-80972c377800",
+                "_score": null,
+                "_source": {
+                    "id": "0542917e-c045-42f8-b59f-80972c377800",
+                    "imdb_rating": 4.2,
+                    "title": "Star Wars Pathways: Chapter I - Path of Betrayal",
+                    "description": "A Jedi Knight searches for his missing Padawan on the barren ice planet Dais VI only to find someone from his past out for revenge.",
+                    "genres_names": [
+                        "Sci-Fi",
+                        "Short"
+                    ],
+                    "directors_names": [
+                        "Christopher Pico"
+                    ],
+                    "actors_names": [
+                        "Robert Speicher",
+                        "Justin Baughman",
+                        "Maron Wong",
+                        "Charles Olson"
+                    ],
+                    "writers_names": [
+                        "Christopher Pico"
+                    ],
+                    "directors": [
+                        {
+                            "id": "6bf95b07-2612-464e-b8f1-cb4f3b790541",
+                            "name": "Christopher Pico"
+                        }
+                    ],
+                    "actors": [
+                        {
+                            "id": "f8cc9225-080a-486f-a30a-96aa6cbd5143",
+                            "name": "Charles Olson"
+                        },
+                        {
+                            "id": "d7df1a54-0f4a-494d-a705-a64380951cfd",
+                            "name": "Maron Wong"
+                        },
+                        {
+                            "id": "e6a6e4d0-60bc-4c31-9ffb-54b2f273a3eb",
+                            "name": "Justin Baughman"
+                        },
+                        {
+                            "id": "8adb8126-6a08-429d-b8e2-85ace7417914",
+                            "name": "Robert Speicher"
+                        }
+                    ],
+                    "writers": [
+                        {
+                            "id": "6bf95b07-2612-464e-b8f1-cb4f3b790541",
+                            "name": "Christopher Pico"
+                        }
+                    ],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        },
+                        {
+                            "id": "a886d0ec-c3f3-4b16-b973-dedcf5bfa395",
+                            "name": "Short"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "0542917e-c045-42f8-b59f-80972c377800"
+                ]
+            },
+            {
+                "_index": "movies",
+                "_id": "05cb6517-a039-47ae-acd9-b1fc1fb6d7c2",
+                "_score": null,
+                "_source": {
+                    "id": "05cb6517-a039-47ae-acd9-b1fc1fb6d7c2",
+                    "imdb_rating": 7.5,
+                    "title": "Star Wars 1313",
+                    "description": "It follow the bounty hunter Boba Fett who navigating Level 1313, a subterranean metropolis within the planet Coruscant.",
+                    "genres_names": [
+                        "Sci-Fi"
+                    ],
+                    "directors_names": [
+                        "Dominic Robilliard"
+                    ],
+                    "actors_names": [],
+                    "writers_names": [],
+                    "directors": [
+                        {
+                            "id": "f60857c5-4a3b-41b7-b4ed-e3e5fbc27e95",
+                            "name": "Dominic Robilliard"
+                        }
+                    ],
+                    "actors": [],
+                    "writers": [],
+                    "genres": [
+                        {
+                            "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                            "name": "Sci-Fi"
+                        }
+                    ],
+                    "type": "FREE",
+                    "created_at": 1763197091650,
+                    "updated_at": 1763197091650
+                },
+                "sort": [
+                    1763197091650,
+                    "05cb6517-a039-47ae-acd9-b1fc1fb6d7c2"
+                ]
+            }
+        ]
+    }
+}
