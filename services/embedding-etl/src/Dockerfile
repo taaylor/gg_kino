@@ -20,4 +20,7 @@ RUN poetry install --only main
 
 COPY services/embedding-etl/src/ .
 
-CMD [ "python", "main.py" ]
+RUN chmod +x ./scripts/run_celery.sh
+
+# CMD [ "python", "main.py" ]
+CMD ["./scripts/run_celery.sh", "celery_beat"]

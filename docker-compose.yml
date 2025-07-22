@@ -38,9 +38,14 @@ services:
     build:
       context: .
       dockerfile: ./services/embedding-etl/src/Dockerfile
+
+    # command: ["./scripts/run_celery.sh", "celery_beat"]
+    # working_dir: /opt/app          # на всякий случай
+
     env_file:
       - ./.env
     environment: []
+    working_dir: /opt/app
     # depends_on:
       # redis:
       #   condition: service_healthy
@@ -109,7 +114,7 @@ services:
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default off" > /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* &* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     volumes:
