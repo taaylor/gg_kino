@@ -13,7 +13,9 @@ def main():
         fims_in_str = f_read.readlines()
         fims_in_dict = [json.loads(film) for film in fims_in_str]
         # future_timestamp - на один день вперёд
-        future_timestamp = int(time.time() * 1000) + 100000000
+        # future_timestamp = int(time.time() * 1000) + 100000000
+        # 10_000_000_000 - на 115 дней вперёд
+        future_timestamp = int(time.time() * 1000) + 10_000_000_000
         for film in fims_in_dict:
             film["_source"]["created_at"] = future_timestamp
             film["_source"]["updated_at"] = future_timestamp
