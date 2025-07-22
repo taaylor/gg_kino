@@ -1,4 +1,5 @@
 import base64
+import logging
 from functools import lru_cache
 from typing import Annotated
 
@@ -7,6 +8,8 @@ from api.v1.schemas import EmbeddingRequest, EmbeddingResponse
 from fastapi import Depends
 from sentence_transformers import SentenceTransformer
 from services.ai_model import get_ai_model
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
@@ -21,8 +24,10 @@ class EmbeddingService:
         embeddings_obj = []
         for object in list_objects:
             embedding = self.ai_model.encode(object.text, convert_to_tensor=False)
-            embedding_bytes = embedding.astype(np.float32).tobytes()
-            embedding_base64 = base64.b64encode(embedding_bytes).decode("utf-8")
+            logger.info(f"Для объекта с идентификатором {object.id} сформирован {embedding=}")
+            embedding_base64 = base64.b64encode(embedding.astype(np.float32).tobytes()).decode(
+                "utf-8"
+            )
             embeddings_obj.append(EmbeddingResponse(id=object.id, embedding=embedding_base64))
         return embeddings_obj
 

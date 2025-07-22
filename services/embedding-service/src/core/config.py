@@ -17,7 +17,7 @@ class Server(BaseModel):
 
 class AIModel(BaseModel):
     model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"
-    truncate_dim: int = 256  # Обрезает размерность эмбеддинга
+    truncate_dim: int = 768
 
 
 class AppConfig(BaseSettings):
@@ -44,11 +44,9 @@ def _get_app_config() -> AppConfig:
     from core.logger_conf import LoggerSettings
 
     LoggerSettings().apply()
-
     logger = logging.getLogger(__name__)
     config = AppConfig()
     logger.info(f"Инициализация конфигурации: {config.model_dump_json(indent=4)}")
-
     return config
 
 

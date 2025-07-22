@@ -61,6 +61,10 @@ class LoggerSettings(BaseSettings):
                     "level": self.log_level,
                     "propagate": False,
                 },
+                "filelock": {
+                    "level": WARNING,
+                    "propagate": False,
+                },
                 "urllib3.connectionpool": {
                     "level": WARNING,
                     "propagate": False,

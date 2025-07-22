@@ -2,6 +2,7 @@ from api.v1 import embedding_api
 from core.config import app_config
 from fastapi import FastAPI, responses
 from utils.exceptions_handlers import setup_exception_handlers
+from utils.lifespan import lifespan
 
 app = FastAPI(
     debug=app_config.debug,
@@ -11,6 +12,7 @@ app = FastAPI(
     docs_url=app_config.docs_url,
     openapi_url=app_config.openapi_url,
     default_response_class=responses.ORJSONResponse,
+    lifespan=lifespan,
 )
 
 setup_exception_handlers(app)
