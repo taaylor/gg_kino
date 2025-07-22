@@ -1,11 +1,14 @@
 import logging
 from functools import lru_cache
 from typing import Annotated
+from uuid import UUID
 
 from api.v1.nlp.schemas import RecsRequest
 from db.postgres import get_session
 from fastapi import Depends
+from models.enums import ProcessingStatus
 from models.logic_models import LlmResponse
+from models.models import ProcessedNpl
 from services.base_service import BaseService
 from services.repository.nlp_repository import NlpRepository, get_nlp_repository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,9 +24,33 @@ class NlpService(BaseService):
         super().__init__(repository, session)
         self.llm_client = llm_client
 
-    async def process_nl_query(self, request_body: RecsRequest) -> LlmResponse:
+    async def process_nl_query(self, user_id: UUID, request_body: RecsRequest) -> LlmResponse:
         genres = {"комедия", "фантастика", "драма", "ужасы", "боевик"}  # TODO: Убрать
-        return await self.llm_client.execute_nlp(genres, request_body.query)
+
+        llm_resp = await self.llm_client.execute_nlp(genres, request_body.query)
+
+        if llm_resp.status == "OK":
+            llm_resp_status = ProcessingStatus.OK
+        else:
+            llm_resp_status = ProcessingStatus.INCORRECT_QUERY
+
+        processed_nlp = ProcessedNpl(
+            user_id=user_id,
+            query=request_body.query,
+            processing_result=llm_resp_status,
+            llm_resp=llm_resp.model_dump(mode="json"),
+            final_embedding=[],
+        )
+
+        await self._write_result_to_repository(processed_nlp)
+
+        return llm_resp
+
+    async def _write_result_to_repository(self, processing_result: ProcessedNpl) -> None:
+        await self.repository.create_object(self.session, processing_result)
+        logger.info(
+            f"В БД записан результат обработки пользовательского запроса {processing_result.id}"
+        )
 
 
 @lru_cache()

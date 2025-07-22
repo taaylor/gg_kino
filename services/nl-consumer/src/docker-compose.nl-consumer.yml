@@ -1,5 +1,6 @@
 services:
   ollama:
+    container_name: ollama
     build:
       context: ./LLM
       dockerfile: ./LLM-DOCKERFILE

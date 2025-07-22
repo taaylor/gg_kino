@@ -7,6 +7,7 @@ include:
   - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
   - ./services/event-generator/docker-compose.event-generator.yml
+  - ./services/email-sender/docker-compose.email-sender.yml
 
 services:
   elasticsearch:
@@ -17,10 +18,10 @@ services:
       - "xpack.security.enabled=false"
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     command: bin/elasticsearch
-    expose:
-      - ${ELASTIC_PORT}
     ports:
       - "${ELASTIC_PORT}:${ELASTIC_PORT}"
+    expose:
+      - ${ELASTIC_PORT}
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     cpus: "2"
@@ -30,7 +31,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
+    restart: "always"
 
   jaeger:
     container_name: jaeger-container
@@ -39,16 +40,10 @@ services:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "6831:6831/udp"   # принимает трейсы в формате jaeger.thrift по compact thrift protocol
-      - "6832:6832/udp"   # принимает трейсы в формате jaeger.thrift по binary thrift protocol
-      - "5778:5778"       # порт для конфигурации сэмплирования
       - "16686:16686"     # порт веб-интерфейса
       - "4317:4317"       # порт OTLP gRPC
       - "4318:4318"       # порт OTLP HTTP
-      - "14250:14250"     # принимает трейсы в модели данных jaeger.proto
-      - "14268:14268"     # принимает трейсы напрямую от клиентов в формате jaeger.thrift
-      - "9411:9411"       # порт совместимости с Zipkin
-    restart: always
+    restart: "always"
 
   kibana:
     container_name: kibana-container
@@ -63,7 +58,7 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
-    restart: always
+    restart: "always"
 
   es-init:
     container_name: es-init-container
@@ -101,6 +96,8 @@ services:
       '
     volumes:
       - redis_data:/data
+    ports:
+      - 6379:6379
     deploy:
       resources:
         limits:
@@ -109,14 +106,14 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-    ports:
+    expose:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
-    restart: always
+    restart: "always"
 
   auth-api:
     container_name: auth-api
@@ -142,7 +139,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
-    restart: always
+    restart: "always"
 
   async-api:
     container_name: async-api
@@ -161,12 +158,14 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
+    ports:
+      - "8007:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
+    restart: "always"
 
   content-actions-api:
     container_name: content-actions-api
@@ -194,7 +193,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
+    restart: "always"
+
   admin-panel:
     container_name: admin-panel
     build:
@@ -212,7 +212,7 @@ services:
         condition: service_healthy
       auth-api:
         condition: service_healthy
-    restart: always
+    restart: "always"
 
   postgres:
     container_name: postgres-container
@@ -221,17 +221,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
     volumes:
       - pg_data_volume:/var/lib/postgresql/data
       - ./backup/postgres_dump-auth/dumps:/dumps
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: always
+    restart: "always"
 
   pg-import:
     container_name: pg-import
@@ -246,6 +246,8 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       postgres:
+        condition: service_healthy
+      auth-api:
         condition: service_healthy
     restart: "no"
 
@@ -265,13 +267,52 @@ services:
         condition: service_healthy
       async-api:
         condition: service_healthy
-    expose:
-      - "8000:8000"
+    ports:
+      - "8001:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: "always"
+
+  link:
+    container_name: link
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/short-link-service/src/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/link/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "always"
+
+  ws-sender-worker:
+    container_name: ws-sender-worker
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/ws_notification-service/src/Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+      rabbit-init:
+        condition: service_completed_successfully
     restart: "always"
 
   nginx:
@@ -285,7 +326,8 @@ services:
       - static_django:/var/www
     ports:
       - "${NGINX_PORT}:${NGINX_PORT}"
-    restart: always
+      - "${NGINX_RABBIT_MANAGEMENT_PORT}:${NGINX_RABBIT_MANAGEMENT_PORT}"
+    restart: "always"
 
 volumes:
   redis_data:

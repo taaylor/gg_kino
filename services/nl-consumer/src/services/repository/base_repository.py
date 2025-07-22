@@ -6,6 +6,9 @@ from utils.decorators import sqlalchemy_universal_decorator
 class BaseRepository[T: Base]:
     """Базовый репозиторий для работы с хрвнилищем данных."""
 
+    def __init__(self, model: type[T]) -> None:
+        self.model = model
+
     @sqlalchemy_universal_decorator
     async def create_all_objects(
         self,
@@ -15,6 +18,16 @@ class BaseRepository[T: Base]:
         session.add_all(objects)
         await session.flush()
         return objects
+
+    @sqlalchemy_universal_decorator
+    async def create_object(
+        self,
+        session: AsyncSession,
+        object: T,
+    ) -> T:
+        session.add(object)
+        await session.flush()
+        return object
 
     @sqlalchemy_universal_decorator
     async def create_or_update_object(

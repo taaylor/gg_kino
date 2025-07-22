@@ -62,7 +62,7 @@ def do_run_migrations(connection: Connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         include_schemas=True,
-        version_table="alembic_version_nlp",
+        version_table="alembic_version_notify_service",
         include_object=include_object,
     )
 
