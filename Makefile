@@ -109,3 +109,12 @@ up-nl-consumer-local:
 up-notification-context:
 	docker compose --profile production up --build -d email-sender event-generator celery-beat postgres pg-import rabbit-init redis ws-sender-worker link auth-api async-api jaeger nginx notification && \
 	docker compose logs -f notification
+
+up-extend-async-api:
+	docker compose -f docker-compose.yml up --build -d async-api auth-api kibana pg-import nginx
+
+down-extend-async-api:
+	docker compose -f docker-compose.yml down -v async-api auth-api elasticsearch kibana es-init redis postgres pg-import nginx
+
+fill-data-for-checking-extend-async-api:
+	docker compose -f docker-compose.yml exec async-api python prepare_data_for_checking.py
