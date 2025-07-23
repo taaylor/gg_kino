@@ -121,3 +121,8 @@ down-extend-async-api:
 
 fill-data-for-checking-extend-async-api:
 	docker compose -f docker-compose.yml exec async-api python prepare_data_for_checking.py
+
+# Запуск всех сервисов контекста нотификаций
+up-recs-context:
+	docker compose up -d --build nl-consumer nginx notification && \
+	docker compose logs -f nl-consumer

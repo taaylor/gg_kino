@@ -26,7 +26,7 @@ services:
             grep -q '\"name\":\"${LLM_MODEL:-llama3}'"
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 20
     restart: "always"
 
 

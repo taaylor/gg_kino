@@ -8,7 +8,7 @@ include:
   - ./services/metric-service/docker-compose.metric-services.yml
   - ./services/event-generator/docker-compose.event-generator.yml
   - ./services/email-sender/docker-compose.email-sender.yml
-  - ./services/nl-consumer/src/docker-compose.nl-consumer.yml
+  - ./services/nl-consumer/src/docker-compose.llm.yml
 
 services:
   elasticsearch:
@@ -159,7 +159,7 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
-    ports:
+    expose:
       - "8008:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
@@ -268,7 +268,7 @@ services:
         condition: service_healthy
       async-api:
         condition: service_healthy
-    ports:
+    expose:
       - "8001:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
@@ -307,13 +307,11 @@ services:
       - HF_HUB_TIMEOUT=600
     expose:
       - "8007:8000"
-    ports:
-      - "8007:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 10
     restart: "always"
 
   ws-sender-worker:
@@ -342,9 +340,19 @@ services:
       dockerfile: ./services/nl-consumer/src/Dockerfile
     env_file:
       - .env
-    # depends_on:
-    #   ollama:
-    #     condition: service_healthy
+    depends_on:
+      ollama:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      async-api:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
     expose:
       - "8005:8000"
     healthcheck:
