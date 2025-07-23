@@ -336,6 +336,24 @@ services:
         condition: service_completed_successfully
     restart: "always"
 
+  nl-consumer:
+    container_name: nl-consumer
+    build:
+      dockerfile: ./services/nl-consumer/src/Dockerfile
+    env_file:
+      - .env
+    # depends_on:
+    #   ollama:
+    #     condition: service_healthy
+    expose:
+      - "8005:8000"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
   nginx:
     container_name: nginx
     image: nginx:1.27.5-alpine

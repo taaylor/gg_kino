@@ -9,7 +9,15 @@ from services.nlp_service import NlpService, get_nlp_service
 router = APIRouter()
 
 
-@router.post("/analyze")
+@router.post(
+    "/analyze",
+    summary="Анализ пользовательского запроса и рекомендации фильмов",
+    description="""Обрабатывает пользовательский запрос
+                на русском языке и возвращает список рекомендуемых фильмов.
+                Проверяет JWT-токен пользователя, извлекает идентификатор
+                пользователя и передаёт запрос в сервис NLP для анализа.
+                """,
+)
 async def process_query(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     service: Annotated[NlpService, Depends(get_nlp_service)],

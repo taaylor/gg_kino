@@ -4,8 +4,8 @@ services:
     build:
       context: ./LLM
       dockerfile: ./LLM-DOCKERFILE
-    ports:
-      - "11434:11434"
+    env_file:
+      - ../../../.env
     volumes:
       - ollama:/root/.ollama
     environment:
@@ -18,6 +18,8 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    ports:
+      - "11434:11434"
     healthcheck:
       test: >
         sh -c "curl -s http://localhost:11434/api/ps |
@@ -26,6 +28,7 @@ services:
       timeout: 10s
       retries: 5
     restart: "always"
+
 
 volumes:
   ollama:

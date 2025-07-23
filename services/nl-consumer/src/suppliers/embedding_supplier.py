@@ -20,7 +20,7 @@ class EmbeddingSupplier:
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
             req_query = QueryModel(text=query)
             data = {"objects": [req_query.model_dump(mode="json")]}
-            url = app_config.embeddingapi.get_url
+            url = app_config.embedding_api.get_url
 
             logger.debug(f"Сформирована строка запроса: {url}")
             logger.debug(f"Сформирована data запроса: {data}")

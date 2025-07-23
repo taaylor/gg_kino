@@ -146,7 +146,7 @@ class AppConfig(BaseSettings):
     postgres: Postgres = Postgres()
     filmapi: FilmApi = FilmApi()
     llm: LLM = LLM()
-    embeddingapi: EmbeddingAPI = EmbeddingAPI()
+    embedding_api: EmbeddingAPI = EmbeddingAPI()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
