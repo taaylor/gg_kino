@@ -19,5 +19,5 @@ setup_exception_handlers(app)
 
 SERVICE_PATH = "/embedding-service/api/v1/"
 app.include_router(
-    embedding_api.router, prefix=f"{SERVICE_PATH}/embedding", tags=["Получение вектора"]
+    embedding_api.router, prefix=f"{SERVICE_PATH}embedding", tags=["Получение вектора"]
 )
