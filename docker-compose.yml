@@ -37,13 +37,16 @@ services:
     container_name: embedding-etl
     build:
       context: .
-      dockerfile: ./services/embedding-etl/src/Dockerfile
+      # dockerfile: ./services/embedding-etl/src/Dockerfile
+      dockerfile: ./services/embedding-etl/src/Dockerfile.debug
 
     # command: ["./scripts/run_celery.sh", "celery_beat"]
     # working_dir: /opt/app          # на всякий случай
 
     env_file:
       - ./.env
+    ports:
+      - "9010:9010"
     environment: []
     working_dir: /opt/app
     # depends_on:

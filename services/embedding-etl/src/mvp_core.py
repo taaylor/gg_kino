@@ -103,10 +103,11 @@ LAST_RUN = "embedding-etl:unix_timestamp:last-run:"
 
 
 async def main():
-
-    elastic_client = AsyncElasticsearch(app_config.elastic.get_es_host)
+    # return f"http://{self.host}:{self.port}"
+    elastic_client = AsyncElasticsearch("http://localhost:9200")
     cache_conn = Redis(
-        host=app_config.redis.host,
+        host="localhost",
+        # host=app_config.redis.host,
         port=app_config.redis.port,
         db=app_config.redis.db,
         decode_responses=True,
@@ -122,13 +123,14 @@ async def main():
         logger.info(f"Время last_run: {last_run}")
     else:
         last_run = int(time.time() * 1000)
-    run_start = int(time.time() * 1000)
+    # run_start = int(time.time() * 1000)
     search_after = None
     query = {
         # "size": 500,
         "size": 10,
         "sort": [{"updated_at": "asc"}, {"id": "asc"}],
-        "query": {"range": {"updated_at": {"gt": last_run, "lte": run_start}}},
+        # "query": {"range": {"updated_at": {"gt": last_run, "lte": run_start}}},
+        "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
     }
     if search_after is not None:
         query["search_after"] = search_after
@@ -136,6 +138,9 @@ async def main():
     documents = await elastic_client.search(index="movies", body=query)
     parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
     logger.info([doc["id"] for doc in parsed_documents])
+    await elastic_client.close()
+    # await cache_conn.close()
+    await cache_conn.aclose()
     return parsed_documents
 
 
