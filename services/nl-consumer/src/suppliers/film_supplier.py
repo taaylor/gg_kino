@@ -37,7 +37,6 @@ class FilmSupplier:
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
 
             logger.debug(f"Сформирована строка запроса: {url}")
-            logger.debug(f"Сформирована data запроса: {data}")
 
             match method:
                 case "get":
@@ -49,7 +48,6 @@ class FilmSupplier:
                 case _:
                     raise ValueError(f"Метод: {method} не поддерживается.")
 
-            # Проверяем наличие контента
             if not response.content:
                 logger.error(f"Пустой ответ от сервиса {app_config.filmapi.host}")
                 raise EmptyServerResponse("Получен пустой ответ от сервиса фильмов")
