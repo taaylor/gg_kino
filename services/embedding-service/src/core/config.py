@@ -16,7 +16,7 @@ class Server(BaseModel):
 
 
 class AIModel(BaseModel):
-    model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    name: str = "paraphrase-multilingual-MiniLM-L12-v2"
     truncate_dim: int = 768
 
 
