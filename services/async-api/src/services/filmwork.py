@@ -203,6 +203,91 @@ class FilmRepository:
         )
         return total
 
+    async def search_film_by_vector_in_db(
+        self, vector: list[float], page_size: int = 50, page_number: int = 1
+    ) -> list[FilmLogic]:
+        """
+        Выполняет векторный knn-поиск в Elasticsearch по полю `embedding`,
+         исключая фильмы со статусом ARCHIVED.
+
+        :param vector: Эмбеддинг‑вектор запроса (список из 384 float-значений).
+        :param page_size: Количество фильмов на одной странице результатов.
+        :param page_number: Номер страницы для пагинации (начиная с 1).
+        :return: Список объектов `FilmLogic` для найденных фильмов;
+                 пустой список, если по векторному поиску не найдено ни одного фильма.
+        """
+        # Секции запроса:
+        #  - knn - выполняет приближённый поиск ближайших соседей (approximate kNN)
+        # по HNSW‑графу в поле embedding
+        #  - filter внутри knn - исключает из рассмотрения документы
+        # с type = ARCHIVED до обхода HNSW‑графа
+        #  - rescore - для уже найденных k кандидатов берёт первые window_size (10)
+        # и точно пересчитывает их сходство скриптом:
+        # cosineSimilarity(params.query_vector, 'embedding') + 1.0
+        # скрипт устраняет мелкие погрешности приближённого kNN‑поиска
+        # и даёт точный порядок самых релевантных документов.
+        body_query = {
+            "knn": {
+                "field": "embedding",  # embedding - имя поля‑вектора
+                "query_vector": vector,  # запросный 384‑мерный вектор
+                "k": page_size * page_number,  # топ‑K ближайших вернуть
+                # num_candidates - сколько узлов HNSW обойти чем больше,
+                # тем глубже обход графа — выше шанс найти хоть что‑то
+                "num_candidates": 100,
+                # секция filter убирает архивные фильмы, выполняется до приска по вектору
+                "filter": {"bool": {"must_not": {"term": {"type": FilmsType.ARCHIVED.value}}}},
+            },
+            "rescore": {
+                "window_size": 10,
+                "query": {
+                    "rescore_query": {
+                        "script_score": {
+                            "query": {"match_all": {}},
+                            "script": {
+                                #  вычисляет косинусное сходство между переданным
+                                # в параметре query_vector вектором запроса
+                                # и вектором, хранящимся в поле документа embedding
+                                "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",  # noqa: E501
+                                "params": {"query_vector": vector},
+                            },
+                        }
+                    }
+                },
+            },
+        }
+        logger.debug(
+            (
+                "FilmRepository.search_film_by_vector_in_db:"
+                " начинаем выполнять запрос в Elasticsearch,"
+                f" тело запроса {body_query}"
+            ),
+        )
+        films = await self.repository.get_list(
+            index=self.FILMS_INDEX_ES,
+            body=body_query,
+            page_number=page_number,
+            page_size=page_size,
+        )
+        if not films:
+            logger.info(
+                (
+                    "FilmRepository.search_film_by_vector_in_db:"
+                    " В результате запроса по векторному поиску в ElasticSearch"
+                    " ничего не нашлось"
+                ),
+            )
+            return []
+        logger.info(
+            (
+                "FilmRepository.search_film_by_vector_in_db:"
+                " В результате запроса по векторному поиску в ElasticSearch"
+                f" нашлось {len(films)} фильмов"
+                f" с учётом page_size={page_size} и page_number={page_number}"
+            ),
+        )
+        films_in_schema = [FilmLogic.model_validate(film) for film in films]
+        return films_in_schema
+
 
 class FilmService:
     """Класс, реализующий бизнес-логику работы с фильмами."""
@@ -406,6 +491,55 @@ class FilmService:
         films_from_db = await self.repository.get_list_film_by_ids(film_ids=film_ids)
         films = [FilmInternalResponse.transform_from_FilmLogic(film) for film in films_from_db]
 
+        return films
+
+    async def get_films_by_vector(
+        self,
+        vector: list[float],
+        page_size: int = 50,
+        page_number: int = 1,
+    ) -> list[FilmListResponse]:
+        """
+        Ищет фильмы по семантическому embedding-вектору с постраничной навигацией.
+
+        :param vector: Эмбеддинг‑вектор запроса (список из 384 float-значений).
+        :param page_size: Количество фильмов в одной странице результатов.
+        :param page_number: Номер страницы (начиная с 1).
+        :return: Список `FilmListResponse` с полями:
+                 - uuid: идентификатор фильма,
+                 - title: название,
+                 - imdb_rating: рейтинг IMDB,
+                 - type: тип (PAID/FREE).
+                 Пустой список, если по вектору никаких фильмов не найдено.
+        """
+        logger.debug(
+            (
+                "FilmService.get_films_by_vector:"
+                " поступил запрос поиска по вектору,"
+                f" vector: {vector}"
+                f" page_size={page_size}, page_number={page_number}"
+            )
+        )
+        films_from_db = await self.repository.search_film_by_vector_in_db(
+            vector=vector, page_size=page_size, page_number=page_number
+        )
+        films = [
+            FilmListResponse(
+                uuid=film.id,
+                title=film.title,
+                imdb_rating=film.imdb_rating,
+                type=film.type,
+            )
+            for film in films_from_db
+        ]
+        logger.info(
+            (
+                "FilmService.get_films_by_vector:"
+                " запрос успешно отработал,"
+                f" vector: {vector}"
+                f" page_size={page_size}, page_number={page_number}"
+            )
+        )
         return films
 
 
