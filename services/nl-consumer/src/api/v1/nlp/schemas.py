@@ -15,7 +15,11 @@ class RecsRequest(BaseModel):
     query: Annotated[
         str,
         Field(
-            ..., min_length=10, max_length=500, description="Пользовательский запрос рекомендации"
+            ...,
+            min_length=10,
+            max_length=500,
+            description="Пользовательский запрос рекомендации",
+            examples=["Что-то весёлое про будущее"],
         ),
     ]
 
