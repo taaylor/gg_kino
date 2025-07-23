@@ -1,6 +1,6 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LlmResponse(BaseModel):
@@ -23,3 +23,8 @@ class FilmListResponse(BaseModel):
 class GenreResponse(BaseModel):
     uuid: UUID
     name: str
+
+
+class QueryModel(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    text: str

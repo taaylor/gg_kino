@@ -118,6 +118,16 @@ class FilmApi(BaseModel):
         return f"http://{self.host}:{self.port}{self.genre_path}"
 
 
+class EmbeddingAPI(BaseModel):
+    host: str = "localhost"
+    port: int = 8007
+    path: str = "/embedding-service/api/v1/embedding/fetch-embeddings"
+
+    @property
+    def get_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.path}"
+
+
 class AppConfig(BaseSettings):
     tracing: bool = False
     project_name: str = "nl-consumer"
@@ -136,6 +146,7 @@ class AppConfig(BaseSettings):
     postgres: Postgres = Postgres()
     filmapi: FilmApi = FilmApi()
     llm: LLM = LLM()
+    embeddingapi: EmbeddingAPI = EmbeddingAPI()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

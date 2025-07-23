@@ -1,0 +1,50 @@
+import base64
+import logging
+
+import httpx
+import numpy as np
+from core.config import app_config
+from models.logic_models import QueryModel
+from utils.http_decorators import EmptyServerResponse, handle_http_errors
+
+logger = logging.getLogger(__name__)
+
+
+class EmbeddingSupplier:
+    def __init__(self, timeout: int = 30) -> None:
+        self.timeout = timeout
+
+    @handle_http_errors(service_name=app_config.llm.host)
+    async def fetch_embedding(self, query: str) -> list[float]:  # noqa: WPS210
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
+            req_query = QueryModel(text=query)
+            data = {"objects": [req_query.model_dump(mode="json")]}
+            url = app_config.embeddingapi.get_url
+
+            logger.debug(f"Сформирована строка запроса: {url}")
+            logger.debug(f"Сформирована data запроса: {data}")
+
+            response = await client.post(url=url, json=data)
+            response.raise_for_status()
+            if not response.content:
+                logger.error(f"Пустой ответ от сервиса {app_config.llm.host}")
+                raise EmptyServerResponse(f"Получен пустой ответ от {app_config.llm.host}")
+            embedding_response = response.json()
+            logger.info(f"Получен ответ на запрос эмбеддинга: {embedding_response}")
+
+            return await self._decode_embedding(embedding_response)
+
+    async def _decode_embedding(self, embedding_response: dict) -> list[float]:
+
+        # Example response: {"id": "1234", "embedding": "<base64_string>"}
+        response = embedding_response[0]
+        embedding_base64 = response["embedding"]
+        embedding_bytes = base64.b64decode(embedding_base64)
+        embedding = np.frombuffer(embedding_bytes, dtype=np.float32)
+
+        return [float(v) for v in embedding]
+
+
+def get_embedding_supplier() -> EmbeddingSupplier:
+    return EmbeddingSupplier()
