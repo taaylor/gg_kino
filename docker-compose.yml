@@ -159,6 +159,8 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
+    ports:
+      - "8008:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
       interval: 10s

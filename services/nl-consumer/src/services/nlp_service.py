@@ -12,6 +12,7 @@ from models.models import ProcessedNpl
 from services.base_service import BaseService
 from services.repository.nlp_repository import NlpRepository, get_nlp_repository
 from sqlalchemy.ext.asyncio import AsyncSession
+from suppliers.film_supplier import FilmSupplier, get_film_supplier
 from suppliers.llm_supplier import LlmSupplier, get_llm_supplier
 
 logger = logging.getLogger(__name__)
@@ -19,13 +20,19 @@ logger = logging.getLogger(__name__)
 
 class NlpService(BaseService):
     def __init__(
-        self, repository: NlpRepository, session: AsyncSession, llm_client: LlmSupplier
+        self,
+        repository: NlpRepository,
+        session: AsyncSession,
+        llm_client: LlmSupplier,
+        film_supplier: FilmSupplier,
     ) -> None:
         super().__init__(repository, session)
         self.llm_client = llm_client
+        self.film_supplier = film_supplier
 
     async def process_nl_query(self, user_id: UUID, request_body: RecsRequest) -> LlmResponse:
-        genres = {"комедия", "фантастика", "драма", "ужасы", "боевик"}  # TODO: Убрать
+        genres = await self.film_supplier.fetch_genres()
+        logger.debug(f"Получен список жанров: {genres}")
 
         llm_resp = await self.llm_client.execute_nlp(genres, request_body.query)
 
@@ -58,5 +65,6 @@ def get_nlp_service(
     session: Annotated[AsyncSession, Depends(get_session)],
     repository: Annotated[NlpRepository, Depends(get_nlp_repository)],
     llm_client: Annotated[LlmSupplier, Depends(get_llm_supplier)],
+    film_supplier: Annotated[FilmSupplier, Depends(get_film_supplier)],
 ) -> NlpService:
-    return NlpService(repository, session, llm_client)
+    return NlpService(repository, session, llm_client, film_supplier)

@@ -105,12 +105,17 @@ class Postgres(BaseModel):
 
 class FilmApi(BaseModel):
     host: str = "localhost"
-    port: int = 8001
-    profile_path: str = "/async/api/v1/internal/fetch-films"
+    port: int = 8008
+    films_path: str = "/async/api/v1/internal/search-by-vector"
+    genre_path: str = "/async/api/v1/internal/genres"
 
     @property
     def get_film_url(self) -> str:
-        return f"http://{self.host}:{self.port}{self.profile_path}"
+        return f"http://{self.host}:{self.port}{self.films_path}"
+
+    @property
+    def get_genre_url(self) -> str:
+        return f"http://{self.host}:{self.port}{self.genre_path}"
 
 
 class AppConfig(BaseSettings):

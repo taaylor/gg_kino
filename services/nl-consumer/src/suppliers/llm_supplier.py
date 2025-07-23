@@ -29,8 +29,8 @@ class LlmSupplier:
             headers = {"Content-Type": "application/json"}
             url = app_config.llm.get_url
 
-            logger.debug(f"Сформирована строка запроса фильмов: {url}")
-            logger.debug(f"Сформирована data запроса фильмов: {data}")
+            logger.debug(f"Сформирована строка запроса: {url}")
+            logger.debug(f"Сформирована data запроса: {data}")
 
             response = await client.post(url=url, json=data, headers=headers)
             response.raise_for_status()
