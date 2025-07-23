@@ -36,6 +36,8 @@ class NlpService(BaseService):
     async def process_nl_query(  # noqa: WPS210
         self, user_id: UUID, request_body: RecsRequest
     ) -> RecsResponse:
+        """Метод обрабатывает запрос пользователя на натуральном
+        языке и отдаёт фильмы или запрос на уточнение."""
         embedding = []
         films = None
         message = ""
@@ -71,6 +73,7 @@ class NlpService(BaseService):
         return response
 
     async def _fetch_films(self, embedding: list[float]) -> list[FilmListResponse]:
+        """Получает список фильмов на основе эмбеддинга."""
         films = await self.film_supplier.fetch_films(embedding)
 
         logger.info(
@@ -80,6 +83,7 @@ class NlpService(BaseService):
         return films
 
     async def _fetch_embedding(self, query: str) -> list[float]:
+        """Генерирует эмбеддинг для пользовательского запроса."""
         query_embedding = await self.embedding_supplier.fetch_embedding(query)
 
         logger.info(
@@ -89,6 +93,7 @@ class NlpService(BaseService):
         return query_embedding
 
     async def _write_result_to_repository(self, processing_result: ProcessedNpl) -> None:
+        """Сохраняет результат обработки запроса в базу данных."""
         await self.repository.create_object(self.session, processing_result)
         logger.info(
             f"В БД записан результат обработки пользовательского запроса {processing_result.id}"

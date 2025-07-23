@@ -15,6 +15,7 @@ class LlmSupplier:
 
     @handle_http_errors(service_name=app_config.llm.host)
     async def execute_nlp(self, genres: set[str], query: str) -> LlmResponse:  # noqa: WPS210
+        """Выполняет запрос к LLM для обработки пользовательского запроса."""
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
 
@@ -52,4 +53,5 @@ class LlmSupplier:
 
 
 def get_llm_supplier() -> LlmSupplier:
+    """Возвращает экземпляр поставщика LLM."""
     return LlmSupplier()

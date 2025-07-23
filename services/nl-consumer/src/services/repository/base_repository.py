@@ -10,16 +10,6 @@ class BaseRepository[T: Base]:
         self.model = model
 
     @sqlalchemy_universal_decorator
-    async def create_all_objects(
-        self,
-        session: AsyncSession,
-        objects: list[T],
-    ) -> list[T]:
-        session.add_all(objects)
-        await session.flush()
-        return objects
-
-    @sqlalchemy_universal_decorator
     async def create_object(
         self,
         session: AsyncSession,
@@ -28,13 +18,3 @@ class BaseRepository[T: Base]:
         session.add(object)
         await session.flush()
         return object
-
-    @sqlalchemy_universal_decorator
-    async def create_or_update_object(
-        self,
-        session: AsyncSession,
-        object: T,
-    ) -> T:
-        obj = await session.merge(object)
-        await session.flush()
-        return obj

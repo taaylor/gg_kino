@@ -16,6 +16,7 @@ class EmbeddingSupplier:
 
     @handle_http_errors(service_name=app_config.llm.host)
     async def fetch_embedding(self, query: str) -> list[float]:  # noqa: WPS210
+        """Отправляет запрос на получение эмбеддинга для заданного текста."""
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
             req_query = QueryModel(text=query)
@@ -36,6 +37,7 @@ class EmbeddingSupplier:
             return await self._decode_embedding(embedding_response)
 
     async def _decode_embedding(self, embedding_response: dict) -> list[float]:
+        """Декодирует эмбеддинг из ответа сервиса."""
 
         # Example response: {"id": "1234", "embedding": "<base64_string>"}
         response = embedding_response[0]
@@ -47,4 +49,5 @@ class EmbeddingSupplier:
 
 
 def get_embedding_supplier() -> EmbeddingSupplier:
+    """Возвращает экземпляр поставщика эмбеддингов."""
     return EmbeddingSupplier()
