@@ -296,6 +296,26 @@ services:
       retries: 5
     restart: "always"
 
+  embedding-service:
+    container_name: embedding-service
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/embedding-service/src/Dockerfile
+    environment:
+      - HF_HUB_TIMEOUT=600
+    expose:
+      - "8000:8000"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "always"
+
   ws-sender-worker:
     container_name: ws-sender-worker
     env_file:
