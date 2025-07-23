@@ -68,8 +68,13 @@ class FilmSupplier:
         self, json: dict, model: type[GenreResponse] | type[FilmListResponse]
     ) -> list[GenreResponse | FilmListResponse]:
         """Преобразует JSON-ответ в список объектов модели."""
-        adapter = TypeAdapter(list[model])
-        return adapter.validate_python(json)
+        if model is GenreResponse:
+            adapter = TypeAdapter(list[GenreResponse])
+        elif model is FilmListResponse:
+            adapter = TypeAdapter(list[FilmListResponse])
+        else:
+            raise ValueError("Неподдерживаемый тип модели")
+        return list(adapter.validate_python(json))
 
 
 def get_film_supplier() -> FilmSupplier:

@@ -40,22 +40,24 @@ def backoff[**P, R](  # noqa: WPS211, WPS231, WPS234
             time = start_sleep_time
             attempt = 1
             last_exception = None
-            session: AsyncSession = kwargs.get("session")  # type: ignore
+            session: AsyncSession | None = kwargs.get("session")  # type: ignore
 
             if not session and len(args) >= 2:
-                session = args[1]
+                session = args[1]  # type: ignore
 
             while attempt <= max_attempts:
                 try:
                     return await func(*args, **kwargs)  # type: ignore
                 except exception as error:
-                    await session.rollback()
+                    if session:
+                        await session.rollback()  # noqa: WPS220
                     last_exception = error
                     logger.error(
                         f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
                     )
                 except Exception as error:
-                    await session.rollback()
+                    if session:
+                        await session.rollback()  # noqa: WPS220
                     last_exception = error
                     logger.error(
                         f"Возникло исключение: {error}. Попытка {attempt}/{max_attempts}",
@@ -85,15 +87,16 @@ def sqlalchemy_handler_400_exceptions[**P, R](  # noqa: WPS231, WPS114
     func: Callable[P, Coroutine[Any, Any, R]],
 ) -> Callable[P, Coroutine[Any, Any, R | None]]:
     @wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        session: AsyncSession = kwargs.get("session")  # type: ignore
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:  # noqa: WPS231
+        session: AsyncSession | None = kwargs.get("session")  # type: ignore
         if not session and len(args) >= 2:
-            session = args[1]
+            session = args[1]  # type: ignore
 
         try:
             return await func(*args, **kwargs)
         except IntegrityError as e:
-            await session.rollback()
+            if session:
+                await session.rollback()
             logger.error(f"Нарушение целостности данных: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -101,7 +104,8 @@ def sqlalchemy_handler_400_exceptions[**P, R](  # noqa: WPS231, WPS114
             )
 
         except NoResultFound as e:
-            await session.rollback()
+            if session:
+                await session.rollback()
             logger.warning(f"Запись не найдена: {e}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -109,7 +113,8 @@ def sqlalchemy_handler_400_exceptions[**P, R](  # noqa: WPS231, WPS114
             )
 
         except MultipleResultsFound as e:
-            await session.rollback()
+            if session:
+                await session.rollback()
             logger.error(f"Найдено несколько записей: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -129,9 +134,9 @@ def sqlalchemy_universal_decorator[**P, R](
     @sqlalchemy_handler_400_exceptions
     @wraps(func)
     async def wrapper(*args, **kwargs) -> R:
-        session: AsyncSession = kwargs.get("session")  # type: ignore
+        session: AsyncSession | None = kwargs.get("session")  # type: ignore
         if not session and len(args) >= 2:
-            session = args[1]
+            session = args[1]  # type: ignore
 
         if session is None:
             raise ValueError("Сессия должна быть передана в функцию")
