@@ -93,6 +93,9 @@ from db.cache import get_cache
 from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
 
+# import httpx
+
+
 # from pprint import pprint as pp
 
 
@@ -100,6 +103,28 @@ logger = get_logger(__name__)
 
 RUN_START = "embedding-etl:unix_timestamp:run_start:"
 LAST_RUN = "embedding-etl:unix_timestamp:last-run:"
+
+
+async def get_embedding_from_service(data_for_sending):
+
+    pass
+
+
+def build_embedding_text(doc):
+    # TODO: потом переписать, чтобы не словарь передавался, а pydantic модель
+    # {title}. {genres}. {description}. {rating_text}.
+    template = "{title}. {genres}. {description} {rating_text}"
+    title = doc.get("title", "")
+    genres = ", ".join(doc.get("genres_names", ""))
+    description = doc.get("description", None) if doc.get("description", None) else ""
+    # TODO: вынести уровень рейтинга для High rating в app_config
+    rating_text = "High rating." if doc.get("imdb_rating", 5) >= 7 else ""
+    return template.format(
+        title=title,
+        genres=genres,
+        description=description,
+        rating_text=rating_text,
+    )
 
 
 async def main():
@@ -134,9 +159,17 @@ async def main():
     }
     if search_after is not None:
         query["search_after"] = search_after
-    # a = 1
     documents = await elastic_client.search(index="movies", body=query)
     parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
+    texts = [
+        {
+            "film_id": doc["id"],
+            "embedding_text": build_embedding_text(doc),
+        }
+        for doc in parsed_documents
+    ]
+    texts
+    # a = 1
     logger.info([doc["id"] for doc in parsed_documents])
     await elastic_client.close()
     # await cache_conn.close()
