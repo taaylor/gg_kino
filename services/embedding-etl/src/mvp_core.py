@@ -87,14 +87,17 @@ while True:
 import asyncio
 import time
 
+# import logging
+from typing import Any
+
+import backoff
+import httpx
 from core.config import app_config
 from core.logger_config import get_logger
 from db.cache import get_cache
 from elasticsearch import AsyncElasticsearch
+from httpx import HTTPStatusError, RequestError
 from redis.asyncio import Redis
-
-# import httpx
-
 
 # from pprint import pprint as pp
 
@@ -105,6 +108,55 @@ RUN_START = "embedding-etl:unix_timestamp:run_start:"
 LAST_RUN = "embedding-etl:unix_timestamp:last-run:"
 
 
+@backoff.on_exception(
+    backoff.expo,
+    exception=(
+        HTTPStatusError,
+        RequestError,
+    ),
+    max_tries=8,
+    raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+    on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+        (
+            f"Повтор {details["tries"]} попытка для"
+            f" {details["target"].__name__}. Ошибка: {details["exception"]}"
+        )
+    ),
+    on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+        f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+    ),
+)
+async def post_request(
+    url: str,
+    json_data: dict[str, Any] | list[Any],
+    timeout: float = 10,
+    **kwargs: Any,
+) -> dict[str, Any] | list[Any]:
+    """
+    Выполняет POST-запрос с передачей JSON-данных.
+
+    :param url: Адрес запроса.
+    :param json_data: Данные для отправки в теле запроса.
+    :param timeout: Таймаут в секундах.
+    :param kwargs: Дополнительные параметры httpx.
+
+    :return: Распарсенный JSON-ответ или пустой список в случае ошибки.
+    """
+    result = []
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url=url, json=json_data, timeout=timeout, **kwargs)
+            response.raise_for_status()
+            result = response.json()
+        except HTTPStatusError as e:
+            logger.error(f"POST запрос по {url} вернул статус код {e.response.status_code}")
+            raise e
+        except RequestError as e:
+            logger.error(f"POST запрос по {url} получил ошибку: {e!r}")
+            raise e
+        return result
+
+
 async def get_embedding_from_service(data_for_sending):
 
     pass
@@ -113,13 +165,14 @@ async def get_embedding_from_service(data_for_sending):
 def build_embedding_text(doc):
     # TODO: потом переписать, чтобы не словарь передавался, а pydantic модель
     # {title}. {genres}. {description}. {rating_text}.
-    template = "{title}. {genres}. {description} {rating_text}"
+    template_embedding = "{title}. {genres}. {description} {rating_text}"
     title = doc.get("title", "")
     genres = ", ".join(doc.get("genres_names", ""))
     description = doc.get("description", None) if doc.get("description", None) else ""
     # TODO: вынести уровень рейтинга для High rating в app_config
     rating_text = "High rating." if doc.get("imdb_rating", 5) >= 7 else ""
-    return template.format(
+    # TODO: вынести template_embedding в app_config
+    return template_embedding.format(
         title=title,
         genres=genres,
         description=description,

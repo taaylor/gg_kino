@@ -320,6 +320,7 @@ services:
     restart: "always"
 
   embedding-service:
+    platform: linux/amd64
     container_name: embedding-service
     env_file:
       - .env
