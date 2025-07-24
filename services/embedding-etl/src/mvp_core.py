@@ -115,6 +115,7 @@ from elasticsearch.helpers import async_bulk
 from httpx import HTTPStatusError, RequestError
 from redis.asyncio import Redis
 
+# import requests
 # from pprint import pprint as pp
 
 
@@ -275,6 +276,7 @@ async def main():
         """
         # a = 1
         # ! -=-=-=-=-=- httpx -=-=-=-=-=-
+        payload_response = payload
         # payload_response = await post_request(
         #     url=URL_TO_EMBEDDING_LOC,
         #     json_data=payload,
@@ -282,8 +284,10 @@ async def main():
         # )
         # ! -=-=-=-=-=- httpx -=-=-=-=-=-
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
-        payload_response = payload
-        # payload_response = await post_request(
+        # payload_response = requests.post(
+        #     url=URL_TO_EMBEDDING_LOC,
+        #     json=payload
+        # )
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
         # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
         # настроить цикл основной логики работы сервиса
