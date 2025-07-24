@@ -20,7 +20,7 @@ class FilmSupplier:
         url = app_config.filmapi.get_genre_url
 
         genres_json = await self._make_request(HttpMethods.GET, url)
-        list_genres = await self._convert_to_model(genres_json, GenreResponse)
+        list_genres = self._convert_to_model(genres_json, GenreResponse)
         logger.info(f"Получен список из: {len(list_genres)} жанров.")
 
         return {genre.name for genre in list_genres}  # type: ignore
