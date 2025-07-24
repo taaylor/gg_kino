@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class LlmSupplier:
-    def __init__(self, timeout: int = 30) -> None:
+    def __init__(self, timeout: int = 120) -> None:
         self.timeout = timeout
 
     @handle_http_errors(service_name=app_config.llm.host)
