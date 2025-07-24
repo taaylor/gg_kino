@@ -97,12 +97,14 @@ embedding_2 = np.frombuffer(embedding_bytes, dtype=float)
 
 import asyncio
 import base64
+
+# import json
 import time
 
 # import logging
 from typing import Any
 
-import backoff
+# import backoff
 import httpx
 import numpy as np
 from core.config import app_config
@@ -118,37 +120,37 @@ from redis.asyncio import Redis
 
 logger = get_logger(__name__)
 
-RUN_START = "embedding-etl:unix_timestamp:run_start:"
-LAST_RUN = "embedding-etl:unix_timestamp:last-run:"
+RUN_START = "embedding-etl:unix_timestamp:run_start"
+LAST_RUN = "embedding-etl:unix_timestamp:last-run"
 URL_TO_EMBEDDING_LOC = "http://localhost:8000/embedding-service/api/v1/embedding/fetch-embeddings"
 URL_TO_EMBEDDING_PROD = (
     "http://embedding-service:8000/embedding-service/api/v1/embedding/fetch-embeddings"
 )
 
 
-@backoff.on_exception(
-    backoff.expo,
-    exception=(
-        HTTPStatusError,
-        RequestError,
-    ),
-    max_tries=8,
-    raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
-    on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
-        (
-            f"Повтор {details["tries"]} попытка для"
-            f" {details["target"].__name__}. Ошибка: {details["exception"]}"
-        )
-    ),
-    on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
-        f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
-    ),
-)
+# @backoff.on_exception(
+#     backoff.expo,
+#     exception=(
+#         HTTPStatusError,
+#         RequestError,
+#     ),
+#     max_tries=8,
+#     raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+#     on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+#         (
+#             f"Повтор {details["tries"]} попытка для"
+#             f" {details["target"].__name__}. Ошибка: {details["exception"]}"
+#         )
+#     ),
+#     on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+#         f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+#     ),
+# )
 async def post_request(
     url: str,
     json_data: dict[str, Any] | list[Any],
     timeout: float = 10,
-    **kwargs: Any,
+    # **kwargs: Any,
 ) -> dict[str, Any] | list[Any]:
     """
     Выполняет POST-запрос с передачей JSON-данных.
@@ -163,7 +165,12 @@ async def post_request(
     result = []
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url=url, json=json_data, timeout=timeout, **kwargs)
+            response = await client.post(
+                url=url,
+                json=json_data,
+                timeout=timeout,
+                # **kwargs
+            )
             response.raise_for_status()
             result = response.json()
         except HTTPStatusError as e:
@@ -221,82 +228,108 @@ async def main():
     )
     cache = await get_cache(cache_conn)
     if last_run := await cache.get(LAST_RUN):
+        # a = 1
+        last_run = int(last_run)
         logger.info(f"Время last_run: {last_run}")
     else:
         last_run = int(time.time() * 1000)
     run_start = int(time.time() * 1000)
-    search_after = None
-    query = {
-        # "size": 500,
-        "size": 10,
-        "sort": [{"updated_at": "asc"}, {"id": "asc"}],
-        # "query": {"range": {"updated_at": {"gt": last_run, "lte": run_start}}},
-        "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
-    }
-    if search_after is not None:
-        query["search_after"] = search_after
-    documents = await elastic_client.search(index="movies", body=query)
-    parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
-    embedding_texts = [
-        {
-            "id": doc["id"],
-            "text": build_embedding_text(doc),
-        }
-        for doc in parsed_documents
-    ]
-    payload = {"objects": embedding_texts}
-    """
-    async def post_request(
-    url: str,
-    json_data: dict[str, Any] | list[Any],
-
-    """
-    payload_response = await post_request(
-        url=URL_TO_EMBEDDING_LOC,
-        json_data=payload,
-    )
-    # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
-    # настроить цикл основной логики работы сервиса
-    data_for_update = [
-        {
-            "_op_type": "update",
-            "_index": "movies",
-            "_id": item["id"],
-            "doc": {
-                "embedding": decode_embedding_b64(item["embedding"]),
-                "updated_at": run_start,
+    while True:
+        # a = 1
+        search_after = None
+        query = {
+            # "size": 500,
+            "size": 10,
+            "sort": [{"updated_at": "asc"}, {"id": "asc"}],
+            "query": {
+                "range": {
+                    "updated_at": {
+                        "gt": last_run,
+                        # "lte": run_start
+                        "lte": 1763197091699,
+                    }
+                }
             },
+            # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
         }
-        for item in payload_response
-    ]
-    success_count, errors = await async_bulk(
-        client=elastic_client,
-        actions=data_for_update,
-        chunk_size=100,
-        max_retries=3,
-        raise_on_error=False,
-    )
-    # вычисляем вектор с помощью декодирования
-    # обновляем данные в es
-    """
-    success_count, errors = await async_bulk(
-        client=es,
-        actions=actions,
-        # опциональные параметры:
-        chunk_size=500,      # сколько действий в одном чанке
-        max_retries=3,       # сколько попыток в случае ошибок
-        raise_on_error=False # не бросать исключение, а возвращать ошибки в списке
-    )
+        if search_after is not None:
+            query["search_after"] = search_after
+        documents = await elastic_client.search(index="movies", body=query)
+        if not documents["hits"]["total"]["value"]:
+            break
+        search_after = documents["hits"]["hits"][-1]["sort"]
+        parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
+        embedding_texts = [
+            {
+                "id": doc["id"],
+                "text": build_embedding_text(doc),
+            }
+            for doc in parsed_documents
+        ]
+        payload = {"objects": embedding_texts}
+        """
+        async def post_request(
+        url: str,
+        json_data: dict[str, Any] | list[Any],
 
-    return success_count, errors
-    """
-    logger.info([doc["id"] for doc in parsed_documents])
-    # a = 1
+        """
+        # a = 1
+        # ! -=-=-=-=-=- httpx -=-=-=-=-=-
+        # payload_response = await post_request(
+        #     url=URL_TO_EMBEDDING_LOC,
+        #     json_data=payload,
+        #     # json_data=json.dumps(payload),
+        # )
+        # ! -=-=-=-=-=- httpx -=-=-=-=-=-
+        # ? -=-=-=-=-=- requests -=-=-=-=-=-
+        payload_response = payload
+        # payload_response = await post_request(
+        # ? -=-=-=-=-=- requests -=-=-=-=-=-
+        # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
+        # настроить цикл основной логики работы сервиса
+        data_for_update = [
+            {
+                "_op_type": "update",
+                "_index": "movies",
+                "_id": item["id"],
+                "doc": {
+                    "embedding": decode_embedding_b64(item["embedding"]),
+                    "updated_at": run_start,
+                },
+            }
+            for item in payload_response
+        ]
+        success_count, errors = await async_bulk(
+            client=elastic_client,
+            actions=data_for_update,
+            chunk_size=100,  # максимальный размер чанка
+            max_retries=3,  # кол-во попыток в случае ошибок
+            raise_on_error=False,  # не бросать исключение, а возвращать ошибки в списке
+        )
+        logger.info(
+            (
+                f"Документы успешно обновились в количестве {success_count}"
+                f"количество ошибок: {len(errors)}"
+            )
+        )
+        if errors:
+            logger.error(f"Ошибки при обновлении: {errors}")
 
+    await cache.background_set(
+        key=LAST_RUN,
+        value=str(run_start),
+        expire=app_config.cache_expire_in_seconds,
+    )
+    logger.info(
+        (
+            "ETL успешно отработал, кол-во шибок <поместить кол-во ошибок>"
+            "Новое время сохранено в Redis:"
+            f" LAST RUN - {LAST_RUN}:{run_start}"
+        )
+    )
     await elastic_client.close()
-    # await cache_conn.close()
     await cache_conn.aclose()
-    return parsed_documents
+    return True
 
 
 if __name__ == "__main__":
