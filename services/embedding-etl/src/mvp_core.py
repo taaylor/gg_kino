@@ -107,6 +107,7 @@ from typing import Any
 # import backoff
 import httpx
 import numpy as np
+import requests
 from core.config import app_config
 from core.logger_config import get_logger
 from db.cache import get_cache
@@ -115,7 +116,6 @@ from elasticsearch.helpers import async_bulk
 from httpx import HTTPStatusError, RequestError
 from redis.asyncio import Redis
 
-# import requests
 # from pprint import pprint as pp
 
 
@@ -196,7 +196,9 @@ def build_embedding_text(doc):
     genres = ", ".join(doc.get("genres_names", ""))
     description = doc.get("description", None) if doc.get("description", None) else ""
     # TODO: вынести уровень рейтинга для High rating в app_config
-    rating_text = "High rating." if doc.get("imdb_rating", 5) >= 7 else ""
+    rating_text = doc.get("imdb_rating", 5)
+    if rating_text is not None:
+        rating_text = "High rating." if rating_text >= 7 else ""
     # TODO: вынести template_embedding в app_config
     return template_embedding.format(
         title=title,
@@ -235,9 +237,9 @@ async def main():
     else:
         last_run = int(time.time() * 1000)
     run_start = int(time.time() * 1000)
+    search_after = None
     while True:
         # a = 1
-        search_after = None
         query = {
             # "size": 500,
             "size": 10,
@@ -258,7 +260,9 @@ async def main():
         documents = await elastic_client.search(index="movies", body=query)
         if not documents["hits"]["total"]["value"]:
             break
-        search_after = documents["hits"]["hits"][-1]["sort"]
+        # проверка нужна потому что последний ["hits"]["hits"] выдаёт пустой список
+        if len(documents["hits"]["hits"]) > 0:
+            search_after = documents["hits"]["hits"][-1]["sort"]
         parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
         embedding_texts = [
             {
@@ -274,9 +278,7 @@ async def main():
         json_data: dict[str, Any] | list[Any],
 
         """
-        # a = 1
         # ! -=-=-=-=-=- httpx -=-=-=-=-=-
-        payload_response = payload
         # payload_response = await post_request(
         #     url=URL_TO_EMBEDDING_LOC,
         #     json_data=payload,
@@ -284,13 +286,24 @@ async def main():
         # )
         # ! -=-=-=-=-=- httpx -=-=-=-=-=-
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
-        # payload_response = requests.post(
-        #     url=URL_TO_EMBEDDING_LOC,
-        #     json=payload
-        # )
+        payload_response = requests.post(url=URL_TO_EMBEDDING_LOC, json=payload)
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
         # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
         # настроить цикл основной логики работы сервиса
+        """
+        {'body': {'objects': [{'id': '0312ed51-8833-413f-bff5-0e139c11264a',
+                       'text': 'Star Wars: Episode V - The Empire Strikes '
+                               'Back. Adventure, Action, Fantasy, Sci-Fi. Luke '
+                               'Skywalker, Han Solo, Princess Leia and '
+                               'Chewbacca face attack by the Imperial forces '
+                               'and its AT-AT walkers on the ice planet Hoth. '
+                               'While Han and Leia escape in the Millennium '
+                               'Falcon, Luke travels to Dagobah in search of '
+                               "Yoda. Only with the Jedi master's help will "
+                               'Luke survive when the dark side of the Force '
+                               'beckons him into the ultimate duel with Darth '
+                               'Vader. High rating.'},
+        """
         data_for_update = [
             {
                 "_op_type": "update",
@@ -301,7 +314,8 @@ async def main():
                     "updated_at": run_start,
                 },
             }
-            for item in payload_response
+            # for item in payload_response  # для httpx
+            for item in payload_response.json()  # для requests
         ]
         success_count, errors = await async_bulk(
             client=elastic_client,
