@@ -32,7 +32,7 @@ class FilmSupplier:
         data = {"vector": vector}
 
         films_json = await self._make_request(HttpMethods.POST, url, data)
-        list_films = await self._convert_to_model(films_json, FilmListResponse)
+        list_films = self._convert_to_model(films_json, FilmListResponse)
 
         return list_films  # type: ignore
 
@@ -64,7 +64,7 @@ class FilmSupplier:
             )
             return response_data
 
-    async def _convert_to_model(
+    def _convert_to_model(
         self, json: dict, model: type[GenreResponse] | type[FilmListResponse]
     ) -> list[GenreResponse | FilmListResponse]:
         """Преобразует JSON-ответ в список объектов модели."""

@@ -34,9 +34,9 @@ class EmbeddingSupplier:
             embedding_response = response.json()
             logger.info(f"Получен ответ на запрос эмбеддинга: {embedding_response}")
 
-            return await self._decode_embedding(embedding_response)
+            return self._decode_embedding(embedding_response)
 
-    async def _decode_embedding(self, embedding_response: dict) -> list[float]:
+    def _decode_embedding(self, embedding_response: dict) -> list[float]:
         """Декодирует эмбеддинг из ответа сервиса."""
 
         # Example response: {"id": "1234", "embedding": "<base64_string>"}
