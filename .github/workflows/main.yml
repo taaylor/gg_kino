@@ -2,10 +2,9 @@ name: Kinoservice Workflow
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   test-lint:
     runs-on: ubuntu-latest
 
@@ -15,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -24,19 +23,20 @@ jobs:
 
       - name: Test lint
         run: |
-          flake8 services/notification-service/src services/content-actions-service/src services/ws_notification-service/src services/embedding-service/src \
+          flake8 services/notification-service/src services/content-actions-service/src services/ws_notification-service/src services/nl-consumer/src services/embedding-service/src \
           --max-line-length=100 \
           --extend-ignore=E203,W503,C812,C813,C814,C815S,C816,WPS300,WPS111,WPS431,WPS226,WPS110,WPS404,WPS601,WPS237,WPS202,WPS115,WPS201,WPS232,WPS432,WPS229 \
           --select=WPS \
-          --exclude=services/notification-service/src/migration/*,services/notification-service/src/alembic/* \
+          --exclude=*/migration/*,*/alembic/* \
           --format=html \
           --htmldir=flake-report
           mypy services/content-actions-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
           mypy services/notification-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
           mypy services/ws_notification-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
+          mypy services/nl-consumer/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
           mypy services/embedding-service/src --config-file=pyproject.toml --no-implicit-reexport --explicit-package-bases
 
-      - name: Upload flake8 report  # выгружает отчеты по flake8
+      - name: Upload flake8 report # выгружает отчеты по flake8
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -55,39 +55,39 @@ jobs:
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Download docker-compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        docker-compose --version
+      - name: Download docker-compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
-    - name: Installing missing components for testing
-      run: |
-        mv .env.example .env
-        mkdir -p services/auth-service/src/core/keys
-        printf '%s' "$PUBLIC_KEY" > services/auth-service/src/core/keys/public.pem
-        printf '%s' "$PRIVATE_KEY" > services/auth-service/src/core/keys/private.pem
-        chmod 600 services/auth-service/src/core/keys/private.pem
-        chmod 644 services/auth-service/src/core/keys/public.pem
+      - name: Installing missing components for testing
+        run: |
+          mv .env.example .env
+          mkdir -p services/auth-service/src/core/keys
+          printf '%s' "$PUBLIC_KEY" > services/auth-service/src/core/keys/public.pem
+          printf '%s' "$PRIVATE_KEY" > services/auth-service/src/core/keys/private.pem
+          chmod 600 services/auth-service/src/core/keys/private.pem
+          chmod 644 services/auth-service/src/core/keys/public.pem
 
-    - name: Start tests content-actions-api
-      run: make test-content-service-ci PYTHON_VERSION=${{ matrix.python-version }}
+      - name: Start tests content-actions-api
+        run: make test-content-service-ci PYTHON_VERSION=${{ matrix.python-version }}
 
-    - name: Start tests metrics-service
-      run: make test-metrics-service-ci PYTHON_VERSION=${{ matrix.python-version }}
+      - name: Start tests metrics-service
+        run: make test-metrics-service-ci PYTHON_VERSION=${{ matrix.python-version }}
 
-    - name: Start tests auth-api
-      run: make test-auth-api-ci PYTHON_VERSION=${{ matrix.python-version }}
+      - name: Start tests auth-api
+        run: make test-auth-api-ci PYTHON_VERSION=${{ matrix.python-version }}
 
-    - name: Start tests async-api
-      run: make test-async-api-ci PYTHON_VERSION=${{ matrix.python-version }}
+      - name: Start tests async-api
+        run: make test-async-api-ci PYTHON_VERSION=${{ matrix.python-version }}
 
   notify-success:
     runs-on: ubuntu-latest
-    needs: [test-lint, build-and-test]  # Зависит от всех предыдущих задач
-    if: success()  # Выполняется только при успехе
+    needs: [test-lint, build-and-test] # Зависит от всех предыдущих задач
+    if: success() # Выполняется только при успехе
     steps:
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
@@ -98,8 +98,8 @@ jobs:
 
   notify-failure:
     runs-on: ubuntu-latest
-    needs: [test-lint, build-and-test]  # Зависит от всех предыдущих задач
-    if: failure()  # Выполняется только при провале
+    needs: [test-lint, build-and-test] # Зависит от всех предыдущих задач
+    if: failure() # Выполняется только при провале
     steps:
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master

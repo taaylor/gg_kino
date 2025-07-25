@@ -1,0 +1,34 @@
+services:
+  ollama:
+    container_name: ollama
+    build:
+      context: ./LLM
+      dockerfile: ./LLM-DOCKERFILE
+    env_file:
+      - ../../../.env
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      - LLM_MODEL=${LLM_MODEL:-llama3}
+      - OLLAMA_KEEP_ALIVE=-1 # Время жизни модели в памяти, по дефолту выгружается через 5 минут.
+    # deploy: # Раздел для запуска на видеокарте. Оставил с информационной целью. Сейчас модель запускается на CPU из-за этого работает медленно.
+    #   resources: # Чтобы работал запуск на видеокарте нужно установить NVIDIA Container Toolkit
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: >
+        sh -c "curl -s http://localhost:11434/api/ps |
+            grep -q '\"name\":\"${LLM_MODEL:-llama3}'"
+      interval: 30s
+      timeout: 10s
+      retries: 20
+    restart: "always"
+
+
+volumes:
+  ollama:

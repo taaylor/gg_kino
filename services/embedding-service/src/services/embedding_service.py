@@ -24,7 +24,10 @@ class EmbeddingService:
         embeddings_obj = []
         for object in list_objects:
             embedding = self.ai_model.encode(object.text, convert_to_tensor=False)
-            logger.info(f"Для объекта с идентификатором {object.id} сформирован {embedding=}")
+            logger.info(
+                f"Для объекта с идентификатором {object.id}"
+                f"сформирован {embedding=}, размерность {len(embedding)}"
+            )
             embedding_base64 = base64.b64encode(embedding.astype(np.float32).tobytes()).decode(
                 "utf-8"
             )
