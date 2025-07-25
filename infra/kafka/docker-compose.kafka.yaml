@@ -100,7 +100,9 @@ services:
         /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_COMMENT_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
         /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_WATCH_PROGRESS_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
         /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_WATCH_LIST_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
-        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_OTHER_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_OTHER_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_REC_BOOKMARKS_LIST_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000 &&
+        /opt/bitnami/kafka/bin/kafka-topics.sh --create --bootstrap-server kafka-0:9092 --topic $$KAFKA_REC_RATINGS_FILMS_TOPIC --partitions 3 --replication-factor 2 --config delete.retention.ms=3600000
       "
 
 
