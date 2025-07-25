@@ -1,20 +1,19 @@
 import logging
 
+import backoff
 import httpx
 from core.config import app_config
 from models.enums import HttpMethods
 from models.logic_models import FilmListResponse, GenreResponse
 from pydantic import TypeAdapter
+from suppliers.base_supplier import BaseSupplier
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
 
 logger = logging.getLogger(__name__)
 
 
-class FilmSupplier:
-    def __init__(self, timeout: int = 30) -> None:
-        self.timeout = timeout
+class FilmSupplier(BaseSupplier):
 
-    @handle_http_errors(service_name=app_config.filmapi.host)
     async def fetch_genres(self) -> set[str]:
         """Получает список жанров фильмов из внешнего API."""
         url = app_config.filmapi.get_genre_url
@@ -25,7 +24,6 @@ class FilmSupplier:
 
         return {genre.name for genre in list_genres}  # type: ignore
 
-    @handle_http_errors(service_name=app_config.filmapi.host)
     async def fetch_films(self, vector: list[float]) -> list[FilmListResponse]:
         """Получает список фильмов, соответствующих заданному вектору эмбеддинга."""
         url = app_config.filmapi.get_film_url
@@ -36,6 +34,13 @@ class FilmSupplier:
 
         return list_films  # type: ignore
 
+    @backoff.on_exception(
+        backoff.expo,
+        (httpx.RequestError, httpx.HTTPStatusError),
+        max_tries=3,
+        jitter=backoff.full_jitter,
+    )
+    @handle_http_errors(service_name=app_config.filmapi.host)
     async def _make_request(self, method: HttpMethods, url: str, data: dict | None = None) -> dict:
         """Выполняет HTTP-запрос к внешнему API."""
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:

@@ -1,19 +1,25 @@
 import logging
 
+import backoff
 import httpx
 from core.config import app_config
 from models.logic_models import LlmResponse
 from pydantic import ValidationError
+from suppliers.base_supplier import BaseSupplier
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
 
 logger = logging.getLogger(__name__)
 
 
-class LlmSupplier:
-    def __init__(self, timeout: int = 120) -> None:
-        self.timeout = timeout
+class LlmSupplier(BaseSupplier):
 
-    @handle_http_errors(service_name=app_config.llm.host)
+    @backoff.on_exception(
+        backoff.expo,
+        (httpx.RequestError, httpx.HTTPStatusError),
+        max_tries=3,
+        jitter=backoff.full_jitter,
+    )
+    @handle_http_errors(service_name=app_config.filmapi.host)
     async def execute_nlp(self, genres: set[str], query: str) -> LlmResponse:  # noqa: WPS210
         """Выполняет запрос к LLM для обработки пользовательского запроса."""
 
@@ -54,4 +60,4 @@ class LlmSupplier:
 
 def get_llm_supplier() -> LlmSupplier:
     """Возвращает экземпляр поставщика LLM."""
-    return LlmSupplier()
+    return LlmSupplier(app_config.llm.timeout)

@@ -1,20 +1,26 @@
 import base64
 import logging
 
+import backoff
 import httpx
 import numpy as np
 from core.config import app_config
 from models.logic_models import QueryModel
+from suppliers.base_supplier import BaseSupplier
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
 
 logger = logging.getLogger(__name__)
 
 
-class EmbeddingSupplier:
-    def __init__(self, timeout: int = 30) -> None:
-        self.timeout = timeout
+class EmbeddingSupplier(BaseSupplier):
 
-    @handle_http_errors(service_name=app_config.llm.host)
+    @backoff.on_exception(
+        backoff.expo,
+        (httpx.RequestError, httpx.HTTPStatusError),
+        max_tries=3,
+        jitter=backoff.full_jitter,
+    )
+    @handle_http_errors(service_name=app_config.filmapi.host)
     async def fetch_embedding(self, query: str) -> list[float]:  # noqa: WPS210
         """Отправляет запрос на получение эмбеддинга для заданного текста."""
 

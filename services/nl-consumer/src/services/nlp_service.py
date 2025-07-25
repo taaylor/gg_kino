@@ -46,7 +46,7 @@ class NlpService(BaseService):
 
         llm_resp = await self.llm_client.execute_nlp(genres, request_body.query)
 
-        if llm_resp.status == "OK":
+        if llm_resp.status == ProcessingStatus.OK:
             llm_resp_status = ProcessingStatus.OK
             embedding = await self._fetch_embedding(request_body.query)
             raw_films = await self._fetch_films(embedding)
@@ -94,7 +94,7 @@ class NlpService(BaseService):
 
     async def _write_result_to_repository(self, processing_result: ProcessedNpl) -> None:
         """Сохраняет результат обработки запроса в базу данных."""
-        await self.repository.create_object(self.session, processing_result)
+        await self.repository.create_entity(self.session, processing_result)
         logger.info(
             f"В БД записан результат обработки пользовательского запроса {processing_result.id}"
         )

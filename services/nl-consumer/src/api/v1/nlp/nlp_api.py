@@ -18,7 +18,7 @@ router = APIRouter()
                 пользователя и передаёт запрос в сервис NLP для анализа.
                 """,
 )
-async def process_query(
+async def fetch_films_by_user_query(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
     service: Annotated[NlpService, Depends(get_nlp_service)],
     request_body: Annotated[RecsRequest, Body],

@@ -10,11 +10,11 @@ class BaseRepository[T: Base]:
         self.model = model
 
     @sqlalchemy_universal_decorator
-    async def create_object(
+    async def create_entity(
         self,
         session: AsyncSession,
-        object: T,
+        entity: T,
     ) -> T:
-        session.add(object)
+        session.add(entity)
         await session.flush()
-        return object
+        return entity

@@ -14,6 +14,7 @@ class LLM(BaseModel):
     port: int = 11434
     path: str = "/api/generate"
     model: str = "llama3"
+    timeout: int = 120
 
     @property
     def get_url(self) -> str:
