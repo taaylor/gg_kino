@@ -17,7 +17,7 @@ class Server(BaseModel):
 
 class AIModel(BaseModel):
     name: str = "paraphrase-multilingual-MiniLM-L12-v2"
-    truncate_dim: int = 768
+    truncate_dim: int = 384
 
 
 class AppConfig(BaseSettings):

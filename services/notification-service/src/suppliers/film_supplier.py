@@ -14,7 +14,7 @@ class FilmSupplier:
     def __init__(self, timeout: int = 30) -> None:
         self.timeout = timeout
 
-    @handle_http_errors(service_name=app_config.profileapi.host)
+    @handle_http_errors(service_name=app_config.filmapi.host)
     async def fetch_films(self, film_ids: set[UUID]) -> list[Film]:  # noqa: WPS210
         logger.info(f"Получение фильмов: {len(film_ids)} " f"от сервиса {app_config.filmapi.host}")
 
