@@ -61,7 +61,10 @@ class RedisCache(Cache):
         logger.debug(f"Объект будет удален в кеше по {key=}")
 
 
-async def get_cache(cache_conn) -> Cache:
-    # if cache_conn is None:
-    #     raise ValueError("Cache не инициализирован")
+cache_conn: Redis | None = None
+
+
+async def get_cache() -> Cache:
+    if cache_conn is None:
+        raise ValueError("Cache не инициализирован")
     return RedisCache(cache_conn)

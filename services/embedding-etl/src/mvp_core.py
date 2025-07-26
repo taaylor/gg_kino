@@ -96,26 +96,30 @@ embedding_2 = np.frombuffer(embedding_bytes, dtype=float)
 #     search_after = result["hits"]["hits"][-1]["sort"]
 
 import asyncio
-import base64
 
 # import json
 import time
 
-# import logging
-from typing import Any
-
 # import backoff
-import httpx
-import numpy as np
+# import httpx
+from connectors import lifespan
 from core.config import app_config
 from core.logger_config import get_logger
 from db.cache import get_cache
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.helpers import async_bulk
+from db.elastic import get_elastic_repository
+
+# from elasticsearch import AsyncElasticsearch
+# from elasticsearch.helpers import async_bulk
 from extract import get_extractor_films
-from httpx import HTTPStatusError, RequestError
-from redis.asyncio import Redis
+from load import get_loader_films
+
+# from httpx import HTTPStatusError, RequestError
+# from redis.asyncio import Redis
 from transform import get_transformer_films
+
+# import logging
+# from typing import Any
+
 
 # from pprint import pprint as pp
 
@@ -130,245 +134,57 @@ URL_TO_EMBEDDING_PROD = (
 )
 
 
-# @backoff.on_exception(
-#     backoff.expo,
-#     exception=(
-#         HTTPStatusError,
-#         RequestError,
-#     ),
-#     max_tries=8,
-#     raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
-#     on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
-#         (
-#             f"Повтор {details["tries"]} попытка для"
-#             f" {details["target"].__name__}. Ошибка: {details["exception"]}"
-#         )
-#     ),
-#     on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
-#         f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
-#     ),
-# )
-async def post_request(
-    url: str,
-    json_data: dict[str, Any] | list[Any],
-    timeout: float = 10,
-    # **kwargs: Any,
-) -> dict[str, Any] | list[Any]:
-    """
-    Выполняет POST-запрос с передачей JSON-данных.
-
-    :param url: Адрес запроса.
-    :param json_data: Данные для отправки в теле запроса.
-    :param timeout: Таймаут в секундах.
-    :param kwargs: Дополнительные параметры httpx.
-
-    :return: Распарсенный JSON-ответ или пустой список в случае ошибки.
-    """
-    result = []
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                url=url,
-                json=json_data,
-                timeout=timeout,
-                # **kwargs
-            )
-            response.raise_for_status()
-            result = response.json()
-        except HTTPStatusError as e:
-            logger.error(f"POST запрос по {url} вернул статус код {e.response.status_code}")
-            raise e
-        except RequestError as e:
-            logger.error(f"POST запрос по {url} получил ошибку: {e!r}")
-            raise e
-        return result
-
-
-async def get_embedding_from_service(data_for_sending):
-
-    pass
-
-
-def build_embedding_text(doc):
-    # TODO: потом переписать, чтобы не словарь передавался, а pydantic модель
-    # {title}. {genres}. {description}. {rating_text}.
-    template_embedding = "{title}. {genres}. {description} {rating_text}"
-    title = doc.get("title", "")
-    genres = ", ".join(doc.get("genres_names", ""))
-    description = doc.get("description", None) if doc.get("description", None) else ""
-    # TODO: вынести уровень рейтинга для High rating в app_config
-    rating_text = doc.get("imdb_rating", 5)
-    if rating_text is not None:
-        rating_text = "High rating." if rating_text >= 7 else ""
-    # TODO: вынести template_embedding в app_config
-    return template_embedding.format(
-        title=title,
-        genres=genres,
-        description=description,
-        rating_text=rating_text,
-    )
-
-
-def decode_embedding_b64(emb):
-    embedding_bytes = base64.b64decode(emb)
-    return list(map(float, np.frombuffer(embedding_bytes, dtype=np.float32)))
-
-
 async def main():
-    # return f"http://{self.host}:{self.port}"
-    elastic_client = AsyncElasticsearch("http://localhost:9200")
-    cache_conn = Redis(
-        host="localhost",
-        # host=app_config.redis.host,
-        port=app_config.redis.port,
-        db=app_config.redis.db,
-        decode_responses=True,
-        username=app_config.redis.user,
-        password=app_config.redis.password,
-        socket_connect_timeout=5,
-        socket_timeout=5,
-        retry_on_error=False,
-        retry_on_timeout=False,
-    )
-    cache = await get_cache(cache_conn)
-    if last_run := await cache.get(LAST_RUN):
-        # a = 1
-        last_run = int(last_run)
-        logger.info(f"Время last_run: {last_run}")
-    else:
-        last_run = int(time.time() * 1000)
-    run_start = int(time.time() * 1000)
-    search_after = None
-    template_embedding = "{title}. {genres}. {description} {rating_text}"
-    url_for_embedding = URL_TO_EMBEDDING_LOC
-    while True:
-        # a = 1
-        extractor = get_extractor_films()
-        # if search_after is not None:
-        #     query["search_after"] = search_after
-        films_in_hits = await extractor.execute_search_query(
-            last_run,
-            run_start,
-            search_after,
-            batch_size=10,
-        )
-        if not extractor.get_films_count(films_in_hits):
-            break
-        films = extractor.get_films_from_hits(films_in_hits)
+    async with lifespan():
+        cache = await get_cache()
+        elastic_repository = get_elastic_repository()
+        if last_run := await cache.get(LAST_RUN):
+            last_run = int(last_run)
+            logger.info(f"Время last_run: {last_run}")
+        else:
+            last_run = int(time.time() * 1000)
+        run_start = int(time.time() * 1000)
+        extractor = get_extractor_films(elastic_repository)
         transformer = get_transformer_films(
-            template_embedding,
-            url_for_embedding,
+            app_config.template_embedding,
+            app_config.url_for_embedding_loc,
         )
-        payload_response = transformer.execute_transform(films)
+        loader = get_loader_films(elastic_repository)
+        while True:
+            films = await extractor.execute_extraction(
+                last_run,
+                run_start,
+                batch_size=10,
+            )
+            if not len(films):
+                break
+            transformed_films = transformer.execute_transformation(films)
+            success_count, errors = await loader.execute_loading(
+                films=transformed_films,
+                run_start=run_start,
+                batch_size=100,
+            )
+            logger.info(
+                (
+                    f"Документы успешно обновились в количестве {success_count}"
+                    f"количество ошибок: {len(errors)}"
+                )
+            )
+            if errors:
+                logger.error(f"Ошибки при обновлении: {errors}")
 
-        # query = {
-        #     # "size": 500,
-        #     "size": 10,
-        #     "sort": [{"updated_at": "asc"}, {"id": "asc"}],
-        #     "query": {
-        #         "range": {
-        #             "updated_at": {
-        #                 "gt": last_run,
-        #                 # "lte": run_start
-        #                 "lte": 1763197091699,
-        #             }
-        #         }
-        #     },
-        #     # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
-        # }
-        # if search_after is not None:
-        #     query["search_after"] = search_after
-        # documents = await elastic_client.search(index="movies", body=query)
-        # if not documents["hits"]["total"]["value"]:
-        #     break
-        # проверка нужна потому что последний ["hits"]["hits"] выдаёт пустой список
-        # if len(documents["hits"]["hits"]) > 0:
-        #     search_after = documents["hits"]["hits"][-1]["sort"]
-        # parsed_documents = [source["_source"]
-        #                     for source in documents["hits"]["hits"]]
-        # embedding_texts = [
-        #     {
-        #         "id": doc["id"],
-        #         "text": build_embedding_text(doc),
-        #     }
-        #     for doc in parsed_documents
-        # ]
-        # payload = {"objects": embedding_texts}
-        """
-        async def post_request(
-        url: str,
-        json_data: dict[str, Any] | list[Any],
-
-        """
-        # ! -=-=-=-=-=- httpx -=-=-=-=-=-
-        # payload_response = await post_request(
-        #     url=URL_TO_EMBEDDING_LOC,
-        #     json_data=payload,
-        #     # json_data=json.dumps(payload),
-        # )
-        # ! -=-=-=-=-=- httpx -=-=-=-=-=-
-        # ? -=-=-=-=-=- requests -=-=-=-=-=-
-        # payload_response = requests.post(
-        #     url=URL_TO_EMBEDDING_LOC, json=payload)
-        # ? -=-=-=-=-=- requests -=-=-=-=-=-
-        # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
-        # настроить цикл основной логики работы сервиса
-        """
-        {'body': {'objects': [{'id': '0312ed51-8833-413f-bff5-0e139c11264a',
-                       'text': 'Star Wars: Episode V - The Empire Strikes '
-                               'Back. Adventure, Action, Fantasy, Sci-Fi. Luke '
-                               'Skywalker, Han Solo, Princess Leia and '
-                               'Chewbacca face attack by the Imperial forces '
-                               'and its AT-AT walkers on the ice planet Hoth. '
-                               'While Han and Leia escape in the Millennium '
-                               'Falcon, Luke travels to Dagobah in search of '
-                               "Yoda. Only with the Jedi master's help will "
-                               'Luke survive when the dark side of the Force '
-                               'beckons him into the ultimate duel with Darth '
-                               'Vader. High rating.'},
-        """
-        data_for_update = [
-            {
-                "_op_type": "update",
-                "_index": "movies",
-                "_id": item["id"],
-                "doc": {
-                    "embedding": decode_embedding_b64(item["embedding"]),
-                    "updated_at": run_start,
-                },
-            }
-            for item in payload_response  # для httpx
-        ]
-        success_count, errors = await async_bulk(
-            client=elastic_client,
-            actions=data_for_update,
-            chunk_size=100,  # максимальный размер чанка
-            max_retries=3,  # кол-во попыток в случае ошибок
-            raise_on_error=False,  # не бросать исключение, а возвращать ошибки в списке
+        await cache.background_set(
+            key=LAST_RUN,
+            value=str(run_start),
+            expire=app_config.cache_expire_in_seconds,
         )
         logger.info(
             (
-                f"Документы успешно обновились в количестве {success_count}"
-                f"количество ошибок: {len(errors)}"
+                "ETL успешно отработал, кол-во шибок <поместить кол-во ошибок>"
+                "Новое время сохранено в Redis:"
+                f" LAST RUN - {LAST_RUN}:{run_start}"
             )
         )
-        if errors:
-            logger.error(f"Ошибки при обновлении: {errors}")
-
-    await cache.background_set(
-        key=LAST_RUN,
-        value=str(run_start),
-        expire=app_config.cache_expire_in_seconds,
-    )
-    logger.info(
-        (
-            "ETL успешно отработал, кол-во шибок <поместить кол-во ошибок>"
-            "Новое время сохранено в Redis:"
-            f" LAST RUN - {LAST_RUN}:{run_start}"
-        )
-    )
-    await elastic_client.close()
-    await cache_conn.aclose()
     return True
 
 

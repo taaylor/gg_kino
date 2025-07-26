@@ -1,7 +1,5 @@
-from typing import Any
-
 from core.logger_config import get_logger
-from db.elastic import ElasticDB, get_repository
+from db.elastic import ElasticDB
 
 logger = get_logger(__name__)
 
@@ -12,16 +10,20 @@ class ExtractorFilms:
 
     def __init__(self, repository: ElasticDB):
         self.repository = repository
+        self._search_after = None
 
-    async def execute_search_query(
+    async def execute_extraction(
         self,
         last_run: int,
         run_start: int,  # ! временная мера 1763197091699, потом убрать
-        search_after: list[Any] | None,
         batch_size: int,
     ):
         query = self._build_search_query(last_run, run_start)
-        return await self.repository.get_list(self.index, query, search_after, batch_size)
+        films_list = await self.repository.get_list(
+            self.index, query, self.search_after, batch_size
+        )
+        self.search_after = films_list["hits"]
+        return [source["_source"] for source in films_list["hits"]]
 
     @staticmethod
     def get_films_from_hits(hits_films):
@@ -31,9 +33,16 @@ class ExtractorFilms:
     def get_films_count(films):
         return films["total"]["value"]
 
-    @staticmethod
-    def get_search_after(films):
-        return films["hits"]["hits"][-1]["sort"]
+    @property
+    def search_after(self):
+        return self._search_after
+
+    @search_after.setter
+    def search_after(self, hits: list[dict]):
+        if not hits:
+            self._search_after = None
+        else:
+            self._search_after = hits[-1]["sort"]
 
     @staticmethod
     def _build_search_query(
@@ -58,5 +67,5 @@ class ExtractorFilms:
         return query
 
 
-def get_extractor_films(repository: ElasticDB = get_repository()):
+def get_extractor_films(repository: ElasticDB):
     return ExtractorFilms(repository)

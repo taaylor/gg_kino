@@ -1,41 +1,47 @@
-# from clickhouse_driver import Client
-# from clickhouse_driver.dbapi import DatabaseError
-# from core.logger_config import get_logger
-# from utils.decorators import backoff
+from core.logger_config import get_logger
+from db.elastic import ElasticDB
 
-# logger = get_logger(__name__)
+logger = get_logger(__name__)
 
 
-# @backoff(exception=(DatabaseError,))
-# def load_to_clickhouse(
-#     data: list[tuple],
-#     client: Client,
-#     database: str,
-#     table_name_dist: str,
-# ):
-#     """Загружает данные в ClickHouse.
+class LoaderFilms:
 
-#     :param data: Список кортежей с данными.
-#     :param database: Имя базы данных.
-#     :param table_name_dist: Имя таблицы в ClickHouse.
-#     """
-#     client.execute(
-#         f"""
-#         INSERT INTO {database}.{table_name_dist}
-#         (
-#             user_session,
-#             user_uuid,
-#             user_agent,
-#             ip_address,
-#             film_uuid,
-#             event_params,
-#             event_type,
-#             message_event,
-#             event_timestamp,
-#             user_timestamp
-#         )
-#         VALUES
-#         """,
-#         data,
-#     )
-#     logger.info(f"Загружено {len(data)} записей в таблицу {database}.{table_name_dist}")
+    def __init__(self, repository: ElasticDB):
+        self.repository = repository
+
+    @staticmethod
+    def _build_update_query(
+        films: list[dict[str, str]],
+        run_start: int,
+    ) -> list[dict[str, str]]:
+
+        query = [
+            {
+                "_op_type": "update",
+                "_index": "movies",
+                "_id": film["id"],
+                "doc": {
+                    "embedding": film["embedding"],
+                    "updated_at": run_start,
+                },
+            }
+            for film in films  # для httpx
+        ]
+        return query
+
+    async def execute_loading(
+        self,
+        films: list[dict[str, str]],
+        run_start: int,  # ! временная мера 1763197091699, потом убрать
+        batch_size: int,
+        raise_on_error: bool = False,
+    ):
+        query = self._build_update_query(films, run_start)
+        success_count, errors = await self.repository.bulk_operation(
+            query, batch_size, raise_on_error=raise_on_error
+        )
+        return success_count, errors
+
+
+def get_loader_films(repository: ElasticDB):
+    return LoaderFilms(repository)

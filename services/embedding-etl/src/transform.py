@@ -1,7 +1,9 @@
+import base64
 from typing import Any
 
 import backoff
 import httpx
+import numpy as np
 import requests
 
 # from core.config import app_config
@@ -76,9 +78,18 @@ class TransformerFilms:
             return payload_response.json()
         return []
 
-    def execute_transform(self, films):
+    def execute_transformation(self, films):
         payload = self._get_payload_for_embedding(films)
-        return self._sync_post_request(url=self.url_for_embedding, json=payload)
+        # payload_response = await post_request(
+        #     url=URL_TO_EMBEDDING_LOC,
+        #     json_data=payload,
+        #     # json_data=json.dumps(payload),
+        # )
+        payload_response = self._sync_post_request(url=self.url_for_embedding, json=payload)
+        return [
+            {"id": film["id"], "embedding": self._decode_embedding_b64(film["embedding"])}
+            for film in payload_response
+        ]
 
     def _get_payload_for_embedding(self, films):
         embedding_texts = [
@@ -111,6 +122,12 @@ class TransformerFilms:
             description=description,
             rating_text=rating_text,
         )
+
+    @staticmethod
+    def _decode_embedding_b64(emb):
+        embedding_bytes = base64.b64decode(emb)
+        # return list(map(float, np.frombuffer(embedding_bytes, dtype=np.float32)))
+        return list(np.frombuffer(embedding_bytes, dtype=float))
 
 
 def get_transformer_films(template_embedding: str, url_for_embedding: str):

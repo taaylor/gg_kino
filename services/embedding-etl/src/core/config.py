@@ -46,6 +46,13 @@ class AppConfig(BaseSettings):
             minute=0, hour=9, day_of_week="fri"
         ),  # каждую неделю в пятницу утром
     }
+    template_embedding: str = "{title}. {genres}. {description} {rating_text}"
+    url_for_embedding_loc: str = (
+        "http://localhost:8007/embedding-service/api/v1/embedding/fetch-embeddings"
+    )
+    url_for_embedding_prod: str = (
+        "http://embedding-service:8007/embedding-service/api/v1/embedding/fetch-embeddings"
+    )
 
     elastic: Elastic = Elastic()
     redis: Redis = Redis()

@@ -3,7 +3,6 @@ import logging
 from functools import lru_cache
 from typing import Annotated
 
-import numpy as np
 from api.v1.schemas import EmbeddingRequest, EmbeddingResponse
 from fastapi import Depends
 from sentence_transformers import SentenceTransformer
@@ -28,9 +27,7 @@ class EmbeddingService:
                 f"Для объекта с идентификатором {object.id}"
                 f"сформирован {embedding=}, размерность {len(embedding)}"
             )
-            embedding_base64 = base64.b64encode(embedding.astype(np.float32).tobytes()).decode(
-                "utf-8"
-            )
+            embedding_base64 = base64.b64encode(embedding.astype(float).tobytes()).decode("utf-8")
             embeddings_obj.append(EmbeddingResponse(id=object.id, embedding=embedding_base64))
         return embeddings_obj
 
