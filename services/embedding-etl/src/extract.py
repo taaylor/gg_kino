@@ -70,7 +70,6 @@ class ExtractorFilms:
                                 "updated_at": {
                                     "gt": last_run,
                                     "lte": run_start,
-                                    # "lte": 1763197091699,
                                 }
                             }
                         },
