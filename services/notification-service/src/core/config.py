@@ -50,11 +50,11 @@ class ProfileApi(BaseModel):
 class FilmApi(BaseModel):
     host: str = "localhost"
     port: int = 8001
-    profile_path: str = "/async/api/v1/internal/fetch-films"
+    film_path: str = "/async/api/v1/internal/fetch-films"
 
     @property
     def get_film_url(self) -> str:
-        return f"http://{self.host}:{self.port}{self.profile_path}"
+        return f"http://{self.host}:{self.port}{self.film_path}"
 
 
 class Redis(BaseModel):

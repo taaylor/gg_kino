@@ -107,14 +107,15 @@ from typing import Any
 # import backoff
 import httpx
 import numpy as np
-import requests
 from core.config import app_config
 from core.logger_config import get_logger
 from db.cache import get_cache
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
+from extract import get_extractor_films
 from httpx import HTTPStatusError, RequestError
 from redis.asyncio import Redis
+from transform import get_transformer_films
 
 # from pprint import pprint as pp
 
@@ -123,9 +124,9 @@ logger = get_logger(__name__)
 
 RUN_START = "embedding-etl:unix_timestamp:run_start"
 LAST_RUN = "embedding-etl:unix_timestamp:last-run"
-URL_TO_EMBEDDING_LOC = "http://localhost:8000/embedding-service/api/v1/embedding/fetch-embeddings"
+URL_TO_EMBEDDING_LOC = "http://localhost:8007/embedding-service/api/v1/embedding/fetch-embeddings"
 URL_TO_EMBEDDING_PROD = (
-    "http://embedding-service:8000/embedding-service/api/v1/embedding/fetch-embeddings"
+    "http://embedding-service:8007/embedding-service/api/v1/embedding/fetch-embeddings"
 )
 
 
@@ -238,40 +239,61 @@ async def main():
         last_run = int(time.time() * 1000)
     run_start = int(time.time() * 1000)
     search_after = None
+    template_embedding = "{title}. {genres}. {description} {rating_text}"
+    url_for_embedding = URL_TO_EMBEDDING_LOC
     while True:
         # a = 1
-        query = {
-            # "size": 500,
-            "size": 10,
-            "sort": [{"updated_at": "asc"}, {"id": "asc"}],
-            "query": {
-                "range": {
-                    "updated_at": {
-                        "gt": last_run,
-                        # "lte": run_start
-                        "lte": 1763197091699,
-                    }
-                }
-            },
-            # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
-        }
-        if search_after is not None:
-            query["search_after"] = search_after
-        documents = await elastic_client.search(index="movies", body=query)
-        if not documents["hits"]["total"]["value"]:
+        extractor = get_extractor_films()
+        # if search_after is not None:
+        #     query["search_after"] = search_after
+        films_in_hits = await extractor.execute_search_query(
+            last_run,
+            run_start,
+            search_after,
+            batch_size=10,
+        )
+        if not extractor.get_films_count(films_in_hits):
             break
+        films = extractor.get_films_from_hits(films_in_hits)
+        transformer = get_transformer_films(
+            template_embedding,
+            url_for_embedding,
+        )
+        payload_response = transformer.execute_transform(films)
+
+        # query = {
+        #     # "size": 500,
+        #     "size": 10,
+        #     "sort": [{"updated_at": "asc"}, {"id": "asc"}],
+        #     "query": {
+        #         "range": {
+        #             "updated_at": {
+        #                 "gt": last_run,
+        #                 # "lte": run_start
+        #                 "lte": 1763197091699,
+        #             }
+        #         }
+        #     },
+        #     # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
+        # }
+        # if search_after is not None:
+        #     query["search_after"] = search_after
+        # documents = await elastic_client.search(index="movies", body=query)
+        # if not documents["hits"]["total"]["value"]:
+        #     break
         # проверка нужна потому что последний ["hits"]["hits"] выдаёт пустой список
-        if len(documents["hits"]["hits"]) > 0:
-            search_after = documents["hits"]["hits"][-1]["sort"]
-        parsed_documents = [source["_source"] for source in documents["hits"]["hits"]]
-        embedding_texts = [
-            {
-                "id": doc["id"],
-                "text": build_embedding_text(doc),
-            }
-            for doc in parsed_documents
-        ]
-        payload = {"objects": embedding_texts}
+        # if len(documents["hits"]["hits"]) > 0:
+        #     search_after = documents["hits"]["hits"][-1]["sort"]
+        # parsed_documents = [source["_source"]
+        #                     for source in documents["hits"]["hits"]]
+        # embedding_texts = [
+        #     {
+        #         "id": doc["id"],
+        #         "text": build_embedding_text(doc),
+        #     }
+        #     for doc in parsed_documents
+        # ]
+        # payload = {"objects": embedding_texts}
         """
         async def post_request(
         url: str,
@@ -286,7 +308,8 @@ async def main():
         # )
         # ! -=-=-=-=-=- httpx -=-=-=-=-=-
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
-        payload_response = requests.post(url=URL_TO_EMBEDDING_LOC, json=payload)
+        # payload_response = requests.post(
+        #     url=URL_TO_EMBEDDING_LOC, json=payload)
         # ? -=-=-=-=-=- requests -=-=-=-=-=-
         # разобраться, почему так он сохраняет - 1.0, 0.0, а так нет 0.01231334342
         # настроить цикл основной логики работы сервиса
@@ -314,8 +337,7 @@ async def main():
                     "updated_at": run_start,
                 },
             }
-            # for item in payload_response  # для httpx
-            for item in payload_response.json()  # для requests
+            for item in payload_response  # для httpx
         ]
         success_count, errors = await async_bulk(
             client=elastic_client,

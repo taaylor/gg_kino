@@ -8,6 +8,7 @@ include:
   - ./services/metric-service/docker-compose.metric-services.yml
   - ./services/event-generator/docker-compose.event-generator.yml
   - ./services/email-sender/docker-compose.email-sender.yml
+  - ./services/nl-consumer/src/docker-compose.llm.yml
 
 services:
   elasticsearch:
@@ -184,6 +185,8 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
+    expose:
+      - "8008:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
       interval: 10s
@@ -239,7 +242,7 @@ services:
     restart: "always"
 
   postgres:
-    container_name: postgres-container
+    container_name: postgres
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -291,7 +294,7 @@ services:
         condition: service_healthy
       async-api:
         condition: service_healthy
-    ports:
+    expose:
       - "8001:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/notification/openapi"]
@@ -330,14 +333,14 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     expose:
-      - "8000:8000"
+      - "8007:8000"
     ports:
-      - "8000:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "8007:8000"
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
+    #   interval: 10s
+    #   timeout: 20s
+    #   retries: 10
     restart: "always"
 
   ws-sender-worker:
@@ -359,6 +362,34 @@ services:
       rabbit-init:
         condition: service_completed_successfully
     restart: "always"
+
+  nl-consumer:
+    container_name: nl-consumer
+    build:
+      dockerfile: ./services/nl-consumer/src/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      ollama:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-api:
+        condition: service_healthy
+      async-api:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
+    expose:
+      - "8005:8000"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
 
   nginx:
     container_name: nginx
