@@ -35,11 +35,21 @@ class Redis(BaseModel):
         return f"redis://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_for_qeueu}"
 
 
+class EmbeddingApi(BaseModel):
+    host: str = "localhost"
+    port: str = 8007
+    path_to_fetch_embedding: str = "/embedding-service/api/v1/embedding/fetch-embeddings"
+
+    @property
+    def url_for_embedding(self):
+        return f"http://{self.host}:{self.port}{self.path_to_fetch_embedding}"
+
+
 class AppConfig(BaseSettings):
     project_name: str = "embedding-etl"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    cache_expire_in_seconds: int = 300
-    embedding_dims: int = 768
+    cache_expire_in_seconds: int = 60 * 60 * 25  # сутки + 1 час
+    embedding_dims: int = 384
     celery_intervals: dict = {
         "test_reminder_get_data": 10,  # каждые 10 сек.
         "reminder_get_fresh_films_each_friday": crontab(
@@ -47,13 +57,12 @@ class AppConfig(BaseSettings):
         ),  # каждую неделю в пятницу утром
     }
     template_embedding: str = "{title}. {genres}. {description} {rating_text}"
-    url_for_embedding_loc: str = (
-        "http://localhost:8007/embedding-service/api/v1/embedding/fetch-embeddings"
-    )
-    url_for_embedding_prod: str = (
-        "http://embedding-service:8007/embedding-service/api/v1/embedding/fetch-embeddings"
-    )
+    run_start_key: str = "embedding-etl:unix-timestamp:run-start"
+    last_run_key: str = "embedding-etl:unix-timestamp:last-run"
 
+    high_rating_level: int = 7
+
+    embedding_api: EmbeddingApi = EmbeddingApi()
     elastic: Elastic = Elastic()
     redis: Redis = Redis()
 

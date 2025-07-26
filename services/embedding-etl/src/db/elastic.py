@@ -39,11 +39,11 @@ class ElasticDB:
 
     async def bulk_operation(
         self,
-        actions,
+        actions: list[dict[str, str]],
         batch_size: int = 10,
         max_retries: int = 3,
         raise_on_error: bool = False,
-    ):
+    ) -> tuple[int, list[str]]:
         success_count, errors = await async_bulk(
             client=self.elastic,
             actions=actions,

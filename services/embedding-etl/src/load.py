@@ -1,5 +1,6 @@
 from core.logger_config import get_logger
 from db.elastic import ElasticDB
+from models.models_logic import EmbeddedFilm
 
 logger = get_logger(__name__)
 
@@ -11,7 +12,7 @@ class LoaderFilms:
 
     @staticmethod
     def _build_update_query(
-        films: list[dict[str, str]],
+        films_with_decd_embds: list[EmbeddedFilm],
         run_start: int,
     ) -> list[dict[str, str]]:
 
@@ -19,23 +20,23 @@ class LoaderFilms:
             {
                 "_op_type": "update",
                 "_index": "movies",
-                "_id": film["id"],
+                "_id": film.id,
                 "doc": {
-                    "embedding": film["embedding"],
+                    "embedding": film.embedding,
                     "updated_at": run_start,
                 },
             }
-            for film in films  # для httpx
+            for film in films_with_decd_embds
         ]
         return query
 
     async def execute_loading(
         self,
-        films: list[dict[str, str]],
-        run_start: int,  # ! временная мера 1763197091699, потом убрать
+        films: list[EmbeddedFilm],
+        run_start: int,
         batch_size: int,
         raise_on_error: bool = False,
-    ):
+    ) -> tuple[int, list[str]]:
         query = self._build_update_query(films, run_start)
         success_count, errors = await self.repository.bulk_operation(
             query, batch_size, raise_on_error=raise_on_error

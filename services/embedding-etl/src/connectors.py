@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 
 from core.config import app_config
+from core.logger_config import get_logger
 from db import cache, elastic
 from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -21,6 +24,7 @@ async def lifespan():
         retry_on_error=False,
         retry_on_timeout=False,
     )
+    logger.info(f"Успешная инициализация Redis: {cache.cache_conn}")
     elastic.es = AsyncElasticsearch(
         # app_config.elastic.get_es_host(),
         "http://localhost:9200",
@@ -28,4 +32,5 @@ async def lifespan():
     )
     yield
     await cache.cache_conn.close()
+    # await cache.cache_conn.aclose()
     await elastic.es.close()

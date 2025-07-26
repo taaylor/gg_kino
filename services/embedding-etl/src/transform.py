@@ -4,11 +4,11 @@ from typing import Any
 import backoff
 import httpx
 import numpy as np
-import requests
 
 # from core.config import app_config
 from core.logger_config import get_logger
 from httpx import HTTPStatusError, RequestError
+from models.models_logic import EmbeddedFilm, FilmLogic
 
 logger = get_logger(__name__)
 
@@ -37,7 +37,7 @@ class TransformerFilms:
             f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
         ),
     )
-    async def async_post_request(
+    async def _async_post_request(
         self,
         url: str,
         json: dict[str, Any] | list[Any],
@@ -68,33 +68,21 @@ class TransformerFilms:
                 raise e
             return result
 
-    def _sync_post_request(
-        self,
-        url: str,
-        json: dict[str, Any] | list[Any],
-    ):
-        payload_response = requests.post(url=url, json=json)
-        if payload_response.status_code == 200:
-            return payload_response.json()
-        return []
-
-    def execute_transformation(self, films):
+    async def execute_transformation(self, films: list[FilmLogic]) -> list[EmbeddedFilm]:
         payload = self._get_payload_for_embedding(films)
-        # payload_response = await post_request(
-        #     url=URL_TO_EMBEDDING_LOC,
-        #     json_data=payload,
-        #     # json_data=json.dumps(payload),
-        # )
-        payload_response = self._sync_post_request(url=self.url_for_embedding, json=payload)
+        filma_with_encd_embds = await self._async_post_request(
+            url=self.url_for_embedding,
+            json=payload,
+        )
         return [
-            {"id": film["id"], "embedding": self._decode_embedding_b64(film["embedding"])}
-            for film in payload_response
+            EmbeddedFilm(id=film["id"], embedding=self._decode_embedding_b64(film["embedding"]))
+            for film in filma_with_encd_embds
         ]
 
-    def _get_payload_for_embedding(self, films):
+    def _get_payload_for_embedding(self, films: list[FilmLogic]):
         embedding_texts = [
             {
-                "id": film["id"],
+                "id": film.id,
                 "text": self._build_embedding_text(film),
             }
             for film in films
@@ -103,30 +91,18 @@ class TransformerFilms:
 
     def _build_embedding_text(
         self,
-        film: list[dict[str, Any]],
+        film: FilmLogic,
     ):
-        # TODO: потом переписать, чтобы не словарь передавался, а pydantic модель
-        # {title}. {genres}. {description}. {rating_text}.
-        # template_embedding = "{title}. {genres}. {description} {rating_text}"
-        title = film.get("title", "")
-        genres = ", ".join(film.get("genres_names", ""))
-        description = film.get("description", None) if film.get("description", None) else ""
-        # TODO: вынести уровень рейтинга для High rating в app_config
-        rating_text = film.get("imdb_rating", 5)
-        if rating_text is not None:
-            rating_text = "High rating." if rating_text >= 7 else ""
-        # TODO: вынести template_embedding в app_config
         return self.template_embedding.format(
-            title=title,
-            genres=genres,
-            description=description,
-            rating_text=rating_text,
+            title=film.title,
+            genres=film.genres_names,
+            description=film.description,
+            rating_text=film.imdb_rating,
         )
 
     @staticmethod
-    def _decode_embedding_b64(emb):
+    def _decode_embedding_b64(emb: str) -> list[float]:
         embedding_bytes = base64.b64decode(emb)
-        # return list(map(float, np.frombuffer(embedding_bytes, dtype=np.float32)))
         return list(np.frombuffer(embedding_bytes, dtype=float))
 
 
