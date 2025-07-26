@@ -306,11 +306,6 @@ services:
       - "8000:8000"
     ports:
       - "8000:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: "always"
 
   ws-sender-worker:

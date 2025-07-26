@@ -84,8 +84,8 @@ class Kafka(BaseModel):
             f"{self.host3}:{self.port3}",
         ]
 
-    rec_bookmarks_list_topic: str = "rec_bookmarks_list_topic"
-    rec_user_ratings_films_topic: str = "rec_user_ratings_films_topic"
+    rec_bookmarks_list_topic: str = "user_content_add_film_to_bookmarks_event"
+    rec_user_ratings_films_topic: str = "user_content_users_ratings_films_event"
 
 
 class AppConfig(BaseSettings):

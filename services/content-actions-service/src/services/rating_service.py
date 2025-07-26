@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 from functools import lru_cache
@@ -131,10 +130,9 @@ class RatingService:
             updated_at=document.updated_at,
             score=document.score,
         )
-        asyncio.create_task(
-            self.message_broker.push_message(
-                topic=app_config.kafka.rec_user_ratings_films_topic, value=result.model_dump_json()
-            )
+        await self.message_broker.background_push_message(
+            value=result.model_dump_json(),
+            topic=app_config.kafka.rec_user_ratings_films_topic,
         )
         logger.debug(
             f"Пользователь - {str(user_id)}\n,"

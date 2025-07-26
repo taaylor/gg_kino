@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from functools import lru_cache
 from uuid import UUID
@@ -63,11 +62,9 @@ class BookmarkService:
                 created_at=inserted_bookmark.created_at,
                 updated_at=inserted_bookmark.updated_at,
             )
-            asyncio.create_task(
-                self.message_broker.push_message(
-                    topic=app_config.kafka.rec_bookmarks_list_topic,
-                    value=bookmark.model_dump_json(),
-                )
+            await self.message_broker.background_push_message(
+                topic=app_config.kafka.rec_bookmarks_list_topic,
+                value=bookmark.model_dump_json(),
             )
             return bookmark
         raise HTTPException(

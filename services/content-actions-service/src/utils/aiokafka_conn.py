@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from abc import ABC, abstractmethod
@@ -13,21 +14,24 @@ logger = logging.getLogger(__name__)
 
 class AIOMessageBroker(ABC):
 
+    async def background_push_message(self, *args, **kwargs):
+        """Создает фоновую задачу на отправку события в очередь"""
+        asyncio.create_task(self.push_message(*args, **kwargs))
+
     @abstractmethod
-    async def push_message(*args, **kwargs) -> bool:
+    async def push_message(self, *args, **kwargs) -> bool:
         """Отправляет сообщение в брокер"""
 
     @abstractmethod
-    async def connect(*args, **kwargs) -> None:
+    async def connect(self, *args, **kwargs) -> None:
         """Устанавливает соединение с брокером сообщений"""
 
-    async def disconnect(*args, **kwargs) -> None:
+    @abstractmethod
+    async def disconnect(self, *args, **kwargs) -> None:
         """Закрывает соединение с брокером сообщений"""
 
 
 class AIOKafkaConnector(AIOMessageBroker):  # noqa: WPS338
-
-    __slots__ = ("_producer",)
 
     @staticmethod
     def _json_serializer(value: Any) -> bytes:  # noqa: WPS602
