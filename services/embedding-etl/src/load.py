@@ -1,4 +1,4 @@
-from core.logger_config import get_logger
+from core.logger_config import get_logger, log_call
 from db.elastic import ElasticDB
 from models.models_logic import EmbeddedFilm
 
@@ -30,6 +30,7 @@ class LoaderFilms:
         ]
         return query
 
+    @log_call
     async def execute_loading(
         self,
         films: list[EmbeddedFilm],

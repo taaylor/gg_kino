@@ -1,4 +1,4 @@
-from core.logger_config import get_logger
+from core.logger_config import get_logger, log_call
 from db.elastic import ElasticDB
 from models.models_logic import FilmLogic
 
@@ -13,10 +13,11 @@ class ExtractorFilms:
         self.repository = repository
         self._search_after = None
 
+    @log_call
     async def execute_extraction(
         self,
         last_run: int,
-        run_start: int,  # ! временная мера 1763197091699, потом убрать
+        run_start: int,
         batch_size: int,
     ) -> list[FilmLogic]:
         query = self._build_search_query(last_run, run_start)
@@ -82,75 +83,6 @@ class ExtractorFilms:
                 }
             },
         }
-        # query = {
-        #     "_source": [
-        #         "id",
-        #         "title",
-        #         "genres_names",
-        #         "description",
-        #         "imdb_rating",
-        #         "updated_at",
-        #     ],
-        #     "sort": [
-        #         {"updated_at": "asc"},
-        #         {"id": "asc"},
-        #     ],
-        #     "query": {
-        #         "bool": {
-        #             "should": [
-        #                 {
-        #                     "range": {
-        #                         "updated_at": {
-        #                             "gt": last_run,
-        #                             "lte": 1763197091699,
-        #                         }
-        #                     }
-        #                 },
-        #                 {
-        #                     "bool": {
-        #                         "must_not": {
-        #                             "exists": {
-        #                                 "field": "embedding"
-        #                             }
-        #                         }
-        #                     }
-        #                 }
-        #             ],
-        #             "minimum_should_match": 1
-        #         }
-        #     }
-        # }
-        # "query": {
-        #     "range": {
-        #         "updated_at": {
-        #             "gt": last_run,
-        #             # "lte": run_start
-        #             "lte": 1763197091699,
-        #         }
-        #     }
-        # },
-        # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
-        # query = {
-        #     "_source": [
-        #         "id",
-        #         "title",
-        #         "genres_names",
-        #         "description",
-        #         "imdb_rating",
-        #         "updated_at",
-        #     ],
-        #     "sort": [{"updated_at": "asc"}, {"id": "asc"}],
-        #     "query": {
-        #         "range": {
-        #             "updated_at": {
-        #                 "gt": last_run,
-        #                 # "lte": run_start
-        #                 "lte": 1763197091699,
-        #             }
-        #         }
-        #     },
-        #     # "query": {"range": {"updated_at": {"gt": 1753198166783, "lte": 1763197091699}}},
-        # }
         return query
 
 

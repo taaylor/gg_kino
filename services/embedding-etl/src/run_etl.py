@@ -3,7 +3,7 @@ import time
 
 from connectors import lifespan
 from core.config import app_config
-from core.logger_config import get_logger
+from core.logger_config import get_logger, log_call
 from db.cache import get_cache
 from db.elastic import get_elastic_repository
 from extract import get_extractor_films
@@ -14,6 +14,7 @@ from transform import get_transformer_films
 logger = get_logger(__name__)
 
 
+@log_call
 async def main():
     async with lifespan():
         cache = await get_cache()

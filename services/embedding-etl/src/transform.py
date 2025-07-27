@@ -6,7 +6,7 @@ import httpx
 import numpy as np
 
 # from core.config import app_config
-from core.logger_config import get_logger
+from core.logger_config import get_logger, log_call
 from httpx import HTTPStatusError, RequestError
 from models.models_logic import EmbeddedFilm, FilmLogic
 
@@ -68,6 +68,7 @@ class TransformerFilms:
                 raise e
             return result
 
+    @log_call
     async def execute_transformation(self, films: list[FilmLogic]) -> list[EmbeddedFilm]:
         payload = self._get_payload_for_embedding(films)
         filma_with_encd_embds = await self._async_post_request(
