@@ -20,7 +20,7 @@ class EmbeddingSupplier(BaseSupplier):
         max_tries=3,
         jitter=backoff.full_jitter,
     )
-    @handle_http_errors(service_name=app_config.embedding_api.host)
+    @handle_http_errors(service_name=app_config.filmapi.host)
     async def fetch_embedding(self, query: str) -> list[float]:  # noqa: WPS210
         """Отправляет запрос на получение эмбеддинга для заданного текста."""
 
@@ -35,10 +35,8 @@ class EmbeddingSupplier(BaseSupplier):
             response = await client.post(url=url, json=data)
             response.raise_for_status()
             if not response.content:
-                logger.error(f"Пустой ответ от сервиса {app_config.embedding_api.host}")
-                raise EmptyServerResponse(
-                    f"Получен пустой ответ от {app_config.embedding_api.host}"
-                )
+                logger.error(f"Пустой ответ от сервиса {app_config.llm.host}")
+                raise EmptyServerResponse(f"Получен пустой ответ от {app_config.llm.host}")
             embedding_response = response.json()
             logger.info(f"Получен ответ на запрос эмбеддинга: {embedding_response}")
 
