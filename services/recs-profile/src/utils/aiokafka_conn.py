@@ -44,23 +44,17 @@ class KafkaConsumerManager:
     def _create_consumer(self) -> AIOKafkaConsumer:
         """Создать экземпляр Kafka консюмера."""
         # Преобразуем список серверов в строку, если нужно
-        if isinstance(self._bootstrap_servers, list):
-            bootstrap_servers = ",".join(self._bootstrap_servers)
-        else:
-            bootstrap_servers = self._bootstrap_servers
 
         return AIOKafkaConsumer(
             *self._topics,
-            bootstrap_servers=bootstrap_servers,
+            bootstrap_servers=self._bootstrap_servers,  # type: ignore
             group_id=self._group_id,
-            # Настройки для повышения надежности
             enable_auto_commit=True,
             auto_commit_interval_ms=5000,
             auto_offset_reset="earliest",
-            session_timeout_ms=30000,
-            heartbeat_interval_ms=10000,
+            session_timeout_ms=60000,
+            heartbeat_interval_ms=20000,
             max_poll_interval_ms=300000,
-            # Дополнительные настройки из конфигурации
             request_timeout_ms=app_config.kafka.request_timeout_ms,
             retry_backoff_ms=app_config.kafka.retry_backoff_ms,
             security_protocol=app_config.kafka.security_protocol,
@@ -138,9 +132,8 @@ class KafkaConsumerManager:
         try:
             while self._is_running:
                 try:
-                    # Получаем сообщения батчами для лучшей производительности
                     message_batch = await self._consumer.getmany(
-                        timeout_ms=1000, max_records=max_messages_per_batch
+                        timeout_ms=10000, max_records=max_messages_per_batch
                     )
 
                     if not message_batch:
@@ -150,7 +143,7 @@ class KafkaConsumerManager:
                     tasks = []
                     for topic_partition, messages in message_batch.items():
                         for message in messages:
-                            if message.value is not None:  # Проверяем на None
+                            if message.value is not None:
                                 task = self._safe_message_handler(
                                     message_handler, message.topic, message.value
                                 )

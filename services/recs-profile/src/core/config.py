@@ -64,7 +64,7 @@ class Kafka(BaseModel):
     port3: int = 9096
 
     retry_backoff_ms: int = 100
-    request_timeout_ms: int = 5000
+    request_timeout_ms: int = 10000
     batch_size: int = 5120
     linger_ms: int = 5
     buffer_memory: int = 33554432

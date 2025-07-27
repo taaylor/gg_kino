@@ -190,7 +190,7 @@ services:
     expose:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000//content-api/openapi"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/content-api/openapi"]
       interval: 10s
       timeout: 5s
       retries: 5
