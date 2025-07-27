@@ -8,6 +8,7 @@ from core.config import app_config
 from db.cache import Cache, get_cache
 from fastapi import Depends
 from services.rating_repository import RatingRepository, get_rating_repository
+from utils.aiokafka_conn import AIOMessageBroker, get_broker_connector
 
 logger = logging.getLogger(__name__)
 
@@ -17,15 +18,10 @@ CACHE_KEY_AVG_RATING = "films:avg_rating:"
 class RatingService:
     """Сервис для работы с рейтингом фильмов."""
 
-    __slots__ = (
-        "cache",
-        "repository",
-    )
+    __slots__ = ("cache", "repository", "message_broker")
 
     def __init__(
-        self,
-        cache: Cache,
-        repository: RatingRepository,
+        self, cache: Cache, repository: RatingRepository, message_broker: AIOMessageBroker
     ):
         """
         Инициализирует сервис с кешем и репозиторием.
@@ -35,6 +31,7 @@ class RatingService:
         """
         self.cache = cache
         self.repository = repository
+        self.message_broker = message_broker
 
     async def get_average_rating(
         self, film_id: UUID, user_id: UUID | None
@@ -133,6 +130,10 @@ class RatingService:
             updated_at=document.updated_at,
             score=document.score,
         )
+        await self.message_broker.background_push_message(
+            value=result.model_dump_json(),
+            topic=app_config.kafka.rec_user_ratings_films_topic,
+        )
         logger.debug(
             f"Пользователь - {str(user_id)}\n,"
             f" оценил фильм {str(film_id)}\n."
@@ -188,5 +189,6 @@ class RatingService:
 def get_rating_service(
     cache: Cache = Depends(get_cache),
     repository: RatingRepository = Depends(get_rating_repository),
+    message_broker: AIOMessageBroker = Depends(get_broker_connector),
 ) -> RatingService:
-    return RatingService(cache, repository)
+    return RatingService(cache, repository, message_broker)
