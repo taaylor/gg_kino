@@ -306,12 +306,9 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     expose:
+      - "8000:8000"
+    ports:
       - "8007:8000"
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
-    #   interval: 10s
-    #   timeout: 20s
-    #   retries: 10
     restart: "always"
 
   ws-sender-worker:
