@@ -22,5 +22,4 @@ COPY services/embedding-etl/src/ .
 
 RUN chmod +x ./scripts/run_celery.sh
 
-# CMD [ "python", "main.py" ]
 CMD ["./scripts/run_celery.sh", "celery_beat"]

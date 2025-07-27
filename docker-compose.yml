@@ -38,25 +38,20 @@ services:
     container_name: embedding-etl
     build:
       context: .
-      # dockerfile: ./services/embedding-etl/src/Dockerfile
-      dockerfile: ./services/embedding-etl/src/Dockerfile.debug
-
-    # command: ["./scripts/run_celery.sh", "celery_beat"]
-    # working_dir: /opt/app          # на всякий случай
-
+      dockerfile: ./services/embedding-etl/src/Dockerfile
     env_file:
       - ./.env
     ports:
       - "9010:9010"
     environment: []
     working_dir: /opt/app
-    # depends_on:
-      # redis:
-      #   condition: service_healthy
-      # elasticsearch:
-      #   condition: service_healthy
-      # es-init:
-      #   condition: service_completed_successfully
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      es-init:
+        condition: service_completed_successfully
     restart: "always"
 
 

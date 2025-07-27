@@ -49,16 +49,16 @@ class AppConfig(BaseSettings):
     project_name: str = "embedding-etl"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 60 * 60 * 25  # сутки + 1 час
+    time_start_etl: int = 60 * 60 * 24  # сутки + 1 час
     embedding_dims: int = 384
     celery_intervals: dict = {
         "test_reminder_get_data": 10,  # каждые 10 сек.
-        "reminder_get_fresh_films_each_friday": crontab(
-            minute=0, hour=9, day_of_week="fri"
-        ),  # каждую неделю в пятницу утром
+        "reminder_get_fresh_films_each_friday": crontab(minute=0, hour=9, day_of_week="fri"),
     }
     template_embedding: str = "{title}. {genres}. {description} {rating_text}"
     run_start_key: str = "embedding-etl:unix-timestamp:run-start"
     last_run_key: str = "embedding-etl:unix-timestamp:last-run"
+    batch_size_etl: int = 50
 
     high_rating_level: int = 7
 

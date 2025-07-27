@@ -1,7 +1,6 @@
 import logging
 from typing import Any
 
-# from core.config import app_config
 from elasticsearch import AsyncElasticsearch, ConnectionError, ConnectionTimeout
 from elasticsearch.helpers import async_bulk
 from utils.decorators import backoff, elastic_handler_exeptions
@@ -37,13 +36,15 @@ class ElasticDB:
         # return [source["_source"] for source in document["hits"]["hits"]]
         return document["hits"]
 
+    @elastic_handler_exeptions
+    @backoff(exception=(ConnectionError, ConnectionTimeout))
     async def bulk_operation(
         self,
         actions: list[dict[str, str]],
         batch_size: int = 10,
         max_retries: int = 3,
         raise_on_error: bool = False,
-    ) -> tuple[int, list[str]]:
+    ) -> tuple[int, list[dict[str, Any]]]:
         success_count, errors = await async_bulk(
             client=self.elastic,
             actions=actions,

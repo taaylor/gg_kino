@@ -79,15 +79,11 @@ def elastic_handler_exeptions[**P, R](
         try:
             return await func(*args, **kwargs)
         except EsBadRequestError as error:
-            # BadRequestError - 400 статус код
-            # общая ошибка запроса (например, неверный формат запроса).
-            # нужно если неправльно составлен запрос к elasticsearch
             logger.error(
                 f"[Elasticsearch] общая ошибка запроса \
                     (например, неверный формат запроса): {error}",
             )
-            # raise SystemExit from error
-            raise ValueError("Непонятная ошибка") from error
+            raise ValueError("Некорректный запрос") from error
 
         except EsNotFoundError as error:
             logger.error(f"Объект не найден: {error}")
