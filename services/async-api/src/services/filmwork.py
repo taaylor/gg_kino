@@ -14,12 +14,15 @@ from db.database import PaginateBaseDB
 from db.elastic import get_paginate_repository
 from fastapi import Depends, HTTPException, status
 from models.schemas_logic import FilmLogic
+from pydantic import TypeAdapter
+from suppliers.rec_profile import RecProfileSupplier, get_rec_profile_supplier
 from tracer_utils import traced
 
 logger = logging.getLogger(__name__)
 
 
 REDIS_KEY_FILMS = "films:"
+REDIS_KEY_REC_FILMS = "films:rec:{user_id}:{page_number}:{page_size}"
 REDIS_FILMS_CACHE_EXPIRES = app_config.cache_expire_in_seconds
 
 
@@ -288,13 +291,67 @@ class FilmRepository:
         films_in_schema = [FilmLogic.model_validate(film) for film in films]
         return films_in_schema
 
+    async def search_film_by_list_vector(
+        self, vectors: list[list[float]], page_size: int, page_number: int
+    ) -> list[FilmLogic]:
+
+        params = {}
+        source = []
+        dims = app_config.embedding_dims
+
+        for idx, vector in enumerate(vectors, start=1):
+            if dims == len(vector):
+                source.append(f"cosineSimilarity(params.query_vector{idx}, 'embedding')")
+                params[f"query_vector{idx}"] = vector
+
+        query = {
+            "query": {
+                "script_score": {
+                    "query": {
+                        "bool": {
+                            "must_not": {"term": {"type": FilmsType.ARCHIVED.value}},
+                            # исключаем док. где поле embedding отсутствует, для избежания искл.
+                            "filter": {"exists": {"field": "embedding"}},
+                        },
+                    },
+                    "script": {
+                        "source": f"""
+                            double score = ({" + ".join(source)}) / {len(source)};
+                            return Math.max(score, 0);
+                        """,
+                        "params": params,
+                    },
+                }
+            }
+        }
+
+        films_db = await self.repository.get_list(
+            index=self.__class__.FILMS_INDEX_ES,
+            body=query,
+            page_number=page_number,
+            page_size=page_size,
+        )
+
+        logger.info(
+            f"Из хранилища получено {len(films_db)} фильмов на основе {len(vectors)} векторов"
+        )
+
+        if films_db:
+            return [FilmLogic.model_validate(film) for film in films_db]
+        return []
+
 
 class FilmService:
     """Класс, реализующий бизнес-логику работы с фильмами."""
 
-    def __init__(self, cache: Cache, repository: FilmRepository):
+    __slots__ = ("cache", "repository", "rec_profile_supplier")
+
+    def __init__(
+        self, cache: Cache, repository: FilmRepository, rec_profile_supplier: RecProfileSupplier
+    ):
         self.cache = cache
         self.repository = repository
+        self.rec_profile_supplier = rec_profile_supplier
 
     async def get_film_by_id(
         self,
@@ -542,12 +599,52 @@ class FilmService:
         )
         return films
 
+    async def get_recommended_films(
+        self, user_id: UUID, page_size: int, page_number: int
+    ) -> list[FilmListResponse]:
+
+        type_adapter = TypeAdapter(list[FilmListResponse])
+        key_cache = REDIS_KEY_REC_FILMS.format(
+            user_id=user_id, page_number=page_number, page_size=page_size
+        )
+
+        if rec_films_cache := await self.cache.get(key_cache):
+            logger.debug(f"Для пользователя {user_id=} найдены рекомендации в кеше")
+            return type_adapter.validate_json(rec_films_cache)
+
+        logger.debug(f"Рекомендаций пользователя {user_id=} в кеше не оказалось")
+        user_embeddings = await self.rec_profile_supplier.fetch_rec_profile_user(user_id)
+        rec_films_db = await self.repository.search_film_by_list_vector(
+            vectors=user_embeddings, page_size=page_size, page_number=page_number
+        )
+
+        logger.info(f"Для пользователя {user_id=} найдено {len(rec_films_db)} рекомендаций")
+
+        if rec_films_db:
+            films_dto = [
+                FilmListResponse(
+                    uuid=film.id,
+                    title=film.title,
+                    imdb_rating=film.imdb_rating,
+                    type=film.type,
+                )
+                for film in rec_films_db
+            ]
+            await self.cache.background_set(
+                key=key_cache,
+                value=type_adapter.dump_json(films_dto),
+                expire=REDIS_FILMS_CACHE_EXPIRES,
+            )
+            return films_dto
+        return []
+
 
 @lru_cache
 def get_film_service(
     cache: Cache = Depends(get_cache),
     repository: PaginateBaseDB = Depends(get_paginate_repository),
+    rec_profile_supplier: RecProfileSupplier = Depends(get_rec_profile_supplier),
 ) -> FilmService:
     """Получить экземпляр класса FilmService"""
     film_repository = FilmRepository(repository)
-    return FilmService(cache, film_repository)
+    return FilmService(cache, film_repository, rec_profile_supplier)

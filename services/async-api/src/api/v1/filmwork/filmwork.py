@@ -1,5 +1,5 @@
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
 from auth_utils import LibAuthJWT, Permissions, auth_dep
@@ -58,6 +58,33 @@ async def film_search(
     )
 
     return search_films
+
+
+@router.get(
+    path="/recommended",
+    response_model=list[FilmListResponse],
+    summary="Возвращает список рекомендованных фильмов",
+)
+async def film_recommended(
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    # authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
+    ] = 50,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+) -> list[FilmListResponse]:
+
+    # await authorize.jwt_optional()
+
+    # if user_token := await authorize.get_raw_jwt():
+    #     user_id = user_token.get("user_id")
+    user_id = uuid4()
+    return await film_service.get_recommended_films(
+        user_id=user_id, page_size=page_size, page_number=page_number
+    )
+
+    # TODO: Если пользователь не авторизован нужно вернуть популярные фильмы
 
 
 @router.get(
