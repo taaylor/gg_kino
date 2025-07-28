@@ -294,6 +294,10 @@ class FilmRepository:
     async def search_film_by_list_vector(
         self, vectors: list[list[float]], page_size: int, page_number: int
     ) -> list[FilmLogic]:
+        """
+        Выполняет запрос по нескольким векторам,
+        отдает фильмы найденные по среднему косинусному сходству
+        """
 
         params = {}
         source = []
@@ -310,7 +314,6 @@ class FilmRepository:
                     "query": {
                         "bool": {
                             "must_not": {"term": {"type": FilmsType.ARCHIVED.value}},
-                            # исключаем док. где поле embedding отсутствует, для избежания искл.
                             "filter": {"exists": {"field": "embedding"}},
                         },
                     },
@@ -602,6 +605,7 @@ class FilmService:
     async def get_recommended_films(
         self, user_id: UUID, page_size: int, page_number: int
     ) -> list[FilmListResponse]:
+        """Возвращает рекомендации пользователя"""
 
         type_adapter = TypeAdapter(list[FilmListResponse])
         key_cache = REDIS_KEY_REC_FILMS.format(

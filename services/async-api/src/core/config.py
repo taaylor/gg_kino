@@ -38,6 +38,15 @@ class Redis(BaseModel):
     db: int = 0
 
 
+class RecProfileSupplier(BaseModel):
+    host: str = "localhost"
+    port: int = 8000
+
+    @property
+    def path_url(self) -> str:
+        return f"http://{self.host}:{self.port}/"
+
+
 class AppConfig(BaseSettings):
     project_name: str = "async-service"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -50,6 +59,7 @@ class AppConfig(BaseSettings):
     elastic: Elastic = Elastic()
     redis: Redis = Redis()
     server: Server = Server()
+    rec_profile_supplier: RecProfileSupplier = RecProfileSupplier()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -60,9 +70,8 @@ class AppConfig(BaseSettings):
 
 
 def _get_config() -> AppConfig:
-    # установка настроек для логов
-    log = LoggerSettings()
-    log.apply()
+
+    LoggerSettings().apply()
 
     app_config = AppConfig()
     logger.info(ENV_FILE)
