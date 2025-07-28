@@ -1,10 +1,10 @@
 import logging
+from uuid import UUID
 
 import backoff
 import httpx
 from core.config import app_config
-from models.enums import HttpMethods
-from models.logic_models import FilmListResponse, GenreResponse
+from models.logic_models import FilmResponse
 from pydantic import TypeAdapter
 from suppliers.base_supplier import BaseSupplier
 from utils.http_decorators import EmptyServerResponse, handle_http_errors
@@ -14,25 +14,15 @@ logger = logging.getLogger(__name__)
 
 class FilmSupplier(BaseSupplier):
 
-    async def fetch_genres(self) -> set[str]:
-        """Получает список жанров фильмов из внешнего API."""
-        url = app_config.filmapi.get_genre_url
-
-        genres_json = await self._make_request(HttpMethods.GET, url)
-        list_genres = self._convert_to_model(genres_json, GenreResponse)
-        logger.info(f"Получен список из: {len(list_genres)} жанров.")
-
-        return {genre.name for genre in list_genres}  # type: ignore
-
-    async def fetch_films(self, vector: list[float]) -> list[FilmListResponse]:
+    async def fetch_films(self, films: list[UUID]) -> list[FilmResponse]:
         """Получает список фильмов, соответствующих заданному вектору эмбеддинга."""
         url = app_config.filmapi.get_film_url
-        data = {"vector": vector}
+        data = {"film_ids": [str(f) for f in films]}
 
-        films_json = await self._make_request(HttpMethods.POST, url, data)
-        list_films = self._convert_to_model(films_json, FilmListResponse)
+        films_json = await self._make_request(url, data)
+        list_films = self._convert_to_model(films_json, FilmResponse)
 
-        return list_films  # type: ignore
+        return list_films
 
     @backoff.on_exception(
         backoff.expo,
@@ -41,21 +31,14 @@ class FilmSupplier(BaseSupplier):
         jitter=backoff.full_jitter,
     )
     @handle_http_errors(service_name=app_config.filmapi.host)
-    async def _make_request(self, method: HttpMethods, url: str, data: dict | None = None) -> dict:
+    async def _make_request(self, url: str, data: dict | None = None) -> dict:
         """Выполняет HTTP-запрос к внешнему API."""
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
 
             logger.debug(f"Сформирована строка запроса: {url}")
 
-            match method:
-                case HttpMethods.GET:
-                    response = await client.get(url=url)
-                    response.raise_for_status()
-                case HttpMethods.POST:
-                    response = await client.post(url=url, json=data)
-                    response.raise_for_status()
-                case _:
-                    raise ValueError(f"Метод: {method} не поддерживается.")
+            response = await client.post(url=url, json=data)
+            response.raise_for_status()
 
             if not response.content:
                 logger.error(f"Пустой ответ от сервиса {app_config.filmapi.host}")
@@ -69,16 +52,10 @@ class FilmSupplier(BaseSupplier):
             )
             return response_data
 
-    def _convert_to_model(
-        self, json: dict, model: type[GenreResponse] | type[FilmListResponse]
-    ) -> list[GenreResponse | FilmListResponse]:
+    def _convert_to_model(self, json: dict, model: type[FilmResponse]) -> list[FilmResponse]:
         """Преобразует JSON-ответ в список объектов модели."""
-        if model is GenreResponse:
-            adapter = TypeAdapter(list[GenreResponse])
-        elif model is FilmListResponse:
-            adapter = TypeAdapter(list[FilmListResponse])
-        else:
-            raise ValueError("Неподдерживаемый тип модели")
+
+        adapter = TypeAdapter(list[FilmResponse])
         return list(adapter.validate_python(json))
 
 

@@ -1,11 +1,6 @@
 from enum import StrEnum
 
 
-class HttpMethods(StrEnum):
-    GET = "GET"
-    POST = "POST"
-
-
-class ProcessingStatus(StrEnum):
-    OK = "OK"
-    INCORRECT_QUERY = "INCORRECT QUERY"
+class RecsSourceType(StrEnum):
+    HIGH_RATING = "HIGH_RATING"
+    ADD_BOOKMARKS = "ADD_BOOKMARKS"

@@ -1,5 +1,6 @@
 import base64
 import logging
+from uuid import UUID
 
 import backoff
 import httpx
@@ -21,12 +22,13 @@ class EmbeddingSupplier(BaseSupplier):
         jitter=backoff.full_jitter,
     )
     @handle_http_errors(service_name=app_config.filmapi.host)
-    async def fetch_embedding(self, query: str) -> list[float]:  # noqa: WPS210
+    async def fetch_embedding(
+        self, texts: list[QueryModel]
+    ) -> dict[UUID, list[float]]:  # noqa: WPS210
         """Отправляет запрос на получение эмбеддинга для заданного текста."""
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
-            req_query = QueryModel(text=query)
-            data = {"objects": [req_query.model_dump(mode="json")]}
+            data = {"objects": [t.model_dump(mode="json") for t in texts]}
             url = app_config.embedding_api.get_url
 
             logger.debug(f"Сформирована строка запроса: {url}")
@@ -35,23 +37,27 @@ class EmbeddingSupplier(BaseSupplier):
             response = await client.post(url=url, json=data)
             response.raise_for_status()
             if not response.content:
-                logger.error(f"Пустой ответ от сервиса {app_config.llm.host}")
-                raise EmptyServerResponse(f"Получен пустой ответ от {app_config.llm.host}")
+                logger.error(f"Пустой ответ от сервиса {app_config.embedding_api.host}")
+                raise EmptyServerResponse(
+                    f"Получен пустой ответ от {app_config.embedding_api.host}"
+                )
             embedding_response = response.json()
             logger.info(f"Получен ответ на запрос эмбеддинга: {embedding_response}")
 
             return self._decode_embedding(embedding_response)
 
-    def _decode_embedding(self, embedding_response: dict) -> list[float]:
+    def _decode_embedding(self, embedding_response: dict) -> dict[UUID, list[float]]:
         """Декодирует эмбеддинг из ответа сервиса."""
+        embeddings = {}
 
         # Example response: {"id": "1234", "embedding": "<base64_string>"}
-        response = embedding_response[0]
-        embedding_base64 = response["embedding"]
-        embedding_bytes = base64.b64decode(embedding_base64)
-        embedding = np.frombuffer(embedding_bytes, dtype=np.float32)
-
-        return [float(v) for v in embedding]
+        for embedding in embedding_response:
+            embedding_id = UUID(embedding["id"])
+            embedding_base64 = embedding["embedding"]
+            embedding_bytes = base64.b64decode(embedding_base64)
+            embedding = np.frombuffer(embedding_bytes, dtype=np.float32)
+            embeddings[embedding_id] = [float(v) for v in embedding]
+        return embeddings
 
 
 def get_embedding_supplier() -> EmbeddingSupplier:

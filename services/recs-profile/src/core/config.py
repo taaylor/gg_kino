@@ -33,16 +33,11 @@ class Postgres(BaseModel):
 class FilmApi(BaseModel):
     host: str = "localhost"
     port: int = 8008
-    films_path: str = "/async/api/v1/internal/search-by-vector"
-    genre_path: str = "/async/api/v1/internal/genres"
+    films_path: str = "/async/api/v1/internal/fetch-films"
 
     @property
     def get_film_url(self) -> str:
         return f"http://{self.host}:{self.port}{self.films_path}"
-
-    @property
-    def get_genre_url(self) -> str:
-        return f"http://{self.host}:{self.port}{self.genre_path}"
 
 
 class EmbeddingAPI(BaseModel):
@@ -87,14 +82,9 @@ class AppConfig(BaseSettings):
     project_name: str = "recs-profile"
     docs_url: str = "/recs-profile/openapi"
     openapi_url: str = "/recs-profile/openapi.json"
-    single_notify_batch: int = 10
-    mass_notify_batch: int = 5
-    profile_page_size: int = 50
     expire_cache_sec: int = 3600
-
-    start_processing_interval_sec: int = 10
-    notify_start_hour: int = 9
-    notify_end_hour: int = 20
+    high_rating_score: int = 7
+    template_film_embedding: str = "{title}. {genres}. {description} {rating_text}"
 
     server: Server = Server()
     postgres: Postgres = Postgres()

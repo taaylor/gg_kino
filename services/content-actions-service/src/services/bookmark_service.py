@@ -56,6 +56,7 @@ class BookmarkService:
         if inserted_bookmark:
             await self._invalidate_user_bookmark_cache(user_id)
             bookmark = CreateBookmarkResponse(
+                user_id=user_id,
                 film_id=inserted_bookmark.film_id,
                 comment=inserted_bookmark.comment,
                 status=inserted_bookmark.status,

@@ -6,6 +6,7 @@ from typing import Any, AsyncGenerator
 from core.config import app_config
 from db import postgres
 from fastapi import FastAPI
+from services.event_processor import create_recs_event_processor
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from utils.aiokafka_conn import create_consumer_manager
 
@@ -22,11 +23,6 @@ async def monitor_tasks(task: asyncio.Task, task_name: str) -> None:
         raise e
 
 
-# Временная функция
-async def message_handler(topic: str, message: bytes):
-    logger.info(f"Получено сообщение из топика: {topic}, содержание: {message.decode("utf-8")} ")
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     engine = create_async_engine(
@@ -40,11 +36,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
         expire_on_commit=False,
     )
 
+    # Создаём процессор для событий
+    event_processor = create_recs_event_processor()
+
+    # Создаём менеджер управления кафка консюмером
     kafka_manager = create_consumer_manager()
-
     await kafka_manager.start()
-    consumer_tread = asyncio.create_task(kafka_manager.consume_messages(message_handler))
-
+    consumer_tread = asyncio.create_task(
+        # Передаю консюмеру функцию, которой нужно обрабатывать сообщения
+        kafka_manager.consume_messages(event_processor.event_handler)
+    )
     asyncio.create_task(monitor_tasks(consumer_tread, consumer_tread.get_name()))
 
     yield
