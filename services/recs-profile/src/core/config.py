@@ -85,6 +85,7 @@ class AppConfig(BaseSettings):
     expire_cache_sec: int = 3600
     high_rating_score: int = 7
     template_film_embedding: str = "{title}. {genres}. {description} {rating_text}"
+    count_rec_for_user: int = 3
 
     server: Server = Server()
     postgres: Postgres = Postgres()

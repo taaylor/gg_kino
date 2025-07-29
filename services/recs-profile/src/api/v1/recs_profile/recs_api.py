@@ -1,9 +1,8 @@
 from typing import Annotated
 
 from api.v1.recs_profile.schemas import UserRecsRequest, UserRecsResponse
-from fastapi import APIRouter, Body
-
-# from services.nlp_service import NlpService, get_nlp_service
+from fastapi import APIRouter, Body, Depends
+from services.recs_service import RecsService, get_recs_service
 
 router = APIRouter()
 
@@ -15,8 +14,8 @@ router = APIRouter()
     response_model=UserRecsResponse,
 )
 async def fetch_films_by_user_query(
-    # service: Annotated[NlpService, Depends(get_nlp_service)],
+    service: Annotated[RecsService, Depends(get_recs_service)],
     request_body: Annotated[UserRecsRequest, Body],
 ) -> UserRecsResponse:
 
-    return None
+    return await service.fetch_user_recs(request_body)

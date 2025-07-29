@@ -19,7 +19,7 @@ class UserRecs(Base):
         primary_key=True, default=uuid.uuid4, comment="Уникальный идентификатор рекомендации."
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        comment="ID пользователя, для которого сохранена рекомендация."
+        index=True, comment="ID пользователя, для которого сохранена рекомендация."
     )
     film_id: Mapped[uuid.UUID] = mapped_column(
         comment="Идентификатор фильма, по которому была сохранена рекомендация."
