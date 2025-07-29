@@ -31,7 +31,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
     restart: "always"
 
   jaeger:
