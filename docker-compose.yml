@@ -159,7 +159,7 @@ services:
         condition: service_completed_successfully
     cpus: "1"
     mem_limit: 256M
-    ports:
+    expose:
       - "8008:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/async/openapi"]
@@ -306,8 +306,6 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     expose:
-      - "8000:8000"
-    ports:
       - "8007:8000"
     restart: "always"
 
@@ -351,6 +349,34 @@ services:
       pg-import:
         condition: service_completed_successfully
     expose:
+      - "8005:8000"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  recs-profile:
+    container_name: recs-profile
+    build:
+      dockerfile: ./services/recs-profile/src/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      content-actions-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      kafka-ui:
+        condition: service_started
+      async-api:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
+    ports:
       - "8005:8000"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
