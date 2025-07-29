@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 class RecsService(BaseService[RecsRepository]):
     """Класс реализует бизнес логику поиска эмбеддингов в БД для списка пользователей"""
 
-    async def fetch_user_recs(self, request_body: UserRecsRequest) -> UserRecsResponse:
+    async def fetch_user_recs(  # noqa: WPS210
+        self, request_body: UserRecsRequest
+    ) -> UserRecsResponse:
         """Возвращает рекомендации для списка пользователей."""
 
         recs_for_users = await self._fetch_from_repository(request_body.user_ids)
@@ -37,7 +39,7 @@ class RecsService(BaseService[RecsRepository]):
             user_recs = recs_for_users.get(user_id, [])
 
             # Преобразую объекты UserRecs в EmbeddingFields
-            embeddings = []
+            embeddings: list[EmbeddingFields | None] = []
             for rec in user_recs:
                 if rec.embedding:
                     embeddings.append(
@@ -60,7 +62,7 @@ class RecsService(BaseService[RecsRepository]):
             return None
 
         # Группирую рекомендации по user_id
-        recs_for_users = {}
+        recs_for_users: dict[UUID, list[UserRecs]] = {}
         for rec in recs:
             if rec.user_id not in recs_for_users:
                 recs_for_users[rec.user_id] = []
