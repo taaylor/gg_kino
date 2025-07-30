@@ -52,8 +52,8 @@ make up-recs-context
 
 3. **Добавление фильма в закладки и выставление оценки**
    - Авторизуйтесь и добавьте фильм в закладки, а также поставьте ему оценку выше 7, используя следующие эндпоинты:
-     - [Добавление фильма в закладки](http://84.252.139.130/content-api/api/v1/bookmarks/{film_id})
-     - [Выставление оценки фильму](http://84.252.139.130/content-api/api/v1/films-rating/{film_id})
+     - Добавление фильма в закладки: `http://84.252.139.130/content-api/api/v1/bookmarks/{film_id}`
+     - Выставление оценки фильму: `http://84.252.139.130/content-api/api/v1/films-rating/{film_id}`
 
 4. **Проверка сообщений в топиках Kafka**
    - Перейдите на [Kafka UI](http://84.252.139.130:8080/ui/clusters/kraft/all-topics?perPage=25) и проверьте сообщения в топиках.
@@ -67,13 +67,6 @@ make up-recs-context
 
 ---
 #### S2. Запрос рекомендации на естественном языке
-Зарегать юзера: http://127.0.0.1/auth/openapi
-Авторизоваться в API http://localhost/nl/openapi
-Попробовать получить фильмы http://localhost/nl/openapi
-Посмотреть в БД, что ответила ЛЛМ
-jdbc:postgresql://localhost:5432/pg_db
-креды: postgres@postgres
-nlp.processed_npl
 
 #### Инструкция по запросу рекомендации на естественном языке
 
