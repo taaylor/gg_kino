@@ -47,7 +47,7 @@ def handle_http_errors(service_name: str = "внешний сервис") -> Cal
                 raise ServiceUnavailableError(f"Таймаут при запросе к {service_name}")
             except httpx.ConnectError:
                 logger.error(f"Ошибка подключения к {service_name}")
-                # raise ServiceUnavailableError(f"Ошибка подключения к {service_name}")
+                raise ServiceUnavailableError(f"Ошибка подключения к {service_name}")
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP ошибка {e.response.status_code} при запросе к {service_name}")
                 raise ServiceUnavailableError(

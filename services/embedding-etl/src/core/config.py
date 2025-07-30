@@ -48,8 +48,9 @@ class EmbeddingApi(BaseModel):
 class AppConfig(BaseSettings):
     project_name: str = "embedding-etl"
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    cache_expire_in_seconds: int = 60 * 60 * 25  # сутки + 1 час
-    time_start_etl: int = 60 * 60 * 24  # сутки + 1 час
+    index: str = "movies"
+    cache_expire_in_seconds: int = 60 * 60  # 1 час
+    time_start_etl_seconds: int = 60 * 5  # 5 минут
     embedding_dims: int = 384
     celery_intervals: dict = {
         "test_reminder_get_data": 10,  # каждые 10 сек.

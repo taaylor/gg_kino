@@ -1,11 +1,8 @@
 import base64
-from typing import Any
 
-import backoff
-import httpx
 import numpy as np
 from core.logger_config import get_logger, log_call
-from httpx import HTTPStatusError, RequestError
+from http_process import HttpClient, get_http_client
 from models.models_logic import EmbeddedFilm, FilmLogic
 
 logger = get_logger(__name__)
@@ -16,7 +13,12 @@ class TransformerFilms:
     Класс для преобразования данных фильмов в векторные эмбеддинги.
     """
 
-    def __init__(self, template_embedding: str, url_for_embedding: str):
+    def __init__(
+        self,
+        template_embedding: str,
+        url_for_embedding: str,
+        http_clent: HttpClient,
+    ):
         """
         Инициализирует TransformerFilms.
 
@@ -25,56 +27,7 @@ class TransformerFilms:
         """
         self.template_embedding = template_embedding
         self.url_for_embedding = url_for_embedding
-
-    @backoff.on_exception(
-        backoff.expo,
-        exception=(
-            HTTPStatusError,
-            RequestError,
-        ),
-        max_tries=8,
-        raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
-        on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
-            (
-                f"Повтор {details["tries"]} попытка для"
-                f" {details["target"].__name__}. Ошибка: {details["exception"]}"
-            )
-        ),
-        on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
-            f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
-        ),
-        # giveup=lambda e: True,
-    )
-    async def _async_post_request(
-        self,
-        url: str,
-        json: dict[str, Any] | list[Any],
-        timeout: float = 10,
-        **kwargs: Any,
-    ) -> dict[str, Any] | list[Any]:
-        """
-        Выполняет POST-запрос с передачей JSON-данных.
-
-        :param url: Адрес запроса.
-        :param json: Данные для отправки в теле запроса.
-        :param timeout: Таймаут в секундах.
-        :param kwargs: Дополнительные параметры httpx.
-
-        :return: Распарсенный JSON-ответ или пустой список в случае ошибки.
-        """
-        result = []
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url=url, json=json, timeout=timeout, **kwargs)
-                response.raise_for_status()
-                result = response.json()
-            except HTTPStatusError as e:
-                logger.error(f"POST запрос по {url} вернул статус код {e.response.status_code}")
-                raise e
-            except RequestError as e:
-                logger.error(f"POST запрос по {url} получил ошибку: {e!r}")
-                raise e
-            return result
+        self.http_clent = http_clent
 
     @log_call(
         short_input=True,
@@ -90,7 +43,7 @@ class TransformerFilms:
         :return: список объектов EmbeddedFilm с векторами embedding.
         """
         payload = self._get_payload_for_embedding(films)
-        filma_with_encd_embds = await self._async_post_request(
+        filma_with_encd_embds = await self.http_clent.async_post_request(
             url=self.url_for_embedding,
             json=payload,
         )
@@ -147,7 +100,11 @@ class TransformerFilms:
         return [float(v) for v in np.frombuffer(embedding_bytes, dtype=np.float32)]
 
 
-def get_transformer_films(template_embedding: str, url_for_embedding: str) -> TransformerFilms:
+def get_transformer_films(
+    template_embedding: str,
+    url_for_embedding: str,
+    http_clent: HttpClient = get_http_client(),
+) -> TransformerFilms:
     """
     Фабрика для получения экземпляра TransformerFilms.
 
@@ -156,4 +113,4 @@ def get_transformer_films(template_embedding: str, url_for_embedding: str) -> Tr
 
     :return: новый экземпляр TransformerFilms.
     """
-    return TransformerFilms(template_embedding, url_for_embedding)
+    return TransformerFilms(template_embedding, url_for_embedding, http_clent)

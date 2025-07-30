@@ -12,7 +12,6 @@ celery_engine = Celery(
 celery_engine.conf.beat_schedule = {
     "issue.reminder_task_etl": {
         "task": "issue.reminder_task_etl",
-        # "schedule": app_config.time_start_etl,  # раз в сутки
-        "schedule": 60 * 2,  # 2 минуы
+        "schedule": app_config.time_start_etl_seconds,  # раз в сутки
     },
 }

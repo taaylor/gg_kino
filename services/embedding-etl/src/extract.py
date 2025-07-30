@@ -1,5 +1,6 @@
 from typing import Any
 
+from core.config import app_config
 from core.logger_config import get_logger, log_call
 from db.elastic import ElasticDB
 from models.models_logic import FilmLogic
@@ -11,8 +12,6 @@ class ExtractorFilms:
     """
     Класс для извлечения фильмов из Elasticsearch.
     """
-
-    index = "movies"
 
     def __init__(self, repository: ElasticDB):
         """
@@ -45,7 +44,7 @@ class ExtractorFilms:
         """
         query = self._build_search_query(last_run, run_start)
         films_list = await self.repository.get_list(
-            self.index, query, self.search_after, batch_size
+            app_config.index, query, self.search_after, batch_size
         )
         self.search_after = films_list["hits"]
         return [

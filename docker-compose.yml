@@ -41,8 +41,6 @@ services:
       dockerfile: ./services/embedding-etl/src/Dockerfile
     env_file:
       - ./.env
-    ports:
-      - "9010:9010"
     environment: []
     working_dir: /opt/app
     depends_on:
@@ -328,8 +326,6 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     expose:
-      - "8007:8000"
-    ports:
       - "8007:8000"
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
