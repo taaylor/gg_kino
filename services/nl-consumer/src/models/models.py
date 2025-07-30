@@ -17,11 +17,9 @@ class ProcessedNpl(Base):
     __table_args__ = {"schema": "nlp"}
 
     id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True, default=uuid.uuid4, comment="Уникальный идентификатор уведомления"
+        primary_key=True, default=uuid.uuid4, comment="Уникальный идентификатор запроса"
     )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        comment="ID пользователя, которому предназначено уведомление"
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(comment="ID пользователя, который произвёл запрос")
     query: Mapped[str] = mapped_column(
         String(1000), comment="Текст пользовательского запроса рекомендации"
     )
