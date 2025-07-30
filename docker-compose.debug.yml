@@ -130,6 +130,8 @@ services:
         condition: service_healthy
     cpus: "1"
     mem_limit: 256M
+    ports:
+      - "8006:8000"
     healthcheck:
       test: [
         "CMD-SHELL",
