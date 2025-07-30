@@ -1,5 +1,4 @@
 import logging
-import os
 from collections.abc import Sequence
 from typing import Type
 from uuid import UUID
@@ -92,7 +91,6 @@ class AppConfig(BaseSettings):
     glitchtip_url: str = "url"
     is_glitchtip_enabled: bool = False
     project_name: str = "content-actions-service"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # noqa: WPS221
     docs_url: str = "/content-api/openapi"
     openapi_url: str = "/content-api/openapi.json"
     tracing: bool = False  # включение/выключение трассировки

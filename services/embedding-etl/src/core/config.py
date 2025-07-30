@@ -1,5 +1,4 @@
 import logging
-import os
 
 import dotenv
 from celery.schedules import crontab
@@ -46,7 +45,6 @@ class EmbeddingApi(BaseModel):
 
 class AppConfig(BaseSettings):
     project_name: str = "embedding-etl"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     index: str = "movies"
     cache_expire_in_seconds: int = 60 * 60  # 1 час
     time_start_etl_seconds: int = 60 * 5  # 5 минут

@@ -1,5 +1,4 @@
 import logging
-import os
 
 import dotenv
 from core.logger_config import LoggerSettings
@@ -40,7 +39,6 @@ class Redis(BaseModel):
 
 class AppConfig(BaseSettings):
     project_name: str = "async-service"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/async/openapi"
     openapi_url: str = "/async/openapi.json"
     cache_expire_in_seconds: int = 300

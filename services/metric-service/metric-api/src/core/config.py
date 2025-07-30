@@ -1,5 +1,4 @@
 import logging
-import os
 
 import dotenv
 from core.logger_config import LoggerSettings
@@ -56,7 +55,6 @@ class Kafka(BaseModel):
 
 class AppConfig(BaseSettings):
     project_name: str = "metric-api"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_url: str = "/metrics/openapi"
     openapi_url: str = "/metrics/openapi.json"
 
