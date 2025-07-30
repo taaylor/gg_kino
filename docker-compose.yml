@@ -50,6 +50,10 @@ services:
         condition: service_healthy
       es-init:
         condition: service_completed_successfully
+      kibana:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
     restart: "always"
 
 
