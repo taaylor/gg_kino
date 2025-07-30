@@ -31,7 +31,6 @@ class Redis(BaseModel):
 
     @property
     def get_redis_host(self):
-        # redis://[<user>[:<password>]@]<host>[:<port>]/<db>
         return f"redis://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_for_qeueu}"
 
 

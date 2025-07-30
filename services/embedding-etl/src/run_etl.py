@@ -1,6 +1,5 @@
 import asyncio
 import time
-from typing import Any
 
 from connectors import lifespan
 from core.config import app_config
@@ -9,7 +8,6 @@ from db.cache import get_cache
 from db.elastic import get_elastic_repository
 from extract import get_extractor_films
 from load import get_loader_films
-from models.models_logic import EmbeddedFilm, FilmLogic
 from transform import get_transformer_films
 
 logger = get_logger(__name__)
@@ -59,7 +57,7 @@ async def main() -> bool:
         counter_success = counter_errrors = 0
         while True:
             # извлекаем фильмы
-            extracted_films: list[FilmLogic] = await extractor.execute_extraction(
+            extracted_films = await extractor.execute_extraction(
                 last_run,
                 run_start,
                 batch_size=app_config.batch_size_etl,
@@ -67,12 +65,8 @@ async def main() -> bool:
             if not len(extracted_films):
                 break
             # преобразуем фильмы
-            transformed_films: list[EmbeddedFilm] = await transformer.execute_transformation(
-                extracted_films
-            )
+            transformed_films = await transformer.execute_transformation(extracted_films)
             # загружаем фильмы
-            success_count: int
-            errors: list[dict[str, Any]]
             success_count, errors = await loader.execute_loading(
                 films=transformed_films,
                 run_start=run_start,

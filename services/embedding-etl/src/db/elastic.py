@@ -1,9 +1,10 @@
 import logging
 from typing import Any
 
+import backoff
 from elasticsearch import AsyncElasticsearch, ConnectionError, ConnectionTimeout
 from elasticsearch.helpers import async_bulk
-from utils.decorators import backoff, elastic_handler_exeptions
+from utils.decorators import elastic_handler_exeptions
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,24 @@ class ElasticDB:
         self.elastic = elastic
 
     @elastic_handler_exeptions
-    @backoff(exception=(ConnectionError, ConnectionTimeout))
+    @backoff.on_exception(
+        backoff.expo,
+        exception=(
+            ConnectionError,
+            ConnectionTimeout,
+        ),
+        max_tries=8,
+        raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+        on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+            (
+                f"Повтор {details["tries"]} попытка для"
+                f" {details["target"].__name__}. Ошибка: {details["exception"]}"
+            )
+        ),
+        on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+            f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+        ),
+    )
     async def get_list(
         self,
         index: str,
@@ -33,11 +51,27 @@ class ElasticDB:
         body["size"] = batch_size
         logger.debug(f"Получаю список объектов из ElasticSearch по запросу:\n{body}.")
         document = await self.elastic.search(index=index, body=body, **kwargs)
-        # return [source["_source"] for source in document["hits"]["hits"]]
         return document["hits"]
 
     @elastic_handler_exeptions
-    @backoff(exception=(ConnectionError, ConnectionTimeout))
+    @backoff.on_exception(
+        backoff.expo,
+        exception=(
+            ConnectionError,
+            ConnectionTimeout,
+        ),
+        max_tries=8,
+        raise_on_giveup=False,  # после исчерпанных попыток, не прокидывам исключение дальше
+        on_backoff=lambda details: logger.warning(  # логируем на каждой итерации backoff
+            (
+                f"Повтор {details["tries"]} попытка для"
+                f" {details["target"].__name__}. Ошибка: {details["exception"]}"
+            )
+        ),
+        on_giveup=lambda details: logger.error(  # логируем когда попытки исчерпаны
+            f"Giveup: функция {details["target"].__name__} исчерпала {details["tries"]} попыток"
+        ),
+    )
     async def bulk_operation(
         self,
         actions: list[dict[str, str]],
