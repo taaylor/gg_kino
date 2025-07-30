@@ -34,6 +34,25 @@ services:
       retries: 20
     restart: "always"
 
+  embedding-etl:
+    container_name: embedding-etl
+    build:
+      context: .
+      dockerfile: ./services/embedding-etl/src/Dockerfile
+    env_file:
+      - ./.env
+    environment: []
+    working_dir: /opt/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      es-init:
+        condition: service_completed_successfully
+    restart: "always"
+
+
   jaeger:
     container_name: jaeger-container
     image: jaegertracing/all-in-one:1.68.0
@@ -92,7 +111,7 @@ services:
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default off" > /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* &* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     volumes:
@@ -297,6 +316,7 @@ services:
     restart: "always"
 
   embedding-service:
+    platform: linux/amd64
     container_name: embedding-service
     env_file:
       - .env

@@ -93,6 +93,14 @@
                     "type": "text",
                     "analyzer": "ru_en"
                 },
+                "created_at": {
+                    "type": "date",
+                    "format": "yyyy.MM.dd HH:mm:ss||yyyy.MM.dd HH:mm:ss.SSS||epoch_millis"
+                },
+                "updated_at": {
+                    "type": "date",
+                    "format": "yyyy.MM.dd HH:mm:ss||yyyy.MM.dd HH:mm:ss.SSS||epoch_millis"
+                },
                 "embedding": {
                     "type": "dense_vector",
                     "dims": 384,
