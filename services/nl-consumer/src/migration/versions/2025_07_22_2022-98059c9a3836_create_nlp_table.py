@@ -28,13 +28,13 @@ def upgrade() -> None:
             "id",
             sa.Uuid(),
             nullable=False,
-            comment="Уникальный идентификатор уведомления",
+            comment="Уникальный идентификатор запроса",
         ),
         sa.Column(
             "user_id",
             sa.Uuid(),
             nullable=False,
-            comment="ID пользователя, которому предназначено уведомление",
+            comment="ID пользователя, который произвёл запрос",
         ),
         sa.Column(
             "query",
