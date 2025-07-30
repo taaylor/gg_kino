@@ -111,6 +111,9 @@ event-generator-local:
 up-nl-consumer-local:
 	cd services/nl-consumer/src/ && uvicorn main:app --port 8009 --reload
 
+up-local-async-api:
+	cd services/async-api/src/ && uvicorn main:app --port 8009 --reload
+
 
 # Запуск всех сервисов контекста нотификаций
 up-notification-context:
@@ -128,5 +131,5 @@ fill-data-for-checking-extend-async-api:
 
 # Запуск всех сервисов контекста нотификаций
 up-recs-context:
-	docker compose up -d --build nl-consumer nginx notification pg-import && \
-	docker compose logs -f nl-consumer
+	docker compose up -d --build kibana pg-import embedding-etl recs-profile nl-consumer nginx notification pg-import && \
+	docker compose logs -f recs-profile

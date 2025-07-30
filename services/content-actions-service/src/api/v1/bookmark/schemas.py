@@ -9,6 +9,12 @@ class FilmIdField(BaseModel):
     film_id: UUID = Field(..., description="Уникальный идентификатор фильма")
 
 
+class UserIdField(BaseModel):
+    user_id: UUID = Field(
+        ..., description="Идентификатор пользователя, которому принадлежит список закладок"
+    )
+
+
 class DateFields(BaseModel):
     created_at: datetime = Field(..., description="Дата создания записи")
     updated_at: datetime = Field(..., description="Дата обновления записи")
@@ -48,14 +54,12 @@ class CreateBookmarkRequest(CommentField):
     """Схема запроса для создания закладки."""
 
 
-class CreateBookmarkResponse(BookmarkObj):
+class CreateBookmarkResponse(BookmarkObj, UserIdField):
     """Схема ответа при создании закладки."""
 
 
-class FetchBookmarkList(WatchListPage):
-    user_id: UUID = Field(
-        ..., description="Идентификатор пользователя, которому принадлежит список закладок"
-    )
+class FetchBookmarkList(WatchListPage, UserIdField):
+    """Схема списка закладок"""
 
 
 class ChangeBookmarkRequest(CommentField, StatusField):

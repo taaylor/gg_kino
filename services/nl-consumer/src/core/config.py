@@ -134,14 +134,6 @@ class AppConfig(BaseSettings):
     project_name: str = "nl-consumer"
     docs_url: str = "/nl/openapi"
     openapi_url: str = "/nl/openapi.json"
-    single_notify_batch: int = 10
-    mass_notify_batch: int = 5
-    profile_page_size: int = 50
-    expire_cache_sec: int = 3600
-
-    start_processing_interval_sec: int = 10
-    notify_start_hour: int = 9
-    notify_end_hour: int = 20
 
     server: Server = Server()
     postgres: Postgres = Postgres()

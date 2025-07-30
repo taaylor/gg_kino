@@ -84,3 +84,13 @@ class FilmSorted(StrEnum):
 
     def __str__(self):
         return self.value
+
+
+class FilmRecResponse(BaseModel):
+    film_recommended: list[FilmListResponse] = Field(
+        default_factory=list,
+        description="Персональные рекомендации пользователя",
+    )
+    film_trend: list[FilmListResponse] = Field(
+        default_factory=list, description="Фильмы которые в тренде"
+    )

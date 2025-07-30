@@ -1,7 +1,12 @@
 from typing import Annotated
 from uuid import UUID
 
-from api.v1.filmwork.schemas import FilmDetailResponse, FilmListResponse, FilmSorted
+from api.v1.filmwork.schemas import (
+    FilmDetailResponse,
+    FilmListResponse,
+    FilmRecResponse,
+    FilmSorted,
+)
 from auth_utils import LibAuthJWT, Permissions, auth_dep
 from fastapi import APIRouter, Depends, Path, Query
 from services.filmwork import FilmService, get_film_service
@@ -58,6 +63,33 @@ async def film_search(
     )
 
     return search_films
+
+
+@router.get(
+    path="/recommended",
+    response_model=FilmRecResponse,
+    summary="Возвращает список рекомендованных/трендовых фильмов",
+)
+async def film_recommended(
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=100, description="Количество записей на странице"),
+    ] = 50,
+    page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
+) -> FilmRecResponse:
+
+    obj_response = FilmRecResponse()
+    await authorize.jwt_optional()
+
+    if user_token := await authorize.get_raw_jwt():
+        user_id = user_token.get("user_id")
+        obj_response.film_recommended = await film_service.get_recommended_films(
+            user_id=user_id, page_size=page_size, page_number=page_number
+        )
+    # TODO: после того как реализую бизнес логику по трендовым фильмам снова расширю этот point
+    return obj_response
 
 
 @router.get(

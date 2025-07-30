@@ -14,4 +14,4 @@ def setup_exception_handlers(app: FastAPI):
             content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
         )
 
-    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore

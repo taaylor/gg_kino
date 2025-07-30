@@ -1,14 +1,8 @@
-import logging
-
 import dotenv
-from core.logger_config import LoggerSettings
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Применяем настройки логирования
 ENV_FILE = dotenv.find_dotenv()
-
-logger = logging.getLogger(__name__)
 
 
 class Server(BaseModel):
@@ -37,17 +31,28 @@ class Redis(BaseModel):
     db: int = 0
 
 
+class RecProfileSupplier(BaseModel):
+    host: str = "89.169.167.248"
+    port: int = 8005
+    timeout: int = 30
+
+    @property
+    def path_url(self) -> str:
+        return f"http://{self.host}:{self.port}/recs-profile/api/v1/recs/fetch-user-recs"
+
+
 class AppConfig(BaseSettings):
     project_name: str = "async-service"
     docs_url: str = "/async/openapi"
     openapi_url: str = "/async/openapi.json"
     cache_expire_in_seconds: int = 300
-    tracing: bool = False  # включение/выключение трассировки
+    tracing: bool = False
     embedding_dims: int = 384
 
     elastic: Elastic = Elastic()
     redis: Redis = Redis()
     server: Server = Server()
+    rec_profile_supplier: RecProfileSupplier = RecProfileSupplier()
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
@@ -58,12 +63,14 @@ class AppConfig(BaseSettings):
 
 
 def _get_config() -> AppConfig:
-    # установка настроек для логов
-    log = LoggerSettings()
-    log.apply()
+    import logging
+
+    from core.logger_config import LoggerSettings
+
+    LoggerSettings().apply()
+    logger = logging.getLogger(__name__)
 
     app_config = AppConfig()
-    logger.info(ENV_FILE)
     logger.info(f"app_config.initialized: {app_config.model_dump_json(indent=4)}")
     return app_config
 
