@@ -51,7 +51,7 @@ services:
       es-init:
         condition: service_completed_successfully
       kibana:
-        condition: service_healthy
+        condition: service_started
       embedding-service:
         condition: service_started
     restart: "always"
@@ -70,7 +70,7 @@ services:
     restart: "always"
 
   kibana:
-    container_name: kibana-container
+    container_name: kibana
     image: kibana:8.16.5
     environment:
       - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
