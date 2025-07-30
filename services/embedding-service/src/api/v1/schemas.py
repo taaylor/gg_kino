@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 class ObjectModel(BaseModel):
 
     id: str
-    text: str = Field(max_length=999)
+    text: str = Field(max_length=10_000)
 
     model_config = {
         "json_schema_extra": {
