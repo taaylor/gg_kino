@@ -19,7 +19,7 @@ class LlmSupplier(BaseSupplier):
         max_tries=3,
         jitter=backoff.full_jitter,
     )
-    @handle_http_errors(service_name=app_config.filmapi.host)
+    @handle_http_errors(service_name=app_config.llm.host)
     async def execute_nlp(self, genres: set[str], query: str) -> LlmResponse:  # noqa: WPS210
         """Выполняет запрос к LLM для обработки пользовательского запроса."""
 

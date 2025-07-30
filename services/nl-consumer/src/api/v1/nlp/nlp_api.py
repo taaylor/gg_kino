@@ -17,6 +17,7 @@ router = APIRouter()
                 Проверяет JWT-токен пользователя, извлекает идентификатор
                 пользователя и передаёт запрос в сервис NLP для анализа.
                 """,
+    response_model=RecsResponse,
 )
 async def fetch_films_by_user_query(
     authorize: Annotated[LibAuthJWT, Depends(auth_dep)],
