@@ -50,9 +50,7 @@ def handle_http_errors(service_name: str = "внешний сервис") -> Cal
                 raise ServiceUnavailableError(f"Ошибка подключения к {service_name}")
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP ошибка {e.response.status_code} при запросе к {service_name}")
-                raise ServiceUnavailableError(
-                    f"HTTP ошибка {e.response.status_code} при запросе к {service_name}"
-                )
+                return None
             except httpx.InvalidURL:
                 logger.error(f"Некорректный URL для {service_name}")
                 raise DataValidationError(f"Некорректный URL для {service_name}")

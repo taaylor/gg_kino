@@ -618,6 +618,9 @@ class FilmService:
 
         logger.debug(f"Рекомендаций пользователя {user_id=} в кеше не оказалось")
         user_embeddings = await self.rec_profile_supplier.fetch_rec_profile_user(user_id)
+        if not user_embeddings:
+            return []
+
         rec_films_db = await self.repository.search_film_by_list_vector(
             vectors=user_embeddings, page_size=page_size, page_number=page_number
         )

@@ -79,7 +79,7 @@ async def film_recommended(
     ] = 50,
     page_number: Annotated[int, Query(ge=1, description="Номер страницы")] = 1,
 ) -> FilmRecResponse:
-    # TODO: добавить трендовые фильмы
+
     obj_response = FilmRecResponse()
     await authorize.jwt_optional()
 
@@ -88,6 +88,7 @@ async def film_recommended(
         obj_response.film_recommended = await film_service.get_recommended_films(
             user_id=user_id, page_size=page_size, page_number=page_number
         )
+    # TODO: после того как реализую бизнес логику по трендовым фильмам снова расширю этот point
     return obj_response
 
 

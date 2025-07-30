@@ -15,13 +15,21 @@ logger = logging.getLogger(__name__)
 class RecProfileSupplier:
 
     def __init__(self):
-        self.timeout = 30
+        self.timeout = app_config.rec_profile_supplier.timeout
 
-    async def fetch_rec_profile_user(self, user_id: UUID) -> list[list[float]]:
-        # url = app_config.rec_profile_supplier.path_url
-        # rec_profile = await self._make_request(HTTPMethod.POST, url, {"user_id": user_id})
-
-        return [[1.0 for _ in range(384)], [1.0 for _ in range(384)]]
+    async def fetch_rec_profile_user(self, user_id: UUID) -> list[list[float]] | None:
+        url = app_config.rec_profile_supplier.path_url
+        user_id_str = str(user_id)
+        body = {
+            "user_ids": [
+                user_id_str,
+            ]
+        }
+        rec_profile = await self._make_request(HTTPMethod.POST, url, body)
+        if rec_profile:
+            rec_profile_dto = self._parser_embeddings(rec_profile.get("recs", {}))
+            return rec_profile_dto.get(user_id_str)
+        return None
 
     @backoff.on_exception(
         backoff.expo,
@@ -29,10 +37,10 @@ class RecProfileSupplier:
         max_tries=3,
         jitter=backoff.full_jitter,
     )
-    @handle_http_errors(service_name="REC-service")
+    @handle_http_errors(service_name="recs-profile")
     async def _make_request(
         self, method: HTTPMethod, url: str, data: dict | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(self.timeout)) as client:
             host = app_config.rec_profile_supplier.host
@@ -52,7 +60,29 @@ class RecProfileSupplier:
             logger.debug(
                 f"Получен ответ от сервиса {host}: " f"{len(response_data)} векторов пользователя"
             )
-            return response
+            return response_data
+
+    @staticmethod
+    def _parser_embeddings(rec_profiles: list[dict[str, Any]]) -> dict[str, list[list[float]]]:
+        embeddings = {}
+        validate_func = lambda x: isinstance(x, float)  # noqa: E731
+
+        for user in rec_profiles:
+            user_id = user.get("user_id")
+            for embedding in user.get("embeddings", []):
+                emb = embedding.get("embedding", [])
+
+                if (
+                    emb
+                    and len(emb) == app_config.embedding_dims
+                    and all(validate_func(e) for e in emb)
+                ):
+                    if user_id not in embedding:
+                        embeddings[user_id] = []
+                    embeddings[user_id].append(emb)
+
+        logger.info(f"Получены вектора для {len(embeddings)} пользователей")
+        return embeddings
 
 
 @lru_cache
