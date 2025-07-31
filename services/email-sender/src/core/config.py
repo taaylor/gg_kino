@@ -1,5 +1,4 @@
 import logging
-import os
 
 import dotenv
 from pydantic import BaseModel, Field
@@ -82,7 +81,6 @@ class NotificationApi(BaseModel):
 
 class AppConfig(BaseSettings):
     project_name: str = "email-sender"
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_expire_in_seconds: int = 300  # время кэширование ответа (сек.)
     cache_expire_in_seconds_for_email: int = 300 * 10 * 10  # время кэширование ответа (сек.)
 

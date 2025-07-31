@@ -34,7 +34,6 @@ def handle_http_errors(service_name: str = "внешний сервис") -> Cal
 
     Args:
         service_name: Название сервиса для логирования
-        user_id_param: Название параметра с user_id для извлечения из аргументов
     """
 
     def decorator(func: Callable) -> Callable:  # noqa: WPS238, WPS231

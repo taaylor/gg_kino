@@ -31,8 +31,31 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
     restart: "always"
+
+  embedding-etl:
+    container_name: embedding-etl
+    build:
+      context: .
+      dockerfile: ./services/embedding-etl/src/Dockerfile
+    env_file:
+      - ./.env
+    environment: []
+    working_dir: /opt/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      es-init:
+        condition: service_completed_successfully
+      kibana:
+        condition: service_started
+      embedding-service:
+        condition: service_started
+    restart: "always"
+
 
   jaeger:
     container_name: jaeger-container
@@ -47,7 +70,7 @@ services:
     restart: "always"
 
   kibana:
-    container_name: kibana-container
+    container_name: kibana
     image: kibana:8.16.5
     environment:
       - ELASTICSEARCH_HOSTS="http://${ELASTIC_HOST}:${ELASTIC_PORT}"
@@ -92,7 +115,7 @@ services:
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default off" > /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* &* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     volumes:
@@ -190,7 +213,7 @@ services:
     expose:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000//content-api/openapi"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/content-api/openapi"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -297,6 +320,7 @@ services:
     restart: "always"
 
   embedding-service:
+    platform: linux/amd64
     container_name: embedding-service
     env_file:
       - .env
@@ -306,8 +330,6 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     expose:
-      - "8000:8000"
-    ports:
       - "8007:8000"
     restart: "always"
 
@@ -351,6 +373,34 @@ services:
       pg-import:
         condition: service_completed_successfully
     expose:
+      - "8005:8000"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  recs-profile:
+    container_name: recs-profile
+    build:
+      dockerfile: ./services/recs-profile/src/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      content-actions-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      kafka-ui:
+        condition: service_started
+      async-api:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
+    ports:
       - "8005:8000"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
