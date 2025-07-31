@@ -134,3 +134,12 @@ up-recs-context:
 	docker compose up -d --build kibana embedding-etl recs-profile nl-consumer nginx notification && \
 	docker compose up -d --build pg-import && \
 	docker compose logs -f recs-profile
+
+up-clickhouse:
+	docker compose --profile production up --build -d clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper
+
+up-metrics-service:
+	docker compose --profile production up --build -d clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper kafka-0 kafka-1 kafka-2 kafka-init metric-api etl
+
+down-metrics-service:
+	docker compose --profile production down -v clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper kafka-0 kafka-1 kafka-2 kafka-init metric-api etl
