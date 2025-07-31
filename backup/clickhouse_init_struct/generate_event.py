@@ -45,7 +45,8 @@ class RequestWorker:
     def create_task(self, url: str, payload: dict | None = None) -> None:
         self.task_queue.put((url, payload))
 
-    def _send_request_post(self, url: str, payload: dict | None = None) -> dict[str, Any]:
+    @staticmethod
+    def _send_request_post(self, url: str, payload: dict | None = None) -> None:
         requests.post(url, json=payload)
 
     def _worker(self):
