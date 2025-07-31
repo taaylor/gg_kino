@@ -32,12 +32,12 @@ class Redis(BaseModel):
 
 
 class RecProfileSupplier(BaseModel):
-    host: str = "89.169.167.248"
+    host: str = "localhost"
     port: int = 8005
     timeout: int = 30
 
     @property
-    def path_url(self) -> str:
+    def get_url(self) -> str:
         return f"http://{self.host}:{self.port}/recs-profile/api/v1/recs/fetch-user-recs"
 
 

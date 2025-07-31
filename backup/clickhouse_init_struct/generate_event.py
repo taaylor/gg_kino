@@ -2,7 +2,6 @@ import queue
 import random
 import threading
 from dataclasses import dataclass
-from typing import Any
 from uuid import UUID
 
 import requests

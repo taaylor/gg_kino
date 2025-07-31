@@ -18,7 +18,7 @@ class RecProfileSupplier:
         self.timeout = app_config.rec_profile_supplier.timeout
 
     async def fetch_rec_profile_user(self, user_id: UUID) -> list[list[float]] | None:
-        url = app_config.rec_profile_supplier.path_url
+        url = app_config.rec_profile_supplier.get_url
         user_id_str = str(user_id)
         body = {
             "user_ids": [

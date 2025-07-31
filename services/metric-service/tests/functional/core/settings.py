@@ -21,7 +21,7 @@ class ClickHouse(BaseModel):
     database: str = "kinoservice"
     table_name_dist: str = "metrics_dst"
     user: str = "default"
-    default_password: str = "1234"
+    default_password: str = "nwsfau04"
 
 
 class TestConfig(BaseSettings):
