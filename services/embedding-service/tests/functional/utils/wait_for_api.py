@@ -9,8 +9,8 @@ logger = get_logger("wait_for_api")
 
 @backoff(exception=(ConnectionRefusedError, socket.timeout, ValueError))
 def check_api():
-    host = test_conf.embedding_api.host
-    port = test_conf.embedding_api.port
+    host = test_conf.embeddingapi.host
+    port = test_conf.embeddingapi.port
     path = "/embedding-service/openapi.json"
 
     with socket.create_connection((host, port), timeout=5 * 60) as sock:

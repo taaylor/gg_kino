@@ -1,5 +1,5 @@
 from dotenv import find_dotenv
-from pydantic import BaseModel  # , Field
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .config_log import get_logger
@@ -11,7 +11,7 @@ ENV_FILE = find_dotenv()
 
 class EmbeddingApi(BaseModel):
     host: str = "embedding-service"
-    port: str = 8000
+    port: int = 8000
     path_to_fetch_embedding: str = "/embedding-service/api/v1/embedding/fetch-embeddings"
     embedding_dims: int = 384
 
@@ -22,11 +22,10 @@ class EmbeddingApi(BaseModel):
 
 class TestConfig(BaseSettings):
 
-    # embedding_api: EmbeddingApi = Field(
-    #     default_factory=EmbeddingApi,
-    #     description="Конфигурация сервиса Embedding",
-    # )
-    embedding_api: EmbeddingApi = EmbeddingApi()
+    embeddingapi: EmbeddingApi = Field(
+        default_factory=EmbeddingApi,
+        description="Конфигурация сервиса Embedding",
+    )
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

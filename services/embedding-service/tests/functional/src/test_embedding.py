@@ -86,7 +86,7 @@ class TestEmbeddings:
         expected_answer: dict[str, list[str]],
     ):
         body, status = await make_post_request(
-            url=test_conf.embedding_api.url_for_embedding,
+            url=test_conf.embeddingapi.url_for_embedding,
             data=payload_data,
         )
         assert status == expected_answer["status"], expected_answer["err_msg"]
@@ -98,14 +98,14 @@ class TestEmbeddings:
                 {"objects": [{"id": "123", "text": "test-text"}]},
                 {
                     "status": HTTPStatus.OK,
-                    "embedding_dims": test_conf.embedding_api.embedding_dims,
+                    "embedding_dims": test_conf.embeddingapi.embedding_dims,
                     "payload_length": 1,
                     "err_msg_status_code": f"Cтатус код должен быть {HTTPStatus.OK}",
                     "err_msg_valid_b64": "Строка невалидна для base64",
                     "err_msg_wrong_len_payload": "Вернулся пустой список",
                     "err_msg_wrong_len_vector": (
                         "Размерность вектора отличается от"
-                        f" {test_conf.embedding_api.embedding_dims}"
+                        f" {test_conf.embeddingapi.embedding_dims}"
                     ),
                 },
             ),
@@ -121,7 +121,7 @@ class TestEmbeddings:
         expected_answer: dict[str, list[str]],
     ):
         body, status = await make_post_request(
-            url=test_conf.embedding_api.url_for_embedding,
+            url=test_conf.embeddingapi.url_for_embedding,
             data=payload_data,
         )
 
@@ -156,14 +156,14 @@ class TestEmbeddings:
                 },
                 {
                     "status": HTTPStatus.OK,
-                    "embedding_dims": test_conf.embedding_api.embedding_dims,
+                    "embedding_dims": test_conf.embeddingapi.embedding_dims,
                     "err_msg_status_code": f"Cтатус код должен быть {HTTPStatus.OK}",
                     "payload_length": 3,
                     "err_msg_valid_b64": "Строка невалидна для base64",
                     "err_msg_wrong_len_payload": "Вернулся пустой список",
                     "err_msg_wrong_len_vector": (
                         "Размерность вектора отличается от"
-                        f" {test_conf.embedding_api.embedding_dims}"
+                        f" {test_conf.embeddingapi.embedding_dims}"
                     ),
                 },
             ),
@@ -179,7 +179,7 @@ class TestEmbeddings:
         expected_answer: dict[str, list[str]],
     ):
         body, status = await make_post_request(
-            url=test_conf.embedding_api.url_for_embedding,
+            url=test_conf.embeddingapi.url_for_embedding,
             data=payload_data,
         )
 
