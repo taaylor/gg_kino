@@ -236,8 +236,6 @@ services:
         condition: service_started
       pg-import:
         condition: service_completed_successfully
-      notification:
-        condition: service_healthy
     ports:
       - "8005:8000"
     healthcheck:

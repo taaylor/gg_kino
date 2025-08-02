@@ -170,9 +170,9 @@ class RegisterService(BaseAuthService):
 
         logger.info(f"Ссылка для подтверждения почты пользователя {user.id}: {confirmation_link}")
 
-        sent_notify_id = await self._send_registered_notify(user, confirmation_link)
-
-        logger.info(f"Пользователю была отправлена нотификация о регистрации: {sent_notify_id}")
+        if app_config.is_need_send_notify:
+            sent_notify_id = await self._send_registered_notify(user, confirmation_link)
+            logger.info(f"Пользователю была отправлена нотификация о регистрации: {sent_notify_id}")
 
         return RegisterResponse(
             user_id=user.id,

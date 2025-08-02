@@ -81,6 +81,8 @@ class AppConfig(BaseSettings):
     default_role: str = "UNSUB_USER"
     tracing: bool = False  # включение/выключение трассировки
 
+    is_need_send_notify: bool = False
+
     confirmation_host: str = "localhost"
     confirmation_path: str = "/auth/api/v1/sessions/verify-email?token={token}&user_id={user_id}"
 
