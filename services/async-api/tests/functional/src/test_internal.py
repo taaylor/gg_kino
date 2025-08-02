@@ -46,7 +46,7 @@ class TestFilmsSearchByVector:
             [0.0 for _ in range(384)] for _ in range(len(film_uuids_for_near_embedding))
         ]
         for i, embd in enumerate(embeddings_near_vectors):
-            # добавляем 1.0 в зависимости от индекса [1.0, 0.0, ... <383 ноля>]
+            # добавляем 1.0 в зависимости от индекса [1.0, 0.0, .. <383 ноля>]
             embd[i] = 1.0
             for before_index in range(i):
                 # добавляем 0.9 перед 1.0
