@@ -53,6 +53,15 @@ class TestRecsProfile:
         "content_api_params, expected_answer",
         [
             (
+                {"url": test_conf.contentapi.get_rating_url, "body": {"score": 1}},
+                {
+                    "recs_in_db": False,
+                    "result_recs_count": 0,
+                    "result_recs_dims": 0,
+                    "rec_source_type": None,
+                },
+            ),
+            (
                 {"url": test_conf.contentapi.get_rating_url, "body": {"score": 10}},
                 {
                     "recs_in_db": True,
@@ -75,7 +84,6 @@ class TestRecsProfile:
             ),
         ],
         ids=[
-            "Check with INsufficient score for recommendation recording",
             "Check with sufficient score for recommendation recording",
             "Check with bookmark add recommendation recording",
         ],
