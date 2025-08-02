@@ -10,9 +10,10 @@ ENV_FILE = find_dotenv()
 
 
 class EmbeddingApi(BaseModel):
-    host: str = "localhost"
-    port: str = 8007
+    host: str = "embedding-service"
+    port: str = 8000
     path_to_fetch_embedding: str = "/embedding-service/api/v1/embedding/fetch-embeddings"
+    embedding_dims: int = 384
 
     @property
     def url_for_embedding(self):
