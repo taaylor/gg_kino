@@ -7,15 +7,13 @@ include:
   - ./infra/rabbit/docker-compose.rabbit.yml
   - ./services/metric-service/docker-compose.metric-services.yml
   - ./services/event-generator/docker-compose.event-generator.yml
-  - ./services/nl-consumer/src/docker-compose.llm.yml
-
 
 
 services:
   elasticsearch:
     image: elasticsearch:8.16.5
     container_name: elasticsearch-container
-    profiles: ["","async-api-test"]
+    profiles: ["async-api-test", "recs-profile-test"]
     env_file:
       - ./.env
     volumes:
@@ -31,17 +29,31 @@ services:
       - ${TEST_ELASTIC__PORT}:${TEST_ELASTIC__PORT}
     expose:
       - ${TEST_ELASTIC__PORT}
+    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
       interval: 10s
       timeout: 5s
-      retries: 20
-    restart: "always"
+      retries: 5
+
+  es-init:
+    container_name: es-init-container
+    build:
+      context: .
+      dockerfile: backup/elastic_dump/dump_loader/Dockerfile
+    profiles: ["recs-profile-test"]
+    environment:
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_PORT=${ELASTIC_PORT}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: "no"
 
   redis:
     image: redis:7-alpine
     container_name: redis-container
-    profiles: ["","async-api-test", "auth-api-test", "content-api-test"]
+    profiles: ["async-api-test", "auth-api-test", "content-api-test", "recs-profile-test"]
     env_file:
       - ./.env
     environment:
@@ -79,7 +91,7 @@ services:
     build:
       context: .
       dockerfile: ./services/async-api/src/Dockerfile
-    profiles: ["","async-api-test"]
+    profiles: ["async-api-test", "recs-profile-test"]
     container_name: async-api-container
     env_file:
       - ./.env
@@ -88,8 +100,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      es-init:
-        condition: service_completed_successfully
     ports:
       - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
     healthcheck:
@@ -97,12 +107,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: "always"
+    restart: always
 
   postgres:
     image: postgres:17-alpine
     container_name: postgres-container
-    profiles: ["","async-api-test", "auth-api-test", "content-api-test"]
+    profiles: ["async-api-test", "auth-api-test", "content-api-test", "recs-profile-test"]
     env_file:
       - ./.env
     environment:
@@ -124,7 +134,7 @@ services:
     build:
       context: .
       dockerfile: ./backup/postgres_dump-auth/Dockerfile
-    profiles: ["","content-api-test"]
+    profiles: ["content-api-test", "recs-profile-test"]
     environment:
       - PG_HOST=${POSTGRES_HOST}
       - PG_PORT=${POSTGRES_PORT}
@@ -141,7 +151,7 @@ services:
     build:
       context: .
       dockerfile: ./services/auth-service/src/Dockerfile
-    profiles: ["","auth-api-test", "async-api-test", "content-api-test"]
+    profiles: ["auth-api-test", "async-api-test", "content-api-test", "recs-profile-test"]
     container_name: auth-api-container
     cpus: "0.5"
     mem_limit: 256M
@@ -166,7 +176,7 @@ services:
     build:
       context: .
       dockerfile: ./services/content-actions-service/src/Dockerfile
-    profiles: ["","content-api-test"]
+    profiles: ["content-api-test", "recs-profile-test"]
     container_name: content-actions-api-container
     env_file:
       - ./.env
@@ -191,60 +201,6 @@ services:
       start_period: 30s
     restart: always
 
-  es-init:
-    container_name: es-init-container
-    build:
-      context: .
-      dockerfile: backup/elastic_dump/dump_loader/Dockerfile
-    environment:
-      - ELASTIC_HOST=${ELASTIC_HOST}
-      - ELASTIC_PORT=${ELASTIC_PORT}
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    restart: "no"
-
-  embedding-service:
-    platform: linux/amd64
-    container_name: embedding-service
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: services/embedding-service/src/Dockerfile
-    environment:
-      - HF_HUB_TIMEOUT=600
-    expose:
-      - "8007:8000"
-    restart: "always"
-
-  recs-profile:
-    container_name: recs-profile
-    build:
-      dockerfile: ./services/recs-profile/src/Dockerfile
-    # profiles: ["recs-profile-test"]
-    env_file:
-      - .env
-    depends_on:
-      content-actions-api:
-        condition: service_healthy
-      kafka-init:
-        condition: service_completed_successfully
-      async-api:
-        condition: service_healthy
-      embedding-service:
-        condition: service_started
-      pg-import:
-        condition: service_completed_successfully
-    ports:
-      - "8005:8000"
-    healthcheck:
-      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
-
   tests-content-api:
     build:
       context: .
@@ -264,21 +220,6 @@ services:
         condition: service_healthy
       content-actions-api:
         condition: service_healthy
-
-  tests-recs-profile:
-    build:
-      context: .
-      dockerfile: ./services/recs-profile/tests/Dockerfile
-    # profiles: ["recs-profile-test"]
-    container_name: tests-recs-profile
-    cpus: "0.5"
-    mem_limit: 256M
-    env_file:
-      - ./.env
-    depends_on:
-      recs-profile:
-        condition: service_healthy
-
 
   tests-async-api:
     build:
@@ -334,7 +275,7 @@ services:
     build:
       context: .
       dockerfile: services/notification-service/src/Dockerfile
-    profiles: ["","auth-api-test", "content-api-test"]
+    profiles: ["auth-api-test", "content-api-test"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -349,6 +290,62 @@ services:
       retries: 5
     restart: "always"
 
+  embedding-service:
+    platform: linux/amd64
+    container_name: embedding-service
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: services/embedding-service/src/Dockerfile
+    environment:
+      - HF_HUB_TIMEOUT=600
+    expose:
+      - "8007:8000"
+    restart: "always"
+
+  recs-profile:
+    container_name: recs-profile
+    build:
+      dockerfile: ./services/recs-profile/src/Dockerfile
+    profiles: ["recs-profile-test"]
+    env_file:
+      - .env
+    depends_on:
+      content-actions-api:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      async-api:
+        condition: service_healthy
+      embedding-service:
+        condition: service_started
+      pg-import:
+        condition: service_completed_successfully
+      es-init:
+        condition: service_completed_successfully
+    ports:
+      - "8005:8000"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8000/recs-profile/openapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  tests-recs-profile:
+    build:
+      context: .
+      dockerfile: ./services/recs-profile/tests/Dockerfile
+    profiles: ["recs-profile-test"]
+    container_name: tests-recs-profile
+    cpus: "0.5"
+    mem_limit: 256M
+    env_file:
+      - ./.env
+    depends_on:
+      recs-profile:
+        condition: service_healthy
   tests-metrics-api:
     build:
       context: .

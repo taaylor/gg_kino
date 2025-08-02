@@ -403,7 +403,7 @@ services:
     ports:
       - "8005:8000"
     healthcheck:
-      test: ["CMD", "curl", "http://localhost:8000/nl/openapi"]
+      test: ["CMD", "curl", "http://localhost:8000/recs-profile/openapi"]
       interval: 5s
       timeout: 5s
       retries: 5
