@@ -10,6 +10,11 @@ from tests.functional.testdata.es_mapping import Mapping
 class TestFilmsSearchByVector:
 
     def prepare_uuids_and_vectors(self):
+        # для film_uuids_for_near_embedding создаём вектора по такой логике:
+        # [1.0, 0.0, ... <383 ноля>]
+        # [0.9, 1.0, 0.0 ... <382 ноля>]
+        # [0.9, 0.9, 1.0, 0.0 ... <381 ноля>]
+        # и т.д.
         film_uuids_for_near_embedding = [
             "3d825f60-9fff-4dfe-b294-1a45fa1e115d",
             "0312ed51-8833-413f-bff5-0e139c11264a",
@@ -22,6 +27,8 @@ class TestFilmsSearchByVector:
             "12a8279d-d851-4eb9-9d64-d690455277cc",
             "118fd71b-93cd-4de5-95a4-e1485edad30e",
         ]
+        # для film_uuids_for_near_embedding создаём вектора по такой логике:
+        # [0.313, -0.110, ... <384 случайных float от -1 до 1>]
         film_uuids_for_far_embedding = [
             "46f15353-2add-415d-9782-fa9c5b8083d5",
             "db5dcded-29da-4c96-91a2-df1407f0a80a",
@@ -34,18 +41,26 @@ class TestFilmsSearchByVector:
             "c9e1f6f0-4f1e-4a76-92ee-76c1942faa97",
             "a7b11817-205f-4e1a-98b5-e3c48b824bc3",
         ]
+        # создаём похожие вектора [0.0, 0.0, ... <383 ноля>]
         embeddings_near_vectors = [
             [0.0 for _ in range(384)] for _ in range(len(film_uuids_for_near_embedding))
         ]
         for i, embd in enumerate(embeddings_near_vectors):
+            # добавляем 1.0 в зависимости от индекса [1.0, 0.0, ... <383 ноля>]
             embd[i] = 1.0
             for before_index in range(i):
+                # добавляем 0.9 перед 1.0
                 embd[before_index] = 0.9
+
+        # здесь - [({uuid1}: [1.0, 0.0, ...]), ({uuid2}: [0.9, 1.0, ...]) ...]
         uuids_and_near_vectors = list(zip(film_uuids_for_near_embedding, embeddings_near_vectors))
+
+        # создаём случайные вектора [0.313, -0.110, ... <384 случайных float от -1 до 1>]
         embeddings_far_vectors = [
             [round(random.random(), 3) * random.choice([-1, 1]) for _ in range(384)]
             for _ in range(len(film_uuids_for_far_embedding))
         ]
+        # здесь - [({uuid1}: [0.989, -0.313, ...]), ({uuid2}: [0.987, -0.123, ...]) ...]
         uuids_and_far_vectors = list(zip(film_uuids_for_far_embedding, embeddings_far_vectors))
         return uuids_and_near_vectors + uuids_and_far_vectors
 
