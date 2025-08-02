@@ -146,3 +146,6 @@ down-metrics-service:
 
 up-local-statistic:
 	cd services/statistic-service/src/ && uvicorn main:app --port 8009 --reload
+
+up-statistic-service:
+	docker compose --profile production up --build -d statistic-service clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper
