@@ -336,8 +336,14 @@ services:
       dockerfile: services/embedding-service/src/Dockerfile
     environment:
       - HF_HUB_TIMEOUT=600
-    expose:
-      - "8007:8000"
+    ports:
+      - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
     restart: "always"
 
   tests-embedding-service:
@@ -348,6 +354,9 @@ services:
     container_name: tests-embedding-service-container
     env_file:
       - ./.env
+    depends_on:
+      embedding-service:
+        condition: service_healthy
 
 
 volumes:
