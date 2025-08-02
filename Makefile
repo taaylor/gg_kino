@@ -143,3 +143,6 @@ up-metrics-service:
 
 down-metrics-service:
 	docker compose --profile production down -v clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper kafka-0 kafka-1 kafka-2 kafka-init metric-api etl
+
+up-local-statistic:
+	cd services/statistic-service/src/ && uvicorn main:app --port 8009 --reload
