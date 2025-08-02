@@ -73,6 +73,9 @@ jobs:
           chmod 600 services/auth-service/src/core/keys/private.pem
           chmod 644 services/auth-service/src/core/keys/public.pem
 
+      - name: Start tests recs-profile
+        run: make test-recs-profile-ci PYTHON_VERSION=${{ matrix.python-version }}
+
       - name: Start tests content-actions-api
         run: make test-content-service-ci PYTHON_VERSION=${{ matrix.python-version }}
 

@@ -51,6 +51,12 @@ test-content-service:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
+# Запуск тестов recs-profile
+test-recs-profile:
+	docker compose -f $(COMPOSE_FILE_TEST) up --build -d tests-recs-profile
+	docker compose -f $(COMPOSE_FILE_TEST) run --rm tests-recs-profile /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) down -v
+
 test-async-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test run --rm tests-async-api /bin/bash -c ./tests/functional/start-tests.sh
@@ -70,6 +76,11 @@ test-content-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
+
+test-recs-profile-ci:
+	docker compose -f $(COMPOSE_FILE_TEST) build tests-recs-profile --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) run --rm tests-recs-profile /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) down -v
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:

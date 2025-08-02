@@ -1,12 +1,9 @@
-import logging
 import uuid
 
 from db.postgres import Base
 from models.enums import RecsSourceType
 from sqlalchemy import ARRAY, Float, String
 from sqlalchemy.orm import Mapped, mapped_column
-
-logger = logging.getLogger(__name__)
 
 
 class UserRecs(Base):

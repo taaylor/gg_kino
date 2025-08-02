@@ -15,8 +15,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="/opt"
 
-COPY ./services/recs-profile/tests/functional/pyproject.toml .
-COPY ./services/recs-profile/tests/functional/poetry.lock .
+COPY ./services/recs-profile/tests/pyproject.toml .
+COPY ./services/recs-profile/tests/poetry.lock .
 
 RUN poetry install --only main
 

@@ -11,7 +11,7 @@ class Postgres(BaseModel):
     host: str = "localhost"
     port: int = 5432
     user: str = "postgres"
-    password: str = "111000111postgres"
+    password: str = "postgres"
     db: str = "pg_db"
 
     @property
@@ -21,7 +21,7 @@ class Postgres(BaseModel):
 
 class ContentAPI(BaseModel):
     host: str = "localhost"
-    port: int = 80
+    port: int = 8099
     rating_path: str = "/content-api/api/v1/films-rating/{film_id}"
     bookmark_path: str = "/content-api/api/v1/bookmarks/{film_id}"
     example_film: str = "b2faef9b-ad43-455c-9ea5-9d5977c84b73"
@@ -39,7 +39,7 @@ class ContentAPI(BaseModel):
 
 class AuthAPI(BaseModel):
     host: str = "localhost"
-    port: int = 80
+    port: int = 8001
 
     register_path: str = "/auth/api/v1/sessions/register"
     login_path: str = "/auth/api/v1/sessions/login"
