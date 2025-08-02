@@ -1,4 +1,4 @@
-from api.v1 import clickhouse_api
+from api.v1 import statistic_api
 from core.config import app_config
 from fastapi import FastAPI, responses
 from utils.connectors import lifespan
@@ -22,5 +22,5 @@ setup_exception_handlers(app)
 
 SERVICE_PATH = "/statistic/api/v1/"
 app.include_router(
-    clickhouse_api.router, prefix=f"{SERVICE_PATH}trends", tags=["Получение трендовых, объектов"]
+    statistic_api.router, prefix=f"{SERVICE_PATH}trends", tags=["Получение трендовых, объектов"]
 )
