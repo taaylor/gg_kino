@@ -51,6 +51,12 @@ test-content-service:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
+test-embedding-service:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test up --build -d
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test run --rm tests-embedding-service /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test down -v
+
+# -=-=-=-=- секция CI -=-=-=-=-
 test-async-api-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile async-api-test run --rm tests-async-api /bin/bash -c ./tests/functional/start-tests.sh
@@ -71,10 +77,17 @@ test-content-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
+
 test-recs-profile-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test run --rm tests-recs-profile /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test down -v
+
+test-embedding-service-ci:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test run --rm tests-embedding-service /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test down -v
+
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:
@@ -148,3 +161,15 @@ up-metrics-service:
 
 down-metrics-service:
 	docker compose --profile production down -v clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper kafka-0 kafka-1 kafka-2 kafka-init metric-api etl
+
+up-local-statistic:
+	cd services/statistic-service/src/ && uvicorn main:app --port 8009 --reload
+
+up-statistic-service:
+	docker compose --profile production up --build -d statistic-service clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper
+
+up-async-static-service:
+	docker compose -f $(COMPOSE_FILE_DEBUG) --profile production up --build -d statistic-service clickhouse-node1 clickhouse-node2 clickhouse-node3 clickhouse-node4 init_clickhouse zookeeper async-api auth-api kibana pg-import nginx elasticsearch es-init
+
+vm-up-server:
+	sudo docker compose --profile production up -d --build kibana embedding-etl recs-profile nl-consumer nginx notification auth-api pg-import postgres recs-profile embedding-service content-actions-api kafka-init statistic-service
