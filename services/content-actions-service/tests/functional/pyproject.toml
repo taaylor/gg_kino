@@ -1,7 +1,7 @@
 [project]
 name = "auth-api-tests"
 version = "0.1.0"
-description = "Functional tests from auth-api"
+description = "Functional tests from content-actions-service"
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
 dependencies = [

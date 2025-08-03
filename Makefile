@@ -77,10 +77,17 @@ test-content-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test run --rm tests-content-api /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile content-api-test down -v
 
+
+test-recs-profile-ci:
+	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
+	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test run --rm tests-recs-profile /bin/bash -c ./tests/functional/start-tests.sh
+	docker compose -f $(COMPOSE_FILE_TEST) --profile recs-profile-test down -v
+
 test-embedding-service-ci:
 	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test build --build-arg PYTHON_VERSION=$(PYTHON_VERSION)
 	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test run --rm tests-embedding-service /bin/bash -c ./tests/functional/start-tests.sh
 	docker compose -f $(COMPOSE_FILE_TEST) --profile embedding-service-test down -v
+
 
 # -=-=-=-=- Секция content-actions-service -=-=-=-=-
 content-service-up:

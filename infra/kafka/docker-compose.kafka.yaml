@@ -2,7 +2,7 @@ services:
   kafka-0:
     container_name: kafka-0
     image: bitnami/kafka:3.4
-    profiles: ["", "metrics-api-test", "production"]
+    profiles: ["recs-profile-test", "metrics-api-test", "production"]
     ports:
       - "9094:9094"
     volumes:
@@ -20,16 +20,16 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     healthcheck:
       test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     restart: always
 
 
   kafka-1:
     container_name: kafka-1
     image: bitnami/kafka:3.4
-    profiles: ["", "metrics-api-test", "production"]
+    profiles: ["recs-profile-test", "metrics-api-test", "production"]
     ports:
       - "9095:9095"
     volumes:
@@ -47,16 +47,16 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     healthcheck:
       test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     restart: always
 
 
   kafka-2:
     container_name: kafka-2
     image: bitnami/kafka:3.4
-    profiles: ["", "metrics-api-test", "production"]
+    profiles: ["recs-profile-test", "metrics-api-test", "production"]
     ports:
       - "9096:9096"
     volumes:
@@ -74,15 +74,15 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     healthcheck:
       test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     restart: always
 
   kafka-init:
     container_name: kafka-init
     image: bitnami/kafka:3.4
-    profiles: ["", "metrics-api-test", "production"]
+    profiles: ["recs-profile-test", "metrics-api-test", "production"]
     env_file:
       - ../../.env
     volumes:
@@ -99,7 +99,7 @@ services:
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:v0.7.0
-    profiles: ["", "metrics-api-test", "production"]
+    profiles: ["recs-profile-test", "metrics-api-test", "production"]
     ports:
       - "8080:8080"
     environment:

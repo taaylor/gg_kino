@@ -1,9 +1,21 @@
 import uuid
+from datetime import datetime
 
-from db.postgres import Base
-from models.enums import RecsSourceType
-from sqlalchemy import ARRAY, Float, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ARRAY, Float, String, func
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from tests.functional.testdata.model_enum import RecsSourceType
+
+
+class Base(AsyncAttrs, DeclarativeBase):
+
+    __abstract__ = True
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
 
 class UserRecs(Base):
