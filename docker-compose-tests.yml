@@ -290,20 +290,6 @@ services:
       retries: 5
     restart: "always"
 
-  embedding-service:
-    platform: linux/amd64
-    container_name: embedding-service
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: services/embedding-service/src/Dockerfile
-    environment:
-      - HF_HUB_TIMEOUT=600
-    expose:
-      - "8007:8000"
-    restart: "always"
-
   recs-profile:
     container_name: recs-profile
     build:
@@ -403,7 +389,7 @@ services:
   embedding-service:
     platform: linux/amd64
     container_name: embedding-service
-    profiles: ["embedding-service-test"]
+    profiles: ["embedding-service-test", "recs-profile-test"]
     env_file:
       - .env
     build:
@@ -412,7 +398,7 @@ services:
     environment:
       - HF_HUB_TIMEOUT=600
     ports:
-      - ${TEST_RUN_PORTS}:${TEST_RUN_PORTS}
+      - 8011:${TEST_RUN_PORTS}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/embedding-service/openapi"]
       interval: 20s
