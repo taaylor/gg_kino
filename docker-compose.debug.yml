@@ -40,7 +40,7 @@ services:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"     # порт веб-интерфейса
+      - "16686:16686"
       - "4317:4317"       # порт OTLP gRPC
       - "4318:4318"       # порт OTLP HTTP
     restart: "always"
