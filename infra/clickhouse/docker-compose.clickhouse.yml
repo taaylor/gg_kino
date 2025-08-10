@@ -2,7 +2,7 @@ services:
   zookeeper:
     image: zookeeper:3.8
     container_name: zookeeper
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     hostname: zookeeper
 
   clickhouse-node1:
@@ -12,7 +12,7 @@ services:
       - CLK_NODE_NAME=clickhouse-node1
       - CLK_SHARD_NAME=1
     container_name: clickhouse-node1
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     hostname: clickhouse-node1
     volumes:
       - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
@@ -35,7 +35,7 @@ services:
       - CLK_NODE_NAME=clickhouse-node2
       - CLK_SHARD_NAME=1
     container_name: clickhouse-node2
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     hostname: clickhouse-node2
     volumes:
       - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
@@ -56,7 +56,7 @@ services:
       - CLK_NODE_NAME=clickhouse-node3
       - CLK_SHARD_NAME=2
     container_name: clickhouse-node3
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     hostname: clickhouse-node3
     volumes:
       - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
@@ -77,7 +77,7 @@ services:
       - CLK_NODE_NAME=clickhouse-node4
       - CLK_SHARD_NAME=2
     container_name: clickhouse-node4
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     hostname: clickhouse-node4
     volumes:
       - ./config.xml:/etc/clickhouse-server/config.d/config.xml:ro
@@ -95,7 +95,7 @@ services:
     build:
       context: ../../backup/clickhouse_init_struct
       dockerfile: Dockerfile
-    profiles: ["metrics-api-test", "production"]
+    profiles: ["","metrics-api-test", "production"]
     environment:
       - CLICKHOUSE_HOST=${CLICKHOUSE_HOST}
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
