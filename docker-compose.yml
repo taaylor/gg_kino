@@ -400,7 +400,7 @@ services:
         condition: service_started
       pg-import:
         condition: service_completed_successfully
-    ports:
+    expose:
       - "8005:8000"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:8000/recs-profile/openapi"]
@@ -426,7 +426,7 @@ services:
         condition: service_healthy
       init_clickhouse:
         condition: service_completed_successfully
-    ports:
+    expose:
       - "8010:8000"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:8000/statistic/openapi"]

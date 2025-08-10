@@ -149,7 +149,7 @@ fill-data-for-checking-extend-async-api:
 
 # Запуск всех сервисов контекста нотификаций
 up-recs-context:
-	docker compose up -d --build kibana embedding-etl recs-profile nl-consumer nginx notification && \
+	docker compose up -d --build kibana embedding-etl recs-profile nl-consumer nginx notification statistic-service && \
 	docker compose up -d --build pg-import && \
 	docker compose logs -f recs-profile
 
